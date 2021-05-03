@@ -1,8 +1,9 @@
 mod infrastructure;
-use infrastructure::register::Register;
+use infrastructure::register::{Item, Register};
 
 fn main() {
-    let r = Register {
-        contents: "unsigned",
-    };
+    let mut r = Register::new();
+    println!("{:?}", r.get());
+    r.set(Item::RegisterNumber(3.14));
+    println!("{:?}", r.get());
 }
