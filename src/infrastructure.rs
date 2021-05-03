@@ -1,4 +1,6 @@
+
 pub mod register {
+    use std::fmt;
     #[derive(Debug)]
     pub enum Item {
         RegisterNumber(f64),
@@ -26,12 +28,29 @@ pub mod register {
 
     #[derive(Debug)]
     pub struct Register {
+        pub name: &'static str,
         pub contents: Item,
     }
 
+    impl fmt::Display for Register {
+        fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+            match self.contents {
+                Item::RegisterNumber(x) => {
+                    write!(f, "name: {}, contents: {}", self.name, x)
+                },
+                Item::RegisterStr(x) => {
+                    write!(f, "name: {}, contents: {}", self.name, x)
+                },
+            }
+        }
+    }
+    
     impl Register {
-        pub fn new() -> Self {
-            Register { contents: Item::RegisterStr("unsigned") }
+        pub fn new(s: &'static str) -> Self {
+            Register { 
+                name: s,
+                contents: Item::RegisterStr("unsigned"),
+            }
         }
         pub fn get(&self) -> &Item {
             &self.contents
@@ -49,17 +68,13 @@ mod test {
 
     #[test]
     fn register_get_works() {
-        let r = Register {
-            contents: Item::RegisterStr("unsigned")
-        };
+        let r = Register::new("Alpha"); 
         assert_eq!(Item::RegisterStr("unsigned"), *r.get());
     }
 
     #[test]
     fn register_set_works() {
-        let mut r = Register {
-            contents: Item::RegisterStr("unsigned"),
-        };
+        let mut r = Register::new("Alpha"); 
         r.set(Item::RegisterStr("apple"));
         assert_eq!(Item::RegisterStr("apple"), *r.get());
     }
