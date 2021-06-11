@@ -1,4 +1,3 @@
-
 pub mod register {
     use std::fmt;
     #[derive(Debug)]
@@ -6,20 +5,16 @@ pub mod register {
         Number(f64),
         Str(&'static str),
     }
-    
+
     impl PartialEq for Item {
         fn eq(&self, other: &Self) -> bool {
             match self {
                 Item::Number(x) => match other {
-                    Item::Number(y) => {
-                        x == y 
-                    },
+                    Item::Number(y) => x == y,
                     _ => false,
                 },
                 Item::Str(x) => match other {
-                    Item::Str(y) => {
-                        x == y
-                    },
+                    Item::Str(y) => x == y,
                     _ => false,
                 },
             }
@@ -37,17 +32,17 @@ pub mod register {
             match self.contents {
                 Item::Number(x) => {
                     write!(f, "name: {}, contents: {}", self.name, x)
-                },
+                }
                 Item::Str(x) => {
                     write!(f, "name: {}, contents: {}", self.name, x)
-                },
+                }
             }
         }
     }
-    
+
     impl Register {
         pub fn new(s: &'static str) -> Self {
-            Register { 
+            Register {
                 name: s,
                 contents: Item::Str("unsigned"),
             }
@@ -63,8 +58,8 @@ pub mod register {
 }
 
 pub mod stack {
-    use std::fmt;
     use super::register::Item;
+    use std::fmt;
     pub struct Stack {
         capacity: usize,
         container: Vec<Item>,
@@ -93,23 +88,31 @@ pub mod stack {
 
     impl fmt::Display for Stack {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-            write!(f, "Depth: {}, top: {:?}", self.container.len(), self.container[self.container.len()-1])
+            write!(
+                f,
+                "Depth: {}, top: {:?}",
+                self.container.len(),
+                self.container[self.container.len() - 1]
+            )
         }
     }
 }
 
 #[cfg(test)]
 mod test {
-    use super::{register::{Item, Register}, stack::Stack};
+    use super::{
+        register::{Item, Register},
+        stack::Stack,
+    };
     #[test]
     fn register_get_works() {
-        let r = Register::new("Alpha"); 
+        let r = Register::new("Alpha");
         assert_eq!(Item::Str("unsigned"), *r.get());
     }
 
     #[test]
     fn register_set_works() {
-        let mut r = Register::new("Alpha"); 
+        let mut r = Register::new("Alpha");
         r.set(Item::Str("apple"));
         assert_eq!(Item::Str("apple"), *r.get());
     }

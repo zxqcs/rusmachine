@@ -2,7 +2,7 @@ mod basic_machine {
     use crate::infrastructure::register::Register;
     use crate::infrastructure::stack::Stack;
     use std::{collections::HashMap, hash::Hash};
-    
+
     pub struct BasicMachine<T> {
         registers: HashMap<&'static str, Register>,
         stack: Stack,
@@ -20,10 +20,8 @@ mod basic_machine {
             self.registers.insert("flag", Register::new("flag"));
         }
 
-        fn initialize_instruction_seq(&mut self) {
+        fn initialize_instruction_seq(&mut self) {}
 
-        }
-        
         pub fn initilize_basic_machine(&mut self) {
             self.initilize_registers();
             self.initilize_stack();
