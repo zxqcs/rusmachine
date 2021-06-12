@@ -5,14 +5,14 @@ pub mod type_system {
         Integer(i32),
         Symbol(&'static str),
         Quote(&'static str),
+        LispString(String),
         Bool(bool),
         Pair(Pair),
+        Nil,
     }
 
     #[derive(Debug, Clone, PartialEq)]
-    pub enum Pair {
-        index(usize),
-        Nil,
+    pub struct Pair {
+        index: usize,
     }
 }
-

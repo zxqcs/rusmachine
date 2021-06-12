@@ -1,27 +1,12 @@
 pub mod register {
+    use crate::representation::type_system::Object;
     use std::fmt;
-    #[derive(Debug)]
+    
+    #[derive(Debug, Clone, PartialEq)]
     pub enum Item {
-        Number(f64),
-        Str(&'static str),
+        index(usize),
+        object(Object),
     }
-
-    impl PartialEq for Item {
-        fn eq(&self, other: &Self) -> bool {
-            match self {
-                Item::Number(x) => match other {
-                    Item::Number(y) => x == y,
-                    _ => false,
-                },
-                Item::Str(x) => match other {
-                    Item::Str(y) => x == y,
-                    _ => false,
-                },
-            }
-        }
-    }
-
-    #[derive(Debug)]
     pub struct Register {
         pub name: &'static str,
         pub contents: Item,
@@ -29,12 +14,12 @@ pub mod register {
 
     impl fmt::Display for Register {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-            match self.contents {
-                Item::Number(x) => {
-                    write!(f, "name: {}, contents: {}", self.name, x)
+            match &self.contents {
+                Item::index(x) => {
+                    write!(f, "name: {}, memory index: {}", self.name, x)
                 }
-                Item::Str(x) => {
-                    write!(f, "name: {}, contents: {}", self.name, x)
+                Item::object(x) => {
+                    write!(f, "name: {}, objects: {:?}", self.name, x)
                 }
             }
         }
@@ -44,7 +29,7 @@ pub mod register {
         pub fn new(s: &'static str) -> Self {
             Register {
                 name: s,
-                contents: Item::Str("unsigned"),
+                contents: Item::object(Object::Quote("unsigned")),
             }
         }
         pub fn get(&self) -> &Item {
@@ -100,28 +85,31 @@ pub mod stack {
 
 #[cfg(test)]
 mod test {
+    use crate::representation::type_system::Object;
+
     use super::{
         register::{Item, Register},
         stack::Stack,
     };
+    
     #[test]
     fn register_get_works() {
         let r = Register::new("Alpha");
-        assert_eq!(Item::Str("unsigned"), *r.get());
+        assert_eq!(Item::object(Object::Quote("unsigned")), *r.get());
     }
 
     #[test]
     fn register_set_works() {
         let mut r = Register::new("Alpha");
-        r.set(Item::Str("apple"));
-        assert_eq!(Item::Str("apple"), *r.get());
+        r.set(Item::object(Object::Quote("apple")));
+        assert_eq!(Item::object(Object::Quote("apple")), *r.get());
     }
 
     #[test]
     fn stack_push_pop() {
         let mut s = Stack::new();
-        s.push(Item::Str("Winter"));
+        s.push(Item::object(Object::Quote("Winter")));
         let item = s.pop().unwrap();
-        assert_eq!(item, Item::Str("Winter"));
+        assert_eq!(item, Item::object(Object::Quote("Winter")));
     }
 }
