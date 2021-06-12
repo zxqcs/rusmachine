@@ -6,6 +6,13 @@ pub mod type_system {
         Symbol(&'static str),
         Quote(&'static str),
         Bool(bool),
+        Pair(Pair),
+    }
+
+    #[derive(Debug, Clone, PartialEq)]
+    pub enum Pair {
+        index(usize),
         Nil,
     }
 }
+

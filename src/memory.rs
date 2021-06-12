@@ -23,9 +23,25 @@ pub mod memory {
             }
         }
 
-        pub fn update(&mut self, item: Object, position: bool, index: usize) {
-            // ture- update car position
-            // false- update cdr position
+        pub fn update(&mut self, message: &'static str, item: Object, index: usize) {
+            let s = Box::new(item);
+            match message {
+                "the_cars" => {
+                    self.the_cars[index] = s;
+                },
+                "the_cdrs" => {
+                    self.the_cdrs[index] = s;        
+                },
+                "new_cars" => {
+                    self.new_cars[index] = s;
+                },
+                "new_cdrs" => {
+                    self.new_cdrs[index] = s;
+                },
+                _ => {
+                    panic!("Unknown Operations!");
+                }
+            }
         }
 
         pub fn flip(&mut self) {
