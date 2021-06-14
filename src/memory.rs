@@ -1,10 +1,10 @@
 pub mod memory {
     use crate::representation::type_system::Object;
     pub struct Memory {
-        the_cars: Vec<Box<Object>>,
-        the_cdrs: Vec<Box<Object>>,
-        new_cars: Vec<Box<Object>>,
-        new_cdrs: Vec<Box<Object>>,
+        pub the_cars: Vec<Box<Object>>,
+        pub the_cdrs: Vec<Box<Object>>,
+        pub new_cars: Vec<Box<Object>>,
+        pub new_cdrs: Vec<Box<Object>>,
     }
 
     impl Memory {

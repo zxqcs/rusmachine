@@ -4,7 +4,7 @@ pub mod register {
 
     #[derive(Debug, Clone, PartialEq)]
     pub enum Item {
-        index(usize),
+        index(usize), // to indicate the position in memory vectors
         object(Object),
     }
     pub struct Register {
