@@ -7,6 +7,7 @@ pub mod register {
         index(usize), // to indicate the position in memory vectors
         object(Object),
     }
+    
     pub struct Register {
         pub name: &'static str,
         pub contents: Item,

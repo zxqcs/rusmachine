@@ -1,4 +1,4 @@
-mod basic_machine;
+mod machine;
 mod infrastructure;
 mod memory;
 mod gc;
