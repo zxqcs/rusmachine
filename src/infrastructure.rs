@@ -4,10 +4,9 @@ pub mod register {
 
     #[derive(Debug, Clone, PartialEq)]
     pub enum Item {
-        index(usize), // to indicate the position in memory vectors
-        object(Object),
+        Object(Object),
     }
-    
+
     pub struct Register {
         pub name: &'static str,
         pub contents: Item,
@@ -15,14 +14,7 @@ pub mod register {
 
     impl fmt::Display for Register {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-            match &self.contents {
-                Item::index(x) => {
-                    write!(f, "name: {}, memory index: {}", self.name, x)
-                }
-                Item::object(x) => {
-                    write!(f, "name: {}, objects: {:?}", self.name, x)
-                }
-            }
+            write!(f, "name: {}, Objects: {:?}", self.name, self.contents)
         }
     }
 
@@ -30,7 +22,7 @@ pub mod register {
         pub fn new(s: &'static str) -> Self {
             Register {
                 name: s,
-                contents: Item::object(Object::Quote("unsigned")),
+                contents: Item::Object(Object::Quote("unsigned")),
             }
         }
         pub fn get(&self) -> &Item {
@@ -96,21 +88,21 @@ mod test {
     #[test]
     fn register_get_works() {
         let r = Register::new("Alpha");
-        assert_eq!(Item::object(Object::Quote("unsigned")), *r.get());
+        assert_eq!(Item::Object(Object::Quote("unsigned")), *r.get());
     }
 
     #[test]
     fn register_set_works() {
         let mut r = Register::new("Alpha");
-        r.set(Item::object(Object::Quote("apple")));
-        assert_eq!(Item::object(Object::Quote("apple")), *r.get());
+        r.set(Item::Object(Object::Quote("apple")));
+        assert_eq!(Item::Object(Object::Quote("apple")), *r.get());
     }
 
     #[test]
     fn stack_push_pop() {
         let mut s = Stack::new();
-        s.push(Item::object(Object::Quote("Winter")));
+        s.push(Item::Object(Object::Quote("Winter")));
         let item = s.pop().unwrap();
-        assert_eq!(item, Item::object(Object::Quote("Winter")));
+        assert_eq!(item, Item::Object(Object::Quote("Winter")));
     }
 }
