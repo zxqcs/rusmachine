@@ -1,6 +1,6 @@
 pub mod memory {
     use crate::representation::type_system::Object;
-    struct Memory {
+    pub struct Memory {
         the_cars: Vec<Box<Object>>,
         the_cdrs: Vec<Box<Object>>,
         new_cars: Vec<Box<Object>>,
@@ -11,9 +11,9 @@ pub mod memory {
         pub fn new(size: usize) -> Self {
             let mut v = Vec::with_capacity(size);
 
-            for i in 0.. size {
+            for i in 0..size {
                 v.push(Box::new(Object::Nil));
-            } 
+            }
 
             Memory {
                 the_cars: v.clone(),
@@ -28,16 +28,16 @@ pub mod memory {
             match message {
                 "the_cars" => {
                     self.the_cars[index] = s;
-                },
+                }
                 "the_cdrs" => {
-                    self.the_cdrs[index] = s;        
-                },
+                    self.the_cdrs[index] = s;
+                }
                 "new_cars" => {
                     self.new_cars[index] = s;
-                },
+                }
                 "new_cdrs" => {
                     self.new_cdrs[index] = s;
-                },
+                }
                 _ => {
                     panic!("Unknown Operations!");
                 }

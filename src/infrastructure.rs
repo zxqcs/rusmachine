@@ -1,7 +1,7 @@
 pub mod register {
     use crate::representation::type_system::Object;
     use std::fmt;
-    
+
     #[derive(Debug, Clone, PartialEq)]
     pub enum Item {
         index(usize),
@@ -91,7 +91,7 @@ mod test {
         register::{Item, Register},
         stack::Stack,
     };
-    
+
     #[test]
     fn register_get_works() {
         let r = Register::new("Alpha");
