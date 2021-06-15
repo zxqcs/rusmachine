@@ -1,6 +1,7 @@
 pub mod basic_machine {
     use crate::infrastructure::register::{Item, Register};
     use crate::infrastructure::stack::Stack;
+    use crate::representation::type_system::Object;
     use std::collections::HashMap;
 
     pub struct BasicMachine {
@@ -51,6 +52,45 @@ pub mod basic_machine {
                 }
                 None => {
                     panic!("No such register in this Machine!");
+                }
+            }
+        }
+
+        pub fn assign_from_one_register_to_another(
+            &mut self,
+            to: &'static str,
+            from: &'static str,
+        ) {
+            let from = self.get_register_contents(from);
+            match from {
+                Some(x) => {
+                    let item = (*x).clone();
+                    self.set_register_contents(to, item);
+                }
+                None => {
+                    panic!("No such registers in this Machie or nothing in this register now!");
+                }
+            }
+        }
+
+        pub fn register_increment_by_one(&mut self, name: &'static str) {
+            match name {
+                "free" | "scan" | "pc" => {
+                    let item = self.get_register_contents(name).unwrap();
+                    match item {
+                        &Item::Object(Object::Index(i)) => {
+                            let item = Item::Object(Object::Index(i + 1));
+                            self.set_register_contents(name, item);
+                        }
+                        _ => {
+                            panic!(
+                                "Not a proper index, panic when running register_increment_by_one!"
+                            );
+                        }
+                    }
+                }
+                _ => {
+                    panic!("Wrong type of Register got incremented!");
                 }
             }
         }

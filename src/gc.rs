@@ -10,12 +10,14 @@ pub mod garbage_collector {
         let mut machine = BasicMachine::new();
         machine.initilize_registers();
         machine.set_register_contents("free", Item::Object(Object::Index(0)));
-        
+
         machine.set_register_contents("scan", Item::Object(Object::Index(0)));
         machine.set_register_contents("old", Item::Object(Object::Index(0)));
-        
-        machine.set_register_contents("relocate_continue", 
-                                           Item::Object(Object::Symbol("reassign-root")));
+
+        machine.set_register_contents(
+            "relocate_continue",
+            Item::Object(Object::Symbol("reassign-root")),
+        );
         relocate_old_result_in_new(&mut machine, &mut memory);
     }
 
@@ -62,14 +64,17 @@ pub mod garbage_collector {
                     machine.set_register_contents("new", item);
                     let label = machine.get_register_contents("relocate_continue").unwrap();
                     where_to_go(label);
-                },
-                _ => {},
+                }
+                _ => {
+                    panic!(
+                        "not a proper forwarding address stored in cdr, 
+                              panic when running already_moved!"
+                    );
+                }
             }
-
         } else {
-            panic!("not a proper Index, panic when running relocate_pair!");
-        } 
-        
+            panic!("not a proper Index in old, panic when running already_moved!");
+        }
     }
 
     fn is_pair(old: &Item, memory: &Memory) -> bool {
