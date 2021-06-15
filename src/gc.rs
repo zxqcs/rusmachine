@@ -10,14 +10,12 @@ pub mod garbage_collector {
         let mut machine = BasicMachine::new();
         machine.initilize_registers();
         machine.set_register_contents("free", Item::Object(Object::Index(0)));
-
+        
         machine.set_register_contents("scan", Item::Object(Object::Index(0)));
         machine.set_register_contents("old", Item::Object(Object::Index(0)));
-
-        machine.set_register_contents(
-            "relocate_continue",
-            Item::Object(Object::Symbol("reassign-root")),
-        );
+        
+        machine.set_register_contents("relocate_continue", 
+                                           Item::Object(Object::Symbol("reassign-root")));
         relocate_old_result_in_new(&mut machine, &mut memory);
     }
 
@@ -46,11 +44,49 @@ pub mod garbage_collector {
             match oldcr {
                 x if *x == BROKEN_HEART => {
                     already_moved(machine, memory);
+                },
+                _ => {
+                    machine.assign_from_one_register_to_another("new", "free");
+                    machine.register_increment_by_one("free");
+
                 }
-                _ => {}
             }
         } else {
             panic!("not a proper Index, panic when running relocate_pair!");
+        }
+    }
+
+    fn perform_memeory_set(machine: &mut BasicMachine, memeory: &mut Memory, block: &'static str,  to: &'static str, item: Object) {
+        match block {
+            "the_cars" => {
+                let index = give_a_location(&machine, to);
+                memeory.the_cars[index] = Box::new(item);
+            },
+            "the_cdrs" => {
+                let index = give_a_location(&machine, to);
+                memeory.the_cdrs[index] = Box::new(item);
+            },
+            "new_cars" => {
+                let index = give_a_location(&machine, to);
+                memeory.new_cars[index] = Box::new(item);
+            },
+            "new_cdrs" => {
+                let index = give_a_location(&machine, to);
+                memeory.new_cdrs[index] = Box::new(item);
+            },
+            _ => {
+                panic!("Not a legal Memeory Block!");
+            },
+        }
+    }
+    
+    fn give_a_location(machine: &BasicMachine, name: &'static str) -> usize {
+        let item = machine.get_register_contents(name).unwrap();
+        
+        if let &Item::Object(Object::Index(i)) = item {
+            i
+        } else {
+            panic!("not a proper Index, panic when running give_a_location!");
         }
     }
 
@@ -64,13 +100,11 @@ pub mod garbage_collector {
                     machine.set_register_contents("new", item);
                     let label = machine.get_register_contents("relocate_continue").unwrap();
                     where_to_go(label);
-                }
-                _ => {
-                    panic!(
-                        "not a proper forwarding address stored in cdr, 
-                              panic when running already_moved!"
-                    );
-                }
+                },
+                _ => { 
+                    panic!("not a proper forwarding address stored in cdr, 
+                              panic when running already_moved!");
+                },
             }
         } else {
             panic!("not a proper Index in old, panic when running already_moved!");

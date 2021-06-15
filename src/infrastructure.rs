@@ -32,6 +32,11 @@ pub mod register {
         pub fn set(&mut self, val: Item) {
             self.contents = val;
         }
+
+        pub fn get_inner_object(&self) -> Object {
+            let Item::Object(x) = &self.contents;
+            (*x).clone()
+        }
     }
 }
 
