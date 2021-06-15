@@ -24,7 +24,7 @@ pub mod garbage_collector {
     fn relocate_old_result_in_new(machine: &mut BasicMachine, memory: &mut Memory) {
         let old = machine.get_register_contents("old").unwrap();
         if is_pair(old, &memory) {
-            relocate_pair(machine, &memory);
+            relocate_pair(machine, memory);
         } else {
             let item = (*old).clone();
             machine.set_register_contents("new", item);
@@ -33,7 +33,7 @@ pub mod garbage_collector {
         }
     }
 
-    fn relocate_pair(machine: &mut BasicMachine, memory: &Memory) {
+    fn relocate_pair(machine: &mut BasicMachine, memory: &mut Memory) {
         let old = machine.get_register_contents("old").unwrap();
 
         if let &Item::Object(Object::Index(i)) = old {
@@ -48,7 +48,20 @@ pub mod garbage_collector {
                 _ => {
                     machine.assign_from_one_register_to_another("new", "free");
                     machine.register_increment_by_one("free");
+                    // copy the car and cdr to new memeory
+                    let item = machine.get_register_inner_object("oldcr").unwrap();
+                    perform_memeory_set(machine, memory, "new_cars", "new", item);
+                    assign_to_register_from_memory(machine, memory, "the_cdrs", "oldcr", "old");
+                    let item = machine.get_register_inner_object("oldcr").unwrap();
+                    perform_memeory_set(machine, memory, "new_cdrs", "new", item);
+                    // construct the broken heart
+                    let item = Object::Symbol("broken_heart");
+                    perform_memeory_set(machine, memory, "the_cars", "old", item);
+                    let item = machine.get_register_inner_object("new").unwrap();
+                    perform_memeory_set(machine, memory, "the_cdrs", "old", item);
+                    let label = machine.get_register_contents("relocate_continue").unwrap();
 
+                    where_to_go(label)
                 }
             }
         } else {
@@ -56,23 +69,49 @@ pub mod garbage_collector {
         }
     }
 
-    fn perform_memeory_set(machine: &mut BasicMachine, memeory: &mut Memory, block: &'static str,  to: &'static str, item: Object) {
+    fn assign_to_register_from_memory(machine: &mut BasicMachine, 
+                                      memory: &Memory, block: &'static str,
+                                      to: &'static str, from: &'static str) {
+        let index = give_a_location(machine, from);
+        let mut x = Item::Object(Object::Nil);
         match block {
             "the_cars" => {
-                let index = give_a_location(&machine, to);
-                memeory.the_cars[index] = Box::new(item);
+                let item = *memory.the_cars[index].clone();
+                x = Item::Object(item);
+            }, 
+            "the_cdrs" => {
+                let item = *memory.the_cdrs[index].clone();
+                x = Item::Object(item);
+            }, 
+            "new_cars" => {
+                let item = *memory.new_cars[index].clone();
+                x = Item::Object(item);
+            }, 
+            "new_cdrs" => {
+                let item = *memory.new_cdrs[index].clone();
+                x = Item::Object(item);
+            }, 
+            _ => {
+                panic!("Not a legal Memeory Block");
+            },
+        }
+        machine.set_register_contents(to, x);
+    }
+
+    fn perform_memeory_set(machine: &mut BasicMachine, memory: &mut Memory, block: &'static str,  to: &'static str, item: Object) {
+        let index = give_a_location(&machine, to);
+        match block {
+            "the_cars" => {
+                memory.the_cars[index] = Box::new(item);
             },
             "the_cdrs" => {
-                let index = give_a_location(&machine, to);
-                memeory.the_cdrs[index] = Box::new(item);
+                memory.the_cdrs[index] = Box::new(item);
             },
             "new_cars" => {
-                let index = give_a_location(&machine, to);
-                memeory.new_cars[index] = Box::new(item);
+                memory.new_cars[index] = Box::new(item);
             },
             "new_cdrs" => {
-                let index = give_a_location(&machine, to);
-                memeory.new_cdrs[index] = Box::new(item);
+                memory.new_cdrs[index] = Box::new(item);
             },
             _ => {
                 panic!("Not a legal Memeory Block!");
