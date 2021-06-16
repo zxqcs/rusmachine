@@ -1,5 +1,6 @@
 pub mod memory {
     use crate::representation::type_system::Object;
+    use std::{fmt::{self, write}, usize};
     pub struct Memory {
         pub the_cars: Vec<Box<Object>>,
         pub the_cdrs: Vec<Box<Object>>,
@@ -51,6 +52,41 @@ pub mod memory {
             temp = self.the_cdrs.clone();
             self.the_cdrs = self.new_cdrs.clone();
             self.new_cdrs = temp;
+        }
+    }
+
+    impl fmt::Display for Memory {
+        fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+            let mut car_item = self.the_cars.iter();
+            let mut cdr_item = self.the_cdrs.iter();
+            let mut new_car_item = self.new_cars.iter();
+            let mut new_cdr_item = self.new_cdrs.iter();
+
+            let mut index: usize = 0; 
+            println!("Begin to display working memory");
+            let mut car = car_item.next();
+            let mut cdr = cdr_item.next();
+            while let Some(x) = car {
+                println!("Column {}", index);
+                index += 1;
+                print!("{:?}\t", *x);  
+                print!("{:?}\n", *(cdr.unwrap()));
+                car = car_item.next();
+                cdr = cdr_item.next();
+            }; 
+            println!("Working Memory Block displayed!");
+
+            let mut new_car = new_car_item.next();
+            let mut new_cdr = new_cdr_item.next();
+            while let Some(x) = new_car {
+                println!("Column {}", index);
+                index += 1;
+                print!("{:?}\t", *x);  
+                print!("{:?}\n", *(new_cdr.unwrap()));
+                new_car = new_car_item.next();
+                new_cdr = new_cdr_item.next();
+            }; 
+            write!(f, "New Memory Block displayed!")
         }
     }
 }
