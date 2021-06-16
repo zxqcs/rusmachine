@@ -67,24 +67,34 @@ pub mod memory {
             let mut car = car_item.next();
             let mut cdr = cdr_item.next();
             while let Some(x) = car {
-                println!("Column {}", index);
-                index += 1;
-                print!("{:?}\t", *x);  
-                print!("{:?}\n", *(cdr.unwrap()));
-                car = car_item.next();
-                cdr = cdr_item.next();
+                match **x {
+                    Object::Nil => break,
+                    _ => {
+                        println!("Column {}", index);
+                        index += 1;
+                        print!("{:?}\t", *x);  
+                        print!("{:?}\n", *(cdr.unwrap()));
+                        car = car_item.next();
+                        cdr = cdr_item.next();
+                    },
+                }
             }; 
             println!("Working Memory Block displayed!");
 
             let mut new_car = new_car_item.next();
             let mut new_cdr = new_cdr_item.next();
             while let Some(x) = new_car {
-                println!("Column {}", index);
-                index += 1;
-                print!("{:?}\t", *x);  
-                print!("{:?}\n", *(new_cdr.unwrap()));
-                new_car = new_car_item.next();
-                new_cdr = new_cdr_item.next();
+                match **x {
+                    Object::Nil => break,
+                    _ => {
+                        println!("Column {}", index);
+                        index += 1;
+                        print!("{:?}\t", *x);  
+                        print!("{:?}\n", *(new_cdr.unwrap()));
+                        new_car = new_car_item.next();
+                        new_cdr = new_cdr_item.next();
+                    },
+                }
             }; 
             write!(f, "New Memory Block displayed!")
         }
