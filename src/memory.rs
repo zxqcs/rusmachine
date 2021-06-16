@@ -53,6 +53,36 @@ pub mod memory {
             self.the_cdrs = self.new_cdrs.clone();
             self.new_cdrs = temp;
         }
+        
+        // fetch a clone of item in ith position of the_cars
+        pub fn car(&self, i: usize) -> Object {
+            let item = &self.the_cars[i];
+            (**item).clone()
+        }
+
+        // fetch a clone of item in ith position of the_cdrs
+        pub fn cdr(&self, i: usize) -> Object {
+            let item = &self.the_cdrs[i];
+            (**item).clone()
+        }
+
+        // fetch a clone of item in ith position of new_cars
+        pub fn new_car(&self, i: usize) -> Object {
+            let item = &self.new_cars[i];
+            (**item).clone()
+        }
+
+        // fetch a clone of item in ith positon of new_cdrs
+        pub fn new_cdr(&self, i: usize) -> Object {
+            let item = &self.new_cars[i];
+            (**item).clone()
+        }
+        // parser and build a Lisp object from memory such as a list or a number
+        // with a root starting at index i 
+        pub fn read(&self, i: usize) {
+            
+
+        }
     }
 
     impl fmt::Display for Memory {
@@ -62,7 +92,7 @@ pub mod memory {
             let mut new_car_item = self.new_cars.iter();
             let mut new_cdr_item = self.new_cdrs.iter();
 
-            let mut index: usize = 0; 
+            let mut index: usize = 0;
             println!("Begin to display working memory");
             let mut car = car_item.next();
             let mut cdr = cdr_item.next();
@@ -72,13 +102,13 @@ pub mod memory {
                     _ => {
                         println!("Column {}", index);
                         index += 1;
-                        print!("{:?}\t", *x);  
+                        print!("{:?}\t", *x);
                         print!("{:?}\n", *(cdr.unwrap()));
                         car = car_item.next();
                         cdr = cdr_item.next();
-                    },
+                    }
                 }
-            }; 
+            }
             println!("Working Memory Block displayed!");
 
             let mut new_car = new_car_item.next();
@@ -89,13 +119,13 @@ pub mod memory {
                     _ => {
                         println!("Column {}", index);
                         index += 1;
-                        print!("{:?}\t", *x);  
+                        print!("{:?}\t", *x);
                         print!("{:?}\n", *(new_cdr.unwrap()));
                         new_car = new_car_item.next();
                         new_cdr = new_cdr_item.next();
-                    },
+                    }
                 }
-            }; 
+            }
             write!(f, "New Memory Block displayed!")
         }
     }

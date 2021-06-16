@@ -197,7 +197,7 @@ pub mod garbage_collector {
     fn where_to_go(machine: &mut BasicMachine, memory: &mut Memory) {
         let label = machine.get_register_contents("relocate_continue").unwrap();
         match label {
-            &Item::Object(Object::Symbol("reassign-root")) => reassign_root(machine,memory),
+            &Item::Object(Object::Symbol("reassign-root")) => reassign_root(machine, memory),
             &Item::Object(Object::Symbol("gc-loop")) => gc_loop(machine, memory),
             &Item::Object(Object::Symbol("gc-flip")) => gc_flip(memory),
             &Item::Object(Object::Symbol("update_car")) => update_car(machine, memory),
