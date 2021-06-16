@@ -46,12 +46,8 @@ pub mod basic_machine {
         pub fn get_register_inner_object(&self, name: &'static str) -> Option<Object> {
             let register = self.registers.get(name);
             match register {
-                Some(x) => {
-                    Some(x.get_inner_object())
-                },
-                None => {
-                    None
-                },
+                Some(x) => Some(x.get_inner_object()),
+                None => None,
             }
         }
 

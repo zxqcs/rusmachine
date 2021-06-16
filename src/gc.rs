@@ -6,21 +6,25 @@ pub mod garbage_collector {
 
     static BROKEN_HEART: Item = Item::Object(Object::Symbol("broken_heart"));
 
-    pub fn garbage_collector(mut memory: &mut Memory) {
-        let mut machine = BasicMachine::new();
+    pub fn garbage_collector(machine: &mut BasicMachine, memory: &mut Memory) {
         machine.initilize_registers();
         machine.set_register_contents("free", Item::Object(Object::Index(0)));
-        
+
         machine.set_register_contents("scan", Item::Object(Object::Index(0)));
         machine.set_register_contents("old", Item::Object(Object::Index(0)));
-        
-        machine.set_register_contents("relocate_continue", 
-                                           Item::Object(Object::Symbol("reassign-root")));
-        relocate_old_result_in_new(&mut machine, &mut memory);
+
+        machine.set_register_contents(
+            "relocate_continue",
+            Item::Object(Object::Symbol("reassign-root")),
+        );
+        relocate_old_result_in_new(machine, memory);
     }
 
-    fn reassign_root() {}
-    fn gc_loop() {}
+    fn reassign_root(machine: &mut BasicMachine, memory: &mut Memory) {
+        machine.assign_from_one_register_to_another("root", "new");
+        gc_loop(machine, memory);
+    }
+
     fn relocate_old_result_in_new(machine: &mut BasicMachine, memory: &mut Memory) {
         let old = machine.get_register_contents("old").unwrap();
         if is_pair(old, &memory) {
@@ -28,8 +32,7 @@ pub mod garbage_collector {
         } else {
             let item = (*old).clone();
             machine.set_register_contents("new", item);
-            let label = machine.get_register_contents("relocate_continue").unwrap();
-            where_to_go(label);
+            where_to_go(machine, memory);
         }
     }
 
@@ -44,7 +47,7 @@ pub mod garbage_collector {
             match oldcr {
                 x if *x == BROKEN_HEART => {
                     already_moved(machine, memory);
-                },
+                }
                 _ => {
                     machine.assign_from_one_register_to_another("new", "free");
                     machine.register_increment_by_one("free");
@@ -61,7 +64,7 @@ pub mod garbage_collector {
                     perform_memeory_set(machine, memory, "the_cdrs", "old", item);
                     let label = machine.get_register_contents("relocate_continue").unwrap();
 
-                    where_to_go(label)
+                    where_to_go(machine, memory);
                 }
             }
         } else {
@@ -69,59 +72,53 @@ pub mod garbage_collector {
         }
     }
 
-    fn assign_to_register_from_memory(machine: &mut BasicMachine, 
-                                      memory: &Memory, block: &'static str,
-                                      to: &'static str, from: &'static str) {
+    fn assign_to_register_from_memory(
+        machine: &mut BasicMachine,
+        memory: &Memory,
+        block: &'static str,
+        to: &'static str,
+        from: &'static str,
+    ) {
         let index = give_a_location(machine, from);
         let mut x = Item::Object(Object::Nil);
         match block {
             "the_cars" => {
                 let item = *memory.the_cars[index].clone();
                 x = Item::Object(item);
-            }, 
+            }
             "the_cdrs" => {
                 let item = *memory.the_cdrs[index].clone();
                 x = Item::Object(item);
-            }, 
+            }
             "new_cars" => {
                 let item = *memory.new_cars[index].clone();
                 x = Item::Object(item);
-            }, 
+            }
             "new_cdrs" => {
                 let item = *memory.new_cdrs[index].clone();
                 x = Item::Object(item);
-            }, 
+            }
             _ => {
                 panic!("Not a legal Memeory Block");
-            },
+            }
         }
         machine.set_register_contents(to, x);
     }
 
-    fn perform_memeory_set(machine: &mut BasicMachine, memory: &mut Memory, block: &'static str,  to: &'static str, item: Object) {
+    fn perform_memeory_set(
+        machine: &mut BasicMachine,
+        memory: &mut Memory,
+        block: &'static str,
+        to: &'static str,
+        item: Object,
+    ) {
         let index = give_a_location(&machine, to);
-        match block {
-            "the_cars" => {
-                memory.the_cars[index] = Box::new(item);
-            },
-            "the_cdrs" => {
-                memory.the_cdrs[index] = Box::new(item);
-            },
-            "new_cars" => {
-                memory.new_cars[index] = Box::new(item);
-            },
-            "new_cdrs" => {
-                memory.new_cdrs[index] = Box::new(item);
-            },
-            _ => {
-                panic!("Not a legal Memeory Block!");
-            },
-        }
+        memory.update(block, item, index);
     }
-    
+
     fn give_a_location(machine: &BasicMachine, name: &'static str) -> usize {
         let item = machine.get_register_contents(name).unwrap();
-        
+
         if let &Item::Object(Object::Index(i)) = item {
             i
         } else {
@@ -129,7 +126,7 @@ pub mod garbage_collector {
         }
     }
 
-    fn already_moved(machine: &mut BasicMachine, memory: &Memory) {
+    fn already_moved(machine: &mut BasicMachine, memory: &mut Memory) {
         let old = machine.get_register_contents("old").unwrap();
         if let &Item::Object(Object::Index(i)) = old {
             let item = *memory.the_cdrs[i].clone();
@@ -138,12 +135,14 @@ pub mod garbage_collector {
                     let item = Item::Object(Object::Index(i));
                     machine.set_register_contents("new", item);
                     let label = machine.get_register_contents("relocate_continue").unwrap();
-                    where_to_go(label);
-                },
-                _ => { 
-                    panic!("not a proper forwarding address stored in cdr, 
-                              panic when running already_moved!");
-                },
+                    where_to_go(machine, memory);
+                }
+                _ => {
+                    panic!(
+                        "not a proper forwarding address stored in cdr, 
+                              panic when running already_moved!"
+                    );
+                }
             }
         } else {
             panic!("not a proper Index in old, panic when running already_moved!");
@@ -162,15 +161,47 @@ pub mod garbage_collector {
         }
     }
 
-    fn update_car() {}
-    fn update_cdr() {}
-    fn gc_flip() {}
+    fn update_car(machine: &mut BasicMachine, memory: &mut Memory) {
+        let item = machine.get_register_inner_object("new").unwrap();
+        perform_memeory_set(machine, memory, "new_cars", "scan", item);
+        assign_to_register_from_memory(machine, memory, "new_cdrs", "old", "scan");
+        let label = Item::Object(Object::Symbol("update_cdr"));
+        machine.set_register_contents("relocate_continue", label);
+        relocate_old_result_in_new(machine, memory);
+    }
 
-    fn where_to_go(label: &Item) {
+    fn update_cdr(machine: &mut BasicMachine, memory: &mut Memory) {
+        let item = machine.get_register_inner_object("new").unwrap();
+        perform_memeory_set(machine, memory, "new_cdrs", "scan", item);
+        machine.register_increment_by_one("scan");
+        gc_loop(machine, memory);
+    }
+
+    fn gc_loop(machine: &mut BasicMachine, memory: &mut Memory) {
+        let index_1 = machine.get_register_inner_object("scan").unwrap();
+        let index_2 = machine.get_register_inner_object("free").unwrap();
+        if index_1 == index_2 {
+            gc_flip(memory);
+        } else {
+            assign_to_register_from_memory(machine, memory, "new_cars", "old", "scan");
+            let item = Item::Object(Object::Symbol("update_car"));
+            machine.set_register_contents("relocate_continue", item);
+            relocate_old_result_in_new(machine, memory);
+        }
+    }
+
+    fn gc_flip(memory: &mut Memory) {
+        memory.flip();
+    }
+
+    fn where_to_go(machine: &mut BasicMachine, memory: &mut Memory) {
+        let label = machine.get_register_contents("relocate_continue").unwrap();
         match label {
-            &Item::Object(Object::Symbol("reassign-root")) => reassign_root(),
-            &Item::Object(Object::Symbol("gc-loop")) => gc_loop(),
-            &Item::Object(Object::Symbol("gc-flip")) => gc_flip(),
+            &Item::Object(Object::Symbol("reassign-root")) => reassign_root(machine,memory),
+            &Item::Object(Object::Symbol("gc-loop")) => gc_loop(machine, memory),
+            &Item::Object(Object::Symbol("gc-flip")) => gc_flip(memory),
+            &Item::Object(Object::Symbol("update_car")) => update_car(machine, memory),
+            &Item::Object(Object::Symbol("update_cdr")) => update_cdr(machine, memory),
             _ => panic!("not a proper label!"),
         }
     }
