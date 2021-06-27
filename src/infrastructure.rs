@@ -1,5 +1,6 @@
 pub mod register {
     use crate::representation::type_system::Object;
+    use crate::memory::memory::Memory;
     use std::fmt;
 
     #[derive(Debug, Clone, PartialEq)]
@@ -37,6 +38,20 @@ pub mod register {
             let Item::Object(x) = &self.contents;
             (*x).clone()
         }
+
+        pub fn read(&self, memory: &Memory) -> &'static str {
+
+        }
+
+        pub fn car(&self, memory: &Memory) -> usize {
+
+        }
+
+        pub fn cdr(&self, memory: &Memory) -> usize {
+
+        }
+
+       
     }
 }
 

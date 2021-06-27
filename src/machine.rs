@@ -3,6 +3,7 @@ pub mod basic_machine {
     use crate::infrastructure::stack::Stack;
     use crate::representation::type_system::Object;
     use std::collections::HashMap;
+    use crate::memory::memory::Memory;
 
     pub struct BasicMachine {
         registers: HashMap<&'static str, Register>,
@@ -101,6 +102,31 @@ pub mod basic_machine {
                     panic!("Wrong type of Register got incremented!");
                 }
             }
+        }
+
+        // assign the car part of list of register y to register x 
+        pub fn assign_car(&mut self, x: &'static str, y: &'static str, memory: &mut Memory) {
+
+        }
+
+        // assign the cdr part of list of register y to register x
+        pub fn assign_cdr(&mut self, x: &'static str, y: &'static str, memory: &mut Memory) {
+
+        }
+
+        // change the car part of list of register x to register y
+        pub fn set_car(&mut self, x: &'static str, y: &'static str, memory: &mut Memory) {
+
+        }
+
+        // change the cdr part of list of register x to register y
+        pub fn set_cdr(&mut self, x: &'static str, y: &'static str, memory: &mut Memory) {
+
+        }
+
+        // build a new list from register y and register z, then assign this new list to register x
+        pub fn cons(&mut self, x: &'static str, y: &'static str, z: &'static str, memory: &mut Memory) {
+
         }
     }
 }
