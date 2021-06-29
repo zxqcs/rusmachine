@@ -5,10 +5,10 @@ pub mod type_system {
     pub enum Object {
         Nummber(f32),
         Integer(i32),
-        Index(usize),
         Symbol(&'static str),
         Quote(&'static str),
         LispString(String),
+        Index(usize),
         Bool(bool),
         Pair(Pair),
         Nil,
@@ -17,5 +17,17 @@ pub mod type_system {
     #[derive(Debug, Clone, PartialEq)]
     pub struct Pair {
         index: usize,
+    }
+
+    impl Pair {
+        pub fn index(&self) -> usize {
+            self.index
+        }
+
+        pub fn new(i: usize) -> Self {
+            Pair {
+                index: i,
+            }
+        }
     }
 }

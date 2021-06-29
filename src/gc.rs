@@ -8,10 +8,10 @@ pub mod garbage_collector {
 
     pub fn garbage_collector(machine: &mut BasicMachine, memory: &mut Memory) {
         machine.initilize_registers();
-        machine.set_register_contents("free", Item::Object(Object::Index(0)));
+        machine.set_register_contents("free", Item::Index(0));
 
-        machine.set_register_contents("scan", Item::Object(Object::Index(0)));
-        machine.set_register_contents("old", Item::Object(Object::Index(0)));
+        machine.set_register_contents("scan", Item::Index(0));
+        machine.set_register_contents("old", Item::Index(0));
 
         machine.set_register_contents(
             "relocate_continue",
@@ -39,7 +39,7 @@ pub mod garbage_collector {
     fn relocate_pair(machine: &mut BasicMachine, memory: &mut Memory) {
         let old = machine.get_register_contents("old").unwrap();
 
-        if let &Item::Object(Object::Index(i)) = old {
+        if let &Item::Index(i) = old {
             let item = *memory.the_cars[i].clone();
             machine.set_register_contents("oldcr", Item::Object(item));
             let oldcr = machine.get_register_contents("oldcr").unwrap();
@@ -119,7 +119,7 @@ pub mod garbage_collector {
     fn give_a_location(machine: &BasicMachine, name: &'static str) -> usize {
         let item = machine.get_register_contents(name).unwrap();
 
-        if let &Item::Object(Object::Index(i)) = item {
+        if let &Item::Index(i) = item {
             i
         } else {
             panic!("not a proper Index, panic when running give_a_location!");
@@ -128,7 +128,7 @@ pub mod garbage_collector {
 
     fn already_moved(machine: &mut BasicMachine, memory: &mut Memory) {
         let old = machine.get_register_contents("old").unwrap();
-        if let &Item::Object(Object::Index(i)) = old {
+        if let &Item::Index(i) = old {
             let item = *memory.the_cdrs[i].clone();
             match item {
                 Object::Index(i) => {

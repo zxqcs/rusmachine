@@ -36,6 +36,10 @@ pub mod basic_machine {
             machine
         }
 
+        pub fn get_register(&self, name: &'static str) -> Option<&Register> {
+            self.registers.get(name)
+        }
+
         pub fn get_register_contents(&self, name: &'static str) -> Option<&Item> {
             let item = self.registers.get(name).clone();
             match item {
@@ -87,8 +91,8 @@ pub mod basic_machine {
                 "free" | "scan" | "pc" => {
                     let item = self.get_register_contents(name).unwrap();
                     match item {
-                        &Item::Object(Object::Index(i)) => {
-                            let item = Item::Object(Object::Index(i + 1));
+                        &Item::Index((i)) => {
+                            let item = Item::Index(i + 1);
                             self.set_register_contents(name, item);
                         }
                         _ => {

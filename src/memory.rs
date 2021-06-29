@@ -27,16 +27,16 @@ pub mod memory {
         pub fn update(&mut self, message: &'static str, item: Object, index: usize) {
             let s = Box::new(item);
             match message {
-                "the_cars" => {
+                "car" => {
                     self.the_cars[index] = s;
                 }
-                "the_cdrs" => {
+                "cdr" => {
                     self.the_cdrs[index] = s;
                 }
-                "new_cars" => {
+                "new_car" => {
                     self.new_cars[index] = s;
                 }
-                "new_cdrs" => {
+                "new_cdr" => {
                     self.new_cdrs[index] = s;
                 }
                 _ => {
@@ -76,12 +76,6 @@ pub mod memory {
         pub fn new_cdr(&self, i: usize) -> Object {
             let item = &self.new_cars[i];
             (**item).clone()
-        }
-        // parser and build a Lisp object from memory such as a list or a number
-        // with a root starting at index i 
-        pub fn read(&self, i: usize) {
-            
-
         }
     }
 
