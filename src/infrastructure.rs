@@ -1,17 +1,10 @@
 pub mod register {
     use crate::representation::type_system::{Pair, Object};
     use crate::memory::memory::Memory;
-    use std::{fmt, mem, usize};
-
-    #[derive(Debug, Clone, PartialEq)]
-    pub enum Item {
-        Object(Object),
-        Index(usize), // a pointe to the List Memory
-    }
-
+    use std::{fmt, usize};
     pub struct Register {
         pub name: &'static str,
-        pub contents: Item,
+        pub contents: Object,
     }
 
     impl fmt::Display for Register {
@@ -24,28 +17,20 @@ pub mod register {
         pub fn new(s: &'static str) -> Self {
             Register {
                 name: s,
-                contents: Item::Object(Object::Quote("unsigned")),
+                contents: Object::Quote("unsigned"),
             }
         }
-        pub fn get(&self) -> &Item {
+        pub fn get(&self) -> &Object {
             &self.contents
         }
 
-        pub fn set(&mut self, val: Item) {
+        pub fn set(&mut self, val: Object) {
             self.contents = val;
         }
 
-        pub fn get_inner_object(&self) -> Object {
-            if let Item::Object(x) = &self.contents {
-                (*x).clone()
-            } else {
-                panic!("not a porper Object in this register!");
-            }
-        }
-
         pub fn get_memory_index(&self) -> usize {
-            if let Item::Index(x) = &self.contents {
-                *x
+            if let &Object::Index(x) = &self.contents {
+                x
             } else {
                 panic!("not a proper Index for Memory in this register!");
             }
@@ -93,7 +78,7 @@ pub mod register {
 
         match cdr_item {
             Object::Nil => {
-                print!(") ");
+                print!(")");
             }
             Object::Pair(x) => {
                 let car_item = &memory.car(x.index());
@@ -108,11 +93,11 @@ pub mod register {
 } 
 
 pub mod stack {
-    use super::register::Item;
     use std::fmt;
+    use crate::representation::type_system::Object;
     pub struct Stack {
         capacity: usize,
-        container: Vec<Item>,
+        container: Vec<Object>,
     }
 
     impl Stack {
@@ -123,7 +108,7 @@ pub mod stack {
             }
         }
 
-        pub fn push(&mut self, item: Item) {
+        pub fn push(&mut self, item: Object) {
             if self.container.len() < self.capacity {
                 self.container.push(item);
             } else {
@@ -131,7 +116,7 @@ pub mod stack {
             }
         }
 
-        pub fn pop(&mut self) -> Option<Item> {
+        pub fn pop(&mut self) -> Option<Object> {
             self.container.pop()
         }
     }
@@ -154,28 +139,28 @@ mod test {
     use crate::representation::type_system::Object;
 
     use super::{
-        register::{Item, Register},
+        register::Register,
         stack::Stack,
     };
 
     #[test]
     fn register_get_works() {
         let r = Register::new("Alpha");
-        assert_eq!(Item::Object(Object::Quote("unsigned")), *r.get());
+        assert_eq!(Object::Quote("unsigned"), *r.get());
     }
 
     #[test]
     fn register_set_works() {
         let mut r = Register::new("Alpha");
-        r.set(Item::Object(Object::Quote("apple")));
-        assert_eq!(Item::Object(Object::Quote("apple")), *r.get());
+        r.set(Object::Quote("apple"));
+        assert_eq!(Object::Quote("apple"), *r.get());
     }
 
     #[test]
     fn stack_push_pop() {
         let mut s = Stack::new();
-        s.push(Item::Object(Object::Quote("Winter")));
+        s.push(Object::Quote("Winter"));
         let item = s.pop().unwrap();
-        assert_eq!(item, Item::Object(Object::Quote("Winter")));
+        assert_eq!(item, Object::Quote("Winter"));
     }
 }

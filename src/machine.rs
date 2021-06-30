@@ -1,5 +1,5 @@
 pub mod basic_machine {
-    use crate::infrastructure::register::{Item, Register};
+    use crate::infrastructure::register::Register;
     use crate::infrastructure::stack::Stack;
     use crate::representation::type_system::Object;
     use std::collections::HashMap;
@@ -40,7 +40,7 @@ pub mod basic_machine {
             self.registers.get(name)
         }
 
-        pub fn get_register_contents(&self, name: &'static str) -> Option<&Item> {
+        pub fn get_register_contents_ref(&self, name: &'static str) -> Option<&Object> {
             let item = self.registers.get(name).clone();
             match item {
                 Some(x) => Some(x.get()),
@@ -48,15 +48,15 @@ pub mod basic_machine {
             }
         }
 
-        pub fn get_register_inner_object(&self, name: &'static str) -> Option<Object> {
+        pub fn get_register_contents(&self, name: &'static str) -> Option<Object> {
             let register = self.registers.get(name);
             match register {
-                Some(x) => Some(x.get_inner_object()),
+                Some(x) => Some((*x.get()).clone()),
                 None => None,
             }
         }
 
-        pub fn set_register_contents(&mut self, name: &'static str, item: Item) {
+        pub fn set_register_contents(&mut self, name: &'static str, item: Object) {
             let register = self.registers.get_mut(name);
 
             match register {
@@ -77,8 +77,7 @@ pub mod basic_machine {
             let from = self.get_register_contents(from);
             match from {
                 Some(x) => {
-                    let item = (*x).clone();
-                    self.set_register_contents(to, item);
+                    self.set_register_contents(to, x);
                 }
                 None => {
                     panic!("No such registers in this Machie or nothing in this register now!");
@@ -89,10 +88,10 @@ pub mod basic_machine {
         pub fn register_increment_by_one(&mut self, name: &'static str) {
             match name {
                 "free" | "scan" | "pc" => {
-                    let item = self.get_register_contents(name).unwrap();
+                    let item = self.get_register_contents_ref(name).unwrap();
                     match item {
-                        &Item::Index((i)) => {
-                            let item = Item::Index(i + 1);
+                        &Object::Index((i)) => {
+                            let item = Object::Index(i + 1);
                             self.set_register_contents(name, item);
                         }
                         _ => {

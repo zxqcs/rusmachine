@@ -5,7 +5,7 @@ mod memory;
 mod representation;
 
 use gc::garbage_collector::garbage_collector;
-use infrastructure::{register::Item, stack::Stack};
+use infrastructure::{register, stack::Stack};
 use memory::memory::Memory;
 use representation::type_system::{Pair, Object};
 use crate::machine::basic_machine::BasicMachine;
@@ -13,7 +13,7 @@ use crate::machine::basic_machine::BasicMachine;
 fn main() {
     let mut m = Memory::new(8);
     let car_0 = Object::Pair(Pair::new(1));
-    let cdr_0 = Object::Pair(Pair::new(2));
+    let cdr_0 = Object::Pair(Pair::new(3));
     let car_1 = Object::Integer(1);
     let cdr_1 = Object::Pair(Pair::new(2));
     let car_2 = Object::Integer(2);
@@ -47,7 +47,7 @@ fn main() {
     println!("{}", m);
     let mut machine = BasicMachine::new();
     machine.initilize_registers();
-    let item = Item::Index(0);
+    let item = Object::Index(0);
     machine.set_register_contents("root", item);
     let reg = machine.get_register("root").unwrap();
     reg.print_list(&m);
