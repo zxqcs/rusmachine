@@ -1,6 +1,9 @@
 pub mod memory {
     use crate::representation::type_system::Object;
-    use std::{fmt::{self, write}, usize};
+    use std::{
+        fmt::{self, write},
+        usize,
+    };
     pub struct Memory {
         pub the_cars: Vec<Box<Object>>,
         pub the_cdrs: Vec<Box<Object>>,
@@ -53,7 +56,7 @@ pub mod memory {
             self.the_cdrs = self.new_cdrs.clone();
             self.new_cdrs = temp;
         }
-        
+
         // fetch a clone of item in ith position of the_cars
         pub fn car(&self, i: usize) -> Object {
             let item = &self.the_cars[i];

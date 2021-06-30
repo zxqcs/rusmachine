@@ -3,12 +3,13 @@ mod infrastructure;
 mod machine;
 mod memory;
 mod representation;
+mod parser;
 
+use crate::machine::basic_machine::BasicMachine;
 use gc::garbage_collector::garbage_collector;
 use infrastructure::{register, stack::Stack};
 use memory::memory::Memory;
-use representation::type_system::{Pair, Object};
-use crate::machine::basic_machine::BasicMachine;
+use representation::type_system::{Object, Pair};
 
 fn main() {
     let mut m = Memory::new(8);

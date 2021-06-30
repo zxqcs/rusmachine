@@ -4,8 +4,6 @@ pub mod garbage_collector {
     use crate::memory::memory::Memory;
     use crate::representation::type_system::Object;
 
-    static BROKEN_HEART: Object = Object::Symbol("broken_heart");
-
     pub fn garbage_collector(machine: &mut BasicMachine, memory: &mut Memory) {
         machine.initilize_registers();
         machine.set_register_contents("free", Object::Index(0));
@@ -13,10 +11,7 @@ pub mod garbage_collector {
         machine.set_register_contents("scan", Object::Index(0));
         machine.set_register_contents("old", Object::Index(0));
 
-        machine.set_register_contents(
-            "relocate_continue",
-            Object::Symbol("reassign-root"),
-        );
+        machine.set_register_contents("relocate_continue", Object::Symbol("reassign-root".to_string()));
         relocate_old_result_in_new(machine, memory);
     }
 
@@ -36,6 +31,8 @@ pub mod garbage_collector {
     }
 
     fn relocate_pair(machine: &mut BasicMachine, memory: &mut Memory) {
+        let BROKEN_HEART = Object::Symbol("broken_heart".to_string()); 
+
         let old = machine.get_register_contents_ref("old").unwrap();
 
         if let &Object::Index(i) = old {
@@ -52,15 +49,14 @@ pub mod garbage_collector {
                     machine.register_increment_by_one("free");
                     // copy the car and cdr to new memeory
                     let item = machine.get_register_contents("oldcr").unwrap();
-                    perform_memeory_set(machine, memory, "new_cars", "new", item);
+                    perform_memeory_set(machine, memory, "new_car", "new", item);
                     assign_to_register_from_memory(machine, memory, "the_cdrs", "oldcr", "old");
                     let item = machine.get_register_contents("oldcr").unwrap();
-                    perform_memeory_set(machine, memory, "new_cdrs", "new", item);
+                    perform_memeory_set(machine, memory, "new_cdr", "new", item);
                     // construct the broken heart
-                    let item = Object::Symbol("broken_heart");
-                    perform_memeory_set(machine, memory, "the_cars", "old", item);
+                    perform_memeory_set(machine, memory, "car", "old", BROKEN_HEART);
                     let item = machine.get_register_contents("new").unwrap();
-                    perform_memeory_set(machine, memory, "the_cdrs", "old", item);
+                    perform_memeory_set(machine, memory, "cdr", "old", item);
                     let label = machine.get_register_contents("relocate_continue").unwrap();
 
                     where_to_go(machine, memory);
@@ -162,9 +158,9 @@ pub mod garbage_collector {
 
     fn update_car(machine: &mut BasicMachine, memory: &mut Memory) {
         let item = machine.get_register_contents("new").unwrap();
-        perform_memeory_set(machine, memory, "new_cars", "scan", item);
-        assign_to_register_from_memory(machine, memory, "new_cdrs", "old", "scan");
-        let label = Object::Symbol("update_cdr");
+        perform_memeory_set(machine, memory, "new_car", "scan", item);
+        assign_to_register_from_memory(machine, memory, "new_cdr", "old", "scan");
+        let label = Object::Symbol("update_cdr".to_string());
         machine.set_register_contents("relocate_continue", label);
         relocate_old_result_in_new(machine, memory);
     }
@@ -183,7 +179,7 @@ pub mod garbage_collector {
             gc_flip(memory);
         } else {
             assign_to_register_from_memory(machine, memory, "new_cars", "old", "scan");
-            let item = Object::Symbol("update_car");
+            let item = Object::Symbol("update_car".to_string());
             machine.set_register_contents("relocate_continue", item);
             relocate_old_result_in_new(machine, memory);
         }
@@ -194,13 +190,22 @@ pub mod garbage_collector {
     }
 
     fn where_to_go(machine: &mut BasicMachine, memory: &mut Memory) {
-        let label = machine.get_register_contents_ref("relocate_continue").unwrap();
+        let label = machine
+            .get_register_contents_ref("relocate_continue")
+            .unwrap();
+
+        let label_one = Object::Symbol("reassign-root".to_string());
+        let label_two = Object::Symbol("gc-loop".to_string());
+        let label_three = Object::Symbol("gc_flip".to_string());
+        let label_four = Object::Symbol("update_car".to_string());
+        let label_five = Object::Symbol("update_cdr".to_string());
+        
         match label {
-            &Object::Symbol("reassign-root") => reassign_root(machine, memory),
-            &Object::Symbol("gc-loop") => gc_loop(machine, memory),
-            &Object::Symbol("gc-flip") => gc_flip(memory),
-            &Object::Symbol("update_car") => update_car(machine, memory),
-            &Object::Symbol("update_cdr") => update_cdr(machine, memory),
+            label_one => reassign_root(machine, memory),
+            label_two => gc_loop(machine, memory),
+            label_three => gc_flip(memory),
+            label_four => update_car(machine, memory),
+            label_five => update_cdr(machine, memory),
             _ => panic!("not a proper label!"),
         }
     }

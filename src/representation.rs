@@ -5,8 +5,8 @@ pub mod type_system {
     pub enum Object {
         Nummber(f32),
         Integer(i32),
-        Symbol(&'static str),
-        Quote(&'static str),
+        Symbol(String),
+        Quote(String),
         LispString(String),
         Index(usize),
         Bool(bool),
@@ -25,9 +25,7 @@ pub mod type_system {
         }
 
         pub fn new(i: usize) -> Self {
-            Pair {
-                index: i,
-            }
+            Pair { index: i }
         }
     }
 }

@@ -1,9 +1,9 @@
 pub mod basic_machine {
     use crate::infrastructure::register::Register;
     use crate::infrastructure::stack::Stack;
+    use crate::memory::memory::Memory;
     use crate::representation::type_system::Object;
     use std::collections::HashMap;
-    use crate::memory::memory::Memory;
 
     pub struct BasicMachine {
         registers: HashMap<&'static str, Register>,
@@ -56,6 +56,7 @@ pub mod basic_machine {
             }
         }
 
+        // set a Oject directly in some Register
         pub fn set_register_contents(&mut self, name: &'static str, item: Object) {
             let register = self.registers.get_mut(name);
 
@@ -67,6 +68,13 @@ pub mod basic_machine {
                     panic!("No such register in this Machine!");
                 }
             }
+        }
+
+        // set a list in memory from a str and return a index to some register
+        // for example, let s = "(1 (2 3))";
+        // set s in memory and return the beginning index, such as, 3 to Register root
+        pub fn set_register_as_in_memory(&mut self, name: &'static str, item: &'static str) {
+
         }
 
         pub fn assign_from_one_register_to_another(
@@ -90,7 +98,7 @@ pub mod basic_machine {
                 "free" | "scan" | "pc" => {
                     let item = self.get_register_contents_ref(name).unwrap();
                     match item {
-                        &Object::Index((i)) => {
+                        &Object::Index(i) => {
                             let item = Object::Index(i + 1);
                             self.set_register_contents(name, item);
                         }
@@ -107,7 +115,7 @@ pub mod basic_machine {
             }
         }
 
-        // assign the car part of list of register y to register x 
+        // assign the car part of list of register y to register x
         pub fn assign_car(&mut self, x: &'static str, y: &'static str, memory: &mut Memory) {
 
         }
@@ -124,12 +132,17 @@ pub mod basic_machine {
 
         // change the cdr part of list of register x to register y
         pub fn set_cdr(&mut self, x: &'static str, y: &'static str, memory: &mut Memory) {
-
+            
         }
 
         // build a new list from register y and register z, then assign this new list to register x
-        pub fn cons(&mut self, x: &'static str, y: &'static str, z: &'static str, memory: &mut Memory) {
-
+        pub fn cons(
+            &mut self,
+            x: &'static str,
+            y: &'static str,
+            z: &'static str,
+            memory: &mut Memory,
+        ) {
         }
     }
 }

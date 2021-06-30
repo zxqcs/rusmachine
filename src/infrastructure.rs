@@ -1,6 +1,6 @@
 pub mod register {
-    use crate::representation::type_system::{Pair, Object};
     use crate::memory::memory::Memory;
+    use crate::representation::type_system::{Object, Pair};
     use std::{fmt, usize};
     pub struct Register {
         pub name: &'static str,
@@ -17,7 +17,7 @@ pub mod register {
         pub fn new(s: &'static str) -> Self {
             Register {
                 name: s,
-                contents: Object::Quote("unsigned"),
+                contents: Object::Quote("unsigned".to_string()),
             }
         }
         pub fn get(&self) -> &Object {
@@ -47,21 +47,21 @@ pub mod register {
         }
 
         pub fn car(&self, memory: &Memory) -> Object {
-            let  i = self.get_memory_index(); 
-                memory.car(i)
-        } 
-       
+            let i = self.get_memory_index();
+            memory.car(i)
+        }
+
         pub fn cdr(&self, memory: &Memory) -> Object {
-            let  i = self.get_memory_index(); 
-                memory.cdr(i)
-        } 
+            let i = self.get_memory_index();
+            memory.cdr(i)
+        }
     }
 
     fn print_list_iter(car_item: &Object, cdr_item: &Object, memory: &Memory) {
         match car_item {
-            Object::Bool(x) => print!("{} ", *x), 
-            Object::Integer(x) => print!("{} ", *x), 
-            Object::LispString(x) => print!("{} ",*x),
+            Object::Bool(x) => print!("{} ", *x),
+            Object::Integer(x) => print!("{} ", *x),
+            Object::LispString(x) => print!("{} ", *x),
             Object::Nummber(x) => print!("{} ", *x),
             Object::Quote(x) => print!("{} ", *x),
             Object::Symbol(x) => print!("{} ", *x),
@@ -70,10 +70,10 @@ pub mod register {
                 let car_item = &memory.car(x.index());
                 let cdr_item = &memory.cdr(x.index());
                 print_list_iter(car_item, cdr_item, memory);
-            },
+            }
             _ => {
                 panic!("not a proper object in car position of A Lisp List!");
-            }, 
+            }
         }
 
         match cdr_item {
@@ -84,17 +84,17 @@ pub mod register {
                 let car_item = &memory.car(x.index());
                 let cdr_item = &memory.cdr(x.index());
                 print_list_iter(car_item, cdr_item, memory);
-            },
+            }
             _ => {
                 panic!("not a proper object in cdr position of A Lisp List!");
-            },
+            }
         }
     }
-} 
+}
 
 pub mod stack {
-    use std::fmt;
     use crate::representation::type_system::Object;
+    use std::fmt;
     pub struct Stack {
         capacity: usize,
         container: Vec<Object>,
@@ -138,29 +138,26 @@ mod test {
     use crate::memory::memory::Memory;
     use crate::representation::type_system::Object;
 
-    use super::{
-        register::Register,
-        stack::Stack,
-    };
+    use super::{register::Register, stack::Stack};
 
     #[test]
     fn register_get_works() {
         let r = Register::new("Alpha");
-        assert_eq!(Object::Quote("unsigned"), *r.get());
+        assert_eq!(Object::Quote("unsigned".to_string()), *r.get());
     }
 
     #[test]
     fn register_set_works() {
         let mut r = Register::new("Alpha");
-        r.set(Object::Quote("apple"));
-        assert_eq!(Object::Quote("apple"), *r.get());
+        r.set(Object::Quote("apple".to_string()));
+        assert_eq!(Object::Quote("apple".to_string()), *r.get());
     }
 
     #[test]
     fn stack_push_pop() {
         let mut s = Stack::new();
-        s.push(Object::Quote("Winter"));
+        s.push(Object::Quote("Winter".to_string()));
         let item = s.pop().unwrap();
-        assert_eq!(item, Object::Quote("Winter"));
+        assert_eq!(item, Object::Quote("Winter".to_string()));
     }
 }
