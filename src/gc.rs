@@ -11,7 +11,10 @@ pub mod garbage_collector {
         machine.set_register_contents("scan", Object::Index(0));
         machine.set_register_contents("old", Object::Index(0));
 
-        machine.set_register_contents("relocate_continue", Object::Symbol("reassign-root".to_string()));
+        machine.set_register_contents(
+            "relocate_continue",
+            Object::Symbol("reassign-root".to_string()),
+        );
         relocate_old_result_in_new(machine, memory);
     }
 
@@ -31,7 +34,7 @@ pub mod garbage_collector {
     }
 
     fn relocate_pair(machine: &mut BasicMachine, memory: &mut Memory) {
-        let BROKEN_HEART = Object::Symbol("broken_heart".to_string()); 
+        let BROKEN_HEART = Object::Symbol("broken_heart".to_string());
 
         let old = machine.get_register_contents_ref("old").unwrap();
 
@@ -199,7 +202,7 @@ pub mod garbage_collector {
         let label_three = Object::Symbol("gc_flip".to_string());
         let label_four = Object::Symbol("update_car".to_string());
         let label_five = Object::Symbol("update_cdr".to_string());
-        
+
         match label {
             label_one => reassign_root(machine, memory),
             label_two => gc_loop(machine, memory),

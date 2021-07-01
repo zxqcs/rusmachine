@@ -73,9 +73,7 @@ pub mod basic_machine {
         // set a list in memory from a str and return a index to some register
         // for example, let s = "(1 (2 3))";
         // set s in memory and return the beginning index, such as, 3 to Register root
-        pub fn set_register_as_in_memory(&mut self, name: &'static str, item: &'static str) {
-
-        }
+        pub fn set_register_as_in_memory(&mut self, name: &'static str, item: &'static str) {}
 
         pub fn assign_from_one_register_to_another(
             &mut self,
@@ -116,24 +114,16 @@ pub mod basic_machine {
         }
 
         // assign the car part of list of register y to register x
-        pub fn assign_car(&mut self, x: &'static str, y: &'static str, memory: &mut Memory) {
-
-        }
+        pub fn assign_car(&mut self, x: &'static str, y: &'static str, memory: &mut Memory) {}
 
         // assign the cdr part of list of register y to register x
-        pub fn assign_cdr(&mut self, x: &'static str, y: &'static str, memory: &mut Memory) {
-
-        }
+        pub fn assign_cdr(&mut self, x: &'static str, y: &'static str, memory: &mut Memory) {}
 
         // change the car part of list of register x to register y
-        pub fn set_car(&mut self, x: &'static str, y: &'static str, memory: &mut Memory) {
-
-        }
+        pub fn set_car(&mut self, x: &'static str, y: &'static str, memory: &mut Memory) {}
 
         // change the cdr part of list of register x to register y
-        pub fn set_cdr(&mut self, x: &'static str, y: &'static str, memory: &mut Memory) {
-            
-        }
+        pub fn set_cdr(&mut self, x: &'static str, y: &'static str, memory: &mut Memory) {}
 
         // build a new list from register y and register z, then assign this new list to register x
         pub fn cons(

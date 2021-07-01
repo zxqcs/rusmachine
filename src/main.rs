@@ -2,8 +2,8 @@ mod gc;
 mod infrastructure;
 mod machine;
 mod memory;
-mod representation;
 mod parser;
+mod representation;
 
 use crate::machine::basic_machine::BasicMachine;
 use gc::garbage_collector::garbage_collector;
