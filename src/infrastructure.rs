@@ -1,6 +1,6 @@
 pub mod register {
     use crate::memory::memory::Memory;
-    use crate::representation::type_system::{Object, Pair};
+    use crate::representation::type_system::Object;
     use std::{fmt, usize};
     pub struct Register {
         pub name: &'static str,
@@ -67,8 +67,8 @@ pub mod register {
             Object::Symbol(x) => print!("{} ", *x),
             Object::Pair(x) => {
                 print!("(");
-                let car_item = &memory.car(x.index());
-                let cdr_item = &memory.cdr(x.index());
+                let car_item = &memory.car(*x);
+                let cdr_item = &memory.cdr(*x);
                 print_list_iter(car_item, cdr_item, memory);
             }
             _ => {
@@ -81,8 +81,8 @@ pub mod register {
                 print!(")");
             }
             Object::Pair(x) => {
-                let car_item = &memory.car(x.index());
-                let cdr_item = &memory.cdr(x.index());
+                let car_item = &memory.car(*x);
+                let cdr_item = &memory.cdr(*x);
                 print_list_iter(car_item, cdr_item, memory);
             }
             _ => {

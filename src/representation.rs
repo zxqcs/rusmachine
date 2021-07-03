@@ -10,22 +10,8 @@ pub mod type_system {
         LispString(String),
         Index(usize),
         Bool(bool),
-        Pair(Pair),
+        Pair(usize),
         Nil,
-    }
-
-    #[derive(Debug, Clone, PartialEq)]
-    pub struct Pair {
-        index: usize,
-    }
-
-    impl Pair {
-        pub fn index(&self) -> usize {
-            self.index
-        }
-
-        pub fn new(i: usize) -> Self {
-            Pair { index: i }
-        }
+        Empty,
     }
 }

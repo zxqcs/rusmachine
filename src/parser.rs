@@ -1,8 +1,44 @@
 pub mod parser {
+    use std::usize;
+
     use crate::{
         machine::basic_machine::BasicMachine, memory::memory::Memory,
         representation::type_system::Object,
     };
+
+    pub struct PairStack {
+        capacity: usize,
+        container: Vec<usize>,
+    }
+
+    impl PairStack {
+        pub fn new() -> Self {
+            PairStack {
+                capacity: 100,
+                container: Vec::new(),
+            }
+        }
+
+        pub fn push(&mut self, index: usize) {
+            if self.container.len() < self.capacity {
+                self.container.push(index);
+            } else {
+                panic!("Maximum depth violated!");
+            }
+        }
+
+        pub fn pop(&mut self) -> Option<usize> {
+            self.container.pop()
+        }
+
+        pub fn peek(&self) -> Option<usize> {
+            if self.container.len() > 0 {
+                Some(self.container[self.container.len() - 1])
+            } else {
+                None
+            }
+        }
+    }
 
     pub fn tokenizer(s: &'static str) -> Vec<String> {
         let mut tokens: Vec<String> = vec![];
@@ -23,69 +59,187 @@ pub mod parser {
         }
         x
     }
+
+    // writing a list into memory and return a index to the root of this list object
     #[allow(dead_code)]
     pub fn build_syntax_tree_into_memeory(
         tokens: &mut Vec<String>,
         memory: &mut Memory,
         machine: &mut BasicMachine,
-    ) {
+    ) -> usize {
         let mut tokens = reverse(tokens);
-        build_syntax_tree_into_memory_helper(&mut tokens, memory, machine);
+        let free = machine.get_register("free").unwrap();
+        let mut stack = PairStack::new();
+        let root = free.get_memory_index();
+
+        build_syntax_tree_into_memory_helper(&mut tokens, &mut stack, memory, machine);
+        // root is the beginining index of the list written into memory
+        root
     }
+
     #[allow(dead_code)]
     fn build_syntax_tree_into_memory_helper(
         tokens: &mut Vec<String>,
+        stack: &mut PairStack,
         memory: &mut Memory,
         machine: &mut BasicMachine,
     ) {
+        // if flag is set to true, the item should be written into car, otherwise written to cdr
+        let mut flag = true;
+
         while let Some(t) = tokens.pop() {
             let token = t;
+            let free = machine.get_register("free").unwrap();
+            // free_index indicates the first index of memory space that is not used
+            let free_index = free.get_memory_index();
+            // pair_index indicates the current memory index that is being written
+            let pair_index = stack.peek();
+
             match token {
-                // head of a Exp::List
+                // begin of a list
                 x if x == "(".to_string() => {
-                    let subtree = build_syntax_tree_helper(tokens);
-                    tree_buffer = append(tree_buffer, scheme_list!(subtree));
+                    match pair_index {
+                        Some(i) => {
+                            let item = Object::Pair(free_index);
+                            if flag {
+                                memory.update("car", item, i);
+                                stack.push(free_index);
+                                machine.register_increment_by_one("free");
+                                let next_token = tokens.last();
+                                let null = ")".to_string();
+                                match next_token {
+                                    t if t == Some(&null) => flag = false,
+                                    _ => flag = true,
+                                }
+                            } else {
+                                memory.update("cdr", item, i);
+                                stack.pop();
+                                // push the new pair index into stack
+                                stack.push(free_index);
+                                let item = Object::Pair(free_index);
+                                memory.update("car", item, free_index);
+                                machine.register_increment_by_one("free");
+                                let next_token = tokens.last();
+                                let null = ")".to_string();
+                                match next_token {
+                                    t if t == Some(&null) => flag = false,
+                                    _ => {
+                                        flag = true;
+                                        stack.push(
+                                            machine
+                                                .get_register("free")
+                                                .unwrap()
+                                                .get_memory_index(),
+                                        );
+                                        machine.register_increment_by_one("free");
+                                    }
+                                }
+                            }
+                        }
+                        None => {
+                            stack.push(free_index);
+                            // note that the free indicator is always ahead of pair_index
+                            machine.register_increment_by_one("free");
+                        }
+                    }
                 }
-                // tail of a Exp::List
+                // tail of a List
                 x if x == ")".to_string() => {
-                    break;
+                    // find the right index for the Nil by pop PairStack, which is the
+                    // current pair being written into memory
+                    let null = Object::Nil;
+                    match pair_index {
+                        Some(i) => {
+                            if !flag {
+                                memory.update("cdr", null, i);
+                                // pop current pair_index since both car and cdr part
+                                // has been filled
+                                stack.pop();
+                                let next_token = tokens.last();
+                                match next_token {
+                                    Some(t) => {
+                                        if t == ")" {
+                                            continue;
+                                        } else {
+                                            // after the current pair_index has been poped
+                                            // another issue arise, which is,
+                                            // since current list has a cdr part(next_token exists!)
+                                            //,there's a blank
+                                            // position in the front of memory that need to be filled
+                                            // and this position can be obtained by peek stack
+                                            // (since position yet to be filled must be in
+                                            //  stack at moment)
+                                            let pair_index = stack.peek();
+                                            match pair_index {
+                                                Some(i) => {
+                                                    let pair_item = Object::Pair(free_index);
+                                                    memory.update("cdr", pair_item, i);
+                                                    stack.pop();
+                                                }
+                                                None => {}
+                                            }
+                                            stack.push(free_index);
+                                            machine.register_increment_by_one("free");
+                                            flag = true;
+                                        }
+                                    }
+                                    None => {
+                                        break;
+                                    }
+                                }
+                            } else {
+                                panic!("Something wrong happened in writing into memory!");
+                            }
+                        }
+                        None => {
+                            panic!("Error in PairStack: Not Match!");
+                        }
+                    }
                 }
-                x if x == "Nil".to_string() => {
-                    tree_buffer = append(tree_buffer, Exp::List(Pair::Nil));
-                }
-                // bool value
-                x if x == "true" => {
-                    tree_buffer = append(tree_buffer, scheme_list!(Exp::Bool(true)));
-                }
-                x if x == "false" => {
-                    tree_buffer = append(tree_buffer, scheme_list!(Exp::Bool(false)));
-                }
-                // symbol value
-                x if is_symbol(&x) => {
-                    tree_buffer = append(tree_buffer, scheme_list!(Exp::Symbol(x)));
-                }
-                // scheme string, for example, "winter is coming!"
-                x if x == "\"".to_string() => {
-                    let s = read_scheme_string(tokens);
-                    tree_buffer = append(tree_buffer, scheme_list!(s));
-                }
-                // scheme quote, for example, 'winter
-                x if x.chars().nth(0) == Some('\'') => {
-                    tree_buffer = append(tree_buffer, scheme_list!(Exp::Quote(x)));
-                }
-                // i32
-                x if is_i32(x.clone()) => {
-                    tree_buffer = append(
-                        tree_buffer,
-                        scheme_list!(Exp::Integer(x.parse::<i32>().unwrap())),
-                    );
-                }
-                // f32
-                x if is_f32(x.clone()) => {
-                    tree_buffer = append(
-                        tree_buffer,
-                        scheme_list!(Exp::FloatNumber(x.parse::<f32>().unwrap())),
-                    );
+
+                x if (x == "true"
+                    || x == "false"
+                    || is_i32(x.clone())
+                    || x == "\"".to_string()
+                    || x.chars().nth(0) == Some('\'')
+                    || is_f32(x.clone())
+                    || is_symbol(&x)) =>
+                {
+                    let mut item = Object::Nil;
+                    match x {
+                        x if x == "true" => item = Object::Bool(true),
+                        x if x == "false" => item = Object::Bool(false),
+                        x if is_i32(x.clone()) => {
+                            item = Object::Integer(x.parse::<i32>().unwrap());
+                        }
+                        x if is_f32(x.clone()) => {
+                            item = Object::Nummber(x.parse::<f32>().unwrap());
+                        }
+                        x if is_symbol(&x) => item = Object::Symbol(x),
+                        x if x == "\"".to_string() => {}
+                        x if x.chars().nth(0) == Some('\'') => {}
+                        _ => {}
+                    }
+                    match pair_index {
+                        Some(i) => {
+                            if flag {
+                                memory.update("car", item, i);
+                                flag = false;
+                            } else {
+                                let pair_item = Object::Pair(i);
+                                memory.update("cdr", pair_item, i);
+                                stack.pop();
+                                stack.push(free_index);
+                                let pair_index = free_index;
+                                machine.register_increment_by_one("free");
+                                memory.update("car", item, pair_index);
+                                flag = false;
+                            }
+                        }
+                        None => {
+                            panic!("Something wrong happened in writing into memory!");
+                        }
+                    }
                 }
                 _ => {
                     panic!("unknow token!");
@@ -94,15 +248,40 @@ pub mod parser {
         }
     }
 
-    fn read_scheme_string(_tokens: &mut Vec<String>) {
-        Exp::SchemeString("hello world!".to_string())
+    fn is_symbol(x: &String) -> bool {
+        x.chars().nth(0).unwrap().is_alphabetic()
+            || x == "="
+            || x == "+"
+            || x == "-"
+            || x == "*"
+            || x == "/"
+            || x == ">"
+            || x == "<"
     }
+
+    fn is_f32(x: String) -> bool {
+        let s = x.parse::<f32>();
+        match s {
+            Ok(_x) => true,
+            _ => false,
+        }
+    }
+
+    fn is_i32(x: String) -> bool {
+        let s = x.parse::<i32>();
+        match s {
+            Ok(_x) => true,
+            _ => false,
+        }
+    }
+
+    fn read_scheme_string(_tokens: &mut Vec<String>) {}
 }
 
 #[cfg(test)]
 mod test {
     use super::parser::{build_syntax_tree_into_memeory, tokenizer};
-    use crate::representation::type_system::{Object, Pair};
+    use crate::representation::type_system::Object;
     use crate::{machine::basic_machine::BasicMachine, memory::memory::Memory};
 
     #[test]
@@ -129,7 +308,7 @@ mod test {
                            (3 
                                (4  
                                   5)))";
-        let tokens = tokenizer(s);
+        let mut tokens = tokenizer(s);
         build_syntax_tree_into_memeory(&mut tokens, &mut memory, &mut machine);
         let car_0 = memory.car(0);
         let cdr_0 = memory.cdr(0);
@@ -155,20 +334,20 @@ mod test {
         let car_7 = memory.car(7);
         let cdr_7 = memory.cdr(7);
 
-        let car_0_checkout = Object::Pair(Pair::new(1));
-        let cdr_0_checkout = Object::Pair(Pair::new(3));
+        let car_0_checkout = Object::Pair(1);
+        let cdr_0_checkout = Object::Pair(3);
         let car_1_checkout = Object::Integer(1);
-        let cdr_1_checkout = Object::Pair(Pair::new(2));
+        let cdr_1_checkout = Object::Pair(2);
         let car_2_checkout = Object::Integer(2);
         let cdr_2_checkout = Object::Nil;
-        let car_3_checkout = Object::Pair(Pair::new(4));
+        let car_3_checkout = Object::Pair(4);
         let cdr_3_checkout = Object::Nil;
         let car_4_checkout = Object::Integer(3);
-        let cdr_4_checkout = Object::Pair(Pair::new(5));
-        let car_5_checkout = Object::Pair(Pair::new(6));
+        let cdr_4_checkout = Object::Pair(5);
+        let car_5_checkout = Object::Pair(6);
         let cdr_5_checkout = Object::Nil;
         let car_6_checkout = Object::Integer(4);
-        let cdr_6_checkout = Object::Pair(Pair::new(7));
+        let cdr_6_checkout = Object::Pair(7);
         let car_7_checkout = Object::Integer(5);
         let cdr_7_checkout = Object::Nil;
 

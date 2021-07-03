@@ -16,7 +16,7 @@ pub mod memory {
             let mut v = Vec::with_capacity(size);
 
             for i in 0..size {
-                v.push(Box::new(Object::Nil));
+                v.push(Box::new(Object::Empty));
             }
 
             Memory {
