@@ -52,7 +52,7 @@ pub mod parser {
     }
 
     #[allow(dead_code)]
-    fn reverse(s: &mut Vec<String>) -> Vec<String> {
+    pub fn reverse(s: &mut Vec<String>) -> Vec<String> {
         let mut x = vec![];
         while let Some(token) = s.pop() {
             x.push(token);
@@ -68,6 +68,7 @@ pub mod parser {
         machine: &mut BasicMachine,
     ) -> usize {
         let mut tokens = reverse(tokens);
+        machine.set_register_contents("free", Object::Index(0));
         let free = machine.get_register("free").unwrap();
         let mut stack = PairStack::new();
         let root = free.get_memory_index();
@@ -116,9 +117,12 @@ pub mod parser {
                                 stack.pop();
                                 // push the new pair index into stack
                                 stack.push(free_index);
-                                let item = Object::Pair(free_index);
-                                memory.update("car", item, free_index);
+                                let pair_index = free_index;
                                 machine.register_increment_by_one("free");
+                                let free_index = machine.get_register("free").unwrap().get_memory_index();
+                                let item = Object::Pair(free_index);
+
+                                memory.update("car", item, pair_index);
                                 let next_token = tokens.last();
                                 let null = ")".to_string();
                                 match next_token {
@@ -216,8 +220,14 @@ pub mod parser {
                             item = Object::Nummber(x.parse::<f32>().unwrap());
                         }
                         x if is_symbol(&x) => item = Object::Symbol(x),
-                        x if x == "\"".to_string() => {}
-                        x if x.chars().nth(0) == Some('\'') => {}
+                        x if x == "\"".to_string() => {
+                            let s = read_scheme_string(x, tokens);
+                            item = Object::LispString(s);
+                        }
+                        x if x.chars().nth(0) == Some('\'') => {
+                            let s = read_scheme_quote(x, tokens);
+                            item = Object::Quote(s);
+                        }
                         _ => {}
                     }
                     match pair_index {
@@ -226,7 +236,7 @@ pub mod parser {
                                 memory.update("car", item, i);
                                 flag = false;
                             } else {
-                                let pair_item = Object::Pair(i);
+                                let pair_item = Object::Pair(free_index);
                                 memory.update("cdr", pair_item, i);
                                 stack.pop();
                                 stack.push(free_index);
@@ -275,12 +285,18 @@ pub mod parser {
         }
     }
 
-    fn read_scheme_string(_tokens: &mut Vec<String>) {}
+    pub fn read_scheme_string(s: String, tokens: &mut Vec<String>) -> String {
+        "hello".to_string()
+    }
+
+    pub fn read_scheme_quote(s: String, tokens: &mut Vec<String>) -> String {
+        "hello".to_string()
+    }
 }
 
 #[cfg(test)]
 mod test {
-    use super::parser::{build_syntax_tree_into_memeory, tokenizer};
+    use super::parser::{build_syntax_tree_into_memeory, tokenizer, read_scheme_quote, read_scheme_string, reverse};
     use crate::representation::type_system::Object;
     use crate::{machine::basic_machine::BasicMachine, memory::memory::Memory};
 
@@ -367,5 +383,26 @@ mod test {
         assert_eq!(cdr_6, cdr_6_checkout);
         assert_eq!(car_7, car_7_checkout);
         assert_eq!(cdr_7, cdr_7_checkout);
+    }
+
+    #[test]
+    fn read_scheme_string_works() {
+        let t = vec!["\"winter", "is", "coming\""];
+        let mut tokens: Vec<String> = t.into_iter().map(|x| x.to_string()).collect();
+        tokens = reverse(&mut tokens);
+        let x = tokens.pop().unwrap();
+        let s = read_scheme_string(x, &mut tokens);
+        assert_eq!(s, "winter is coming".to_string());
+    }
+
+
+    # [test]
+    fn read_scheme_quote_works() {
+        let t = vec!["'", "(", "1", "(", "2", "3", ")", ")"];
+        let mut tokens: Vec<String> = t.into_iter().map(|x| x.to_string()).collect();
+        tokens = reverse(&mut tokens);
+        let x = tokens.pop().unwrap();
+        let s = read_scheme_string(x, &mut tokens);
+        assert_eq!(s, "(1 (2 3))".to_string());
     }
 }

@@ -10,6 +10,7 @@ use gc::garbage_collector::garbage_collector;
 use infrastructure::{register, stack::Stack};
 use memory::memory::Memory;
 use representation::type_system::Object;
+use crate::parser::parser::{tokenizer, build_syntax_tree_into_memeory};
 
 fn main() {
     let mut m = Memory::new(8);
@@ -52,4 +53,22 @@ fn main() {
     machine.set_register_contents("root", item);
     let reg = machine.get_register("root").unwrap();
     reg.print_list(&m);
+    println!("Results for writing into memory!");
+    build_syntax_tree_into_memeory_works();
+}
+
+fn build_syntax_tree_into_memeory_works() {
+    let mut memory = Memory::new(10);
+    let mut machine = BasicMachine::new();
+    machine.initilize_registers();
+    let s = "(( 1  2 )
+                       (3 
+                           (4  
+                              5)))";
+    let mut tokens = tokenizer(s);
+    let root = build_syntax_tree_into_memeory(&mut tokens, &mut memory, &mut machine);
+    machine.set_register_contents("root", Object::Index(root));
+    let reg = machine.get_register("root").unwrap();
+    reg.print_list(&memory);
+    println!("{}", memory);
 }
