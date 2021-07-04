@@ -55,6 +55,8 @@ fn main() {
     reg.print_list(&m);
     println!("Results for writing into memory!");
     build_syntax_tree_into_memeory_works();
+    println!("Results for using Machine's API for writting into memory");
+    set_register_contents_as_in_memory_works();
 }
 
 fn build_syntax_tree_into_memeory_works() {
@@ -71,4 +73,16 @@ fn build_syntax_tree_into_memeory_works() {
     let reg = machine.get_register("root").unwrap();
     reg.print_list(&memory);
     println!("{}", memory);
+}
+
+fn set_register_contents_as_in_memory_works() {
+    let mut memory = Memory::new(10);
+    let mut machine = BasicMachine::new();
+    machine.initilize_registers();
+    let s = "(( 1  2 )
+                       (3 
+                           (4  
+                              5)))";
+    machine.set_register_contents_as_in_memory("root", s, &mut memory);
+    machine.get_register("root").unwrap().print_list(&memory);
 }

@@ -2,6 +2,7 @@ pub mod basic_machine {
     use crate::infrastructure::register::Register;
     use crate::infrastructure::stack::Stack;
     use crate::memory::memory::Memory;
+    use crate::parser::parser::{build_syntax_tree_into_memeory, tokenizer};
     use crate::representation::type_system::Object;
     use std::collections::HashMap;
 
@@ -58,7 +59,17 @@ pub mod basic_machine {
 
         // in this case, a memory address is stored in machine's register
         // a list can be printed by calling this fn
-        pub fn print_register_contents(&self, name: &'static str, memory: &Memory) {}
+        pub fn print_register_contents(&self, name: &'static str, memory: &Memory) {
+            let reg = self.get_register(name);
+            match reg {
+                Some(r) => {
+                    r.print_list(memory);
+                }
+                None => {
+                    panic!("No such register exists!");
+                }
+            }
+        }
 
         // set a Oject directly in some Register
         pub fn set_register_contents(&mut self, name: &'static str, item: Object) {
@@ -83,8 +94,11 @@ pub mod basic_machine {
             &mut self,
             name: &'static str,
             object: &'static str,
+            memory: &mut Memory,
         ) {
-
+            let mut tokens = tokenizer(object);
+            let index = build_syntax_tree_into_memeory(&mut tokens, memory, self);
+            self.set_register_contents(name, Object::Index(index));
         }
 
         pub fn assign_from_one_register_to_another(
@@ -148,3 +162,6 @@ pub mod basic_machine {
         }
     }
 }
+
+#[cfg(test)]
+mod test {}
