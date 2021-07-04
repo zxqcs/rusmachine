@@ -97,7 +97,7 @@ pub mod parser {
     ) -> usize {
         if !syntax_checker(&tokens) {
             panic!("syntax wrong!");
-        } 
+        }
         let mut tokens = reverse(tokens);
         machine.set_register_contents("free", Object::Index(0));
         let free = machine.get_register("free").unwrap();
@@ -150,7 +150,8 @@ pub mod parser {
                                 stack.push(free_index);
                                 let pair_index = free_index;
                                 machine.register_increment_by_one("free");
-                                let free_index = machine.get_register("free").unwrap().get_memory_index();
+                                let free_index =
+                                    machine.get_register("free").unwrap().get_memory_index();
                                 let item = Object::Pair(free_index);
 
                                 memory.update("car", item, pair_index);
@@ -324,14 +325,14 @@ pub mod parser {
                 Some(x) => {
                     if is_end_with_double_quote(&x) {
                         tt.push(' ');
-                        let tx = &x[..(x.len()-1)];
+                        let tx = &x[..(x.len() - 1)];
                         tt.push_str(tx);
                         return tt;
                     } else {
                         tt.push(' ');
                         tt.push_str(&x);
                     }
-                },
+                }
                 None => {
                     panic!("missing part for a Scheme String!");
                 }
@@ -341,10 +342,10 @@ pub mod parser {
 
     pub fn is_end_with_double_quote(s: &str) -> bool {
         s.chars().last().unwrap() == '\"'
-    } 
+    }
 
     pub fn read_scheme_quote(t: String, tokens: &mut Vec<String>) -> String {
-        if t.len() == 1{
+        if t.len() == 1 {
             let first_token = tokens.pop().unwrap();
             let mut left = 0;
             let mut right = 0;
@@ -375,14 +376,13 @@ pub mod parser {
                                 s.push(' ');
                                 s.push_str(&x);
                             }
-                        },
+                        }
                         None => {
                             panic!("syntax wrong!");
                         }
                     }
                 }
             }
-
         } else {
             let s = (&t[1..]).to_string();
             s
@@ -392,9 +392,10 @@ pub mod parser {
 
 #[cfg(test)]
 mod test {
-    use super::parser::{build_syntax_tree_into_memeory, tokenizer, 
-                        read_scheme_quote, read_scheme_string, reverse
-                        , is_end_with_double_quote};
+    use super::parser::{
+        build_syntax_tree_into_memeory, is_end_with_double_quote, read_scheme_quote,
+        read_scheme_string, reverse, tokenizer,
+    };
 
     use crate::representation::type_system::Object;
     use crate::{machine::basic_machine::BasicMachine, memory::memory::Memory};
@@ -494,7 +495,7 @@ mod test {
         assert_eq!(s, "winter is coming".to_string());
     }
 
-    # [test]
+    #[test]
     fn read_scheme_quote_works() {
         let t = vec!["'", "(", "1", "(", "2", "3", ")", ")"];
         let mut tokens: Vec<String> = t.into_iter().map(|x| x.to_string()).collect();

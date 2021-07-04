@@ -56,6 +56,10 @@ pub mod basic_machine {
             }
         }
 
+        // in this case, a memory address is stored in machine's register
+        // a list can be printed by calling this fn
+        pub fn print_register_contents(&self, name: &'static str, memory: &Memory) {}
+
         // set a Oject directly in some Register
         pub fn set_register_contents(&mut self, name: &'static str, item: Object) {
             let register = self.registers.get_mut(name);
@@ -70,10 +74,18 @@ pub mod basic_machine {
             }
         }
 
+        // in this case, a list object is wriiten into memory and the beginning address
+        // is returned and stored in some register, for specific,
         // set a list in memory from a str and return a index to some register
         // for example, let s = "(1 (2 3))";
         // set s in memory and return the beginning index, such as, 3 to Register root
-        pub fn set_register_as_in_memory(&mut self, name: &'static str, item: &'static str) {}
+        pub fn set_register_contents_as_in_memory(
+            &mut self,
+            name: &'static str,
+            object: &'static str,
+        ) {
+
+        }
 
         pub fn assign_from_one_register_to_another(
             &mut self,
