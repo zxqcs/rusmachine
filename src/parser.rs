@@ -60,6 +60,34 @@ pub mod parser {
         x
     }
 
+    #[allow(dead_code)]
+    pub fn syntax_checker(t: &Vec<String>) -> bool {
+        let mut iterator = t.iter();
+        let mut left_parenthesis = 0;
+        let mut right_parenthesis = 0;
+        let mut token = iterator.next();
+        loop {
+            match token {
+                x if x == Some(&("(".to_string())) => {
+                    left_parenthesis = left_parenthesis + 1;
+                }
+                x if x == Some(&(")".to_string())) => {
+                    right_parenthesis = right_parenthesis + 1;
+                }
+                Some(_x) => {}
+                None => {
+                    break;
+                }
+            }
+            token = iterator.next();
+        }
+        if left_parenthesis == right_parenthesis {
+            true
+        } else {
+            false
+        }
+    }
+
     // writing a list into memory and return a index to the root of this list object
     #[allow(dead_code)]
     pub fn build_syntax_tree_into_memeory(
@@ -67,6 +95,9 @@ pub mod parser {
         memory: &mut Memory,
         machine: &mut BasicMachine,
     ) -> usize {
+        if !syntax_checker(&tokens) {
+            panic!("syntax wrong!");
+        } 
         let mut tokens = reverse(tokens);
         machine.set_register_contents("free", Object::Index(0));
         let free = machine.get_register("free").unwrap();
@@ -285,18 +316,86 @@ pub mod parser {
         }
     }
 
-    pub fn read_scheme_string(s: String, tokens: &mut Vec<String>) -> String {
-        "hello".to_string()
+    pub fn read_scheme_string(mut t: String, tokens: &mut Vec<String>) -> String {
+        let mut tt = (&t[1..]).to_string();
+        loop {
+            let s = tokens.pop();
+            match s {
+                Some(x) => {
+                    if is_end_with_double_quote(&x) {
+                        tt.push(' ');
+                        let tx = &x[..(x.len()-1)];
+                        tt.push_str(tx);
+                        return tt;
+                    } else {
+                        tt.push(' ');
+                        tt.push_str(&x);
+                    }
+                },
+                None => {
+                    panic!("missing part for a Scheme String!");
+                }
+            }
+        }
     }
 
-    pub fn read_scheme_quote(s: String, tokens: &mut Vec<String>) -> String {
-        "hello".to_string()
+    pub fn is_end_with_double_quote(s: &str) -> bool {
+        s.chars().last().unwrap() == '\"'
+    } 
+
+    pub fn read_scheme_quote(t: String, tokens: &mut Vec<String>) -> String {
+        if t.len() == 1{
+            let first_token = tokens.pop().unwrap();
+            let mut left = 0;
+            let mut right = 0;
+            if first_token != "(" {
+                panic!("syntax wrong!");
+            } else {
+                let mut s = "".to_string();
+                s.push('(');
+                left = left + 1;
+                loop {
+                    let token = tokens.pop();
+                    match token {
+                        Some(x) => {
+                            if x == "(" {
+                                left = left + 1;
+                                s.push(' ');
+                                s.push('(');
+                                if left == right {
+                                    return s;
+                                }
+                            } else if x == ")" {
+                                right = right + 1;
+                                s.push(')');
+                                if left == right {
+                                    return s;
+                                }
+                            } else {
+                                s.push(' ');
+                                s.push_str(&x);
+                            }
+                        },
+                        None => {
+                            panic!("syntax wrong!");
+                        }
+                    }
+                }
+            }
+
+        } else {
+            let s = (&t[1..]).to_string();
+            s
+        }
     }
 }
 
 #[cfg(test)]
 mod test {
-    use super::parser::{build_syntax_tree_into_memeory, tokenizer, read_scheme_quote, read_scheme_string, reverse};
+    use super::parser::{build_syntax_tree_into_memeory, tokenizer, 
+                        read_scheme_quote, read_scheme_string, reverse
+                        , is_end_with_double_quote};
+
     use crate::representation::type_system::Object;
     use crate::{machine::basic_machine::BasicMachine, memory::memory::Memory};
 
@@ -395,14 +494,25 @@ mod test {
         assert_eq!(s, "winter is coming".to_string());
     }
 
-
     # [test]
     fn read_scheme_quote_works() {
         let t = vec!["'", "(", "1", "(", "2", "3", ")", ")"];
         let mut tokens: Vec<String> = t.into_iter().map(|x| x.to_string()).collect();
         tokens = reverse(&mut tokens);
         let x = tokens.pop().unwrap();
-        let s = read_scheme_string(x, &mut tokens);
-        assert_eq!(s, "(1 (2 3))".to_string());
+        let s = read_scheme_quote(x, &mut tokens);
+        assert_eq!(s, "( 1 ( 2 3))".to_string());
+        let tt = vec!["'symbol", "(", "1", "2", ")"];
+        let mut ttokens: Vec<String> = tt.into_iter().map(|x| x.to_string()).collect();
+        ttokens = reverse(&mut ttokens);
+        let xx = ttokens.pop().unwrap();
+        let ss = read_scheme_quote(xx, &mut ttokens);
+        assert_eq!(ss, "symbol".to_string());
+    }
+
+    #[test]
+    fn is_end_with_double_quote_works() {
+        let s = "coming\"";
+        assert_eq!(is_end_with_double_quote(s), true);
     }
 }
