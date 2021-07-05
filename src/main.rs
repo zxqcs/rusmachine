@@ -46,7 +46,6 @@ fn main() {
     m.update("cdr", cdr_6, 6);
     m.update("car", car_7, 7);
     m.update("cdr", cdr_7, 7);
-    println!("{}", m);
     let mut machine = BasicMachine::new();
     machine.initilize_registers();
     let item = Object::Index(0);

@@ -46,6 +46,17 @@ pub mod register {
             print!("\n");
         }
 
+        pub fn get_list_frome_memory_as_str(&self, memory: &Memory) -> String {
+            let mut s = "".to_string();
+            s.push('(');
+            let i = self.get_memory_index();
+            let car_item = memory.car(i);
+            let cdr_item = memory.cdr(i);
+
+            get_list_from_memory_as_str_iter(&mut s,  &car_item, &cdr_item, memory);
+            s
+        }
+
         pub fn car(&self, memory: &Memory) -> Object {
             let i = self.get_memory_index();
             memory.car(i)
@@ -54,6 +65,58 @@ pub mod register {
         pub fn cdr(&self, memory: &Memory) -> Object {
             let i = self.get_memory_index();
             memory.cdr(i)
+        }
+    }
+
+    fn get_list_from_memory_as_str_iter(s: &mut String, car_item: &Object, cdr_item: &Object, memory: &Memory) {
+        match car_item {
+            Object::Bool(x) => {
+                s.push(' ');
+                s.push_str(&x.to_string());
+            },
+            Object::Integer(x) => {
+                s.push(' ');
+                s.push_str(&x.to_string());
+            },
+            Object::LispString(x) => {
+                s.push(' ');
+                s.push_str(&x);
+            }, 
+            Object::Nummber(x) => {
+                s.push(' ');
+                s.push_str(&x.to_string());
+            },
+            Object::Quote(x) => {
+                s.push(' ');
+                s.push_str(&x);
+            },
+            Object::Symbol(x) => {
+                s.push(' ');
+                s.push_str(&x);
+            },
+            Object::Pair(x) => {
+                s.push('(');
+                let car_item = &memory.car(*x);
+                let cdr_item = &memory.cdr(*x);
+                get_list_from_memory_as_str_iter(s, car_item, cdr_item, memory);
+            },
+            _ => {
+                panic!("not a proper object in car position of A Lisp List!");
+            }
+        }
+
+        match cdr_item {
+            Object::Nil => {
+                s.push(')');
+            },
+            Object::Pair(x) => {
+                let car_item = &memory.car(*x);
+                let cdr_item = &memory.cdr(*x);
+                get_list_from_memory_as_str_iter(s, car_item, cdr_item, memory);
+            },
+            _ => {
+                panic!("not a proper object in cdr position of A Lisp List!");
+            }
         }
     }
 
@@ -70,7 +133,7 @@ pub mod register {
                 let car_item = &memory.car(*x);
                 let cdr_item = &memory.cdr(*x);
                 print_list_iter(car_item, cdr_item, memory);
-            }
+            },
             _ => {
                 panic!("not a proper object in car position of A Lisp List!");
             }
@@ -79,12 +142,12 @@ pub mod register {
         match cdr_item {
             Object::Nil => {
                 print!(")");
-            }
+            },
             Object::Pair(x) => {
                 let car_item = &memory.car(*x);
                 let cdr_item = &memory.cdr(*x);
                 print_list_iter(car_item, cdr_item, memory);
-            }
+            },
             _ => {
                 panic!("not a proper object in cdr position of A Lisp List!");
             }
@@ -135,7 +198,10 @@ pub mod stack {
 
 #[cfg(test)]
 mod test {
+    use crate::machine::basic_machine::BasicMachine;
     use crate::memory::memory::Memory;
+    use crate::parser::parser::build_syntax_tree_into_memeory;
+    use crate::parser::parser::tokenizer;
     use crate::representation::type_system::Object;
 
     use super::{register::Register, stack::Stack};
@@ -159,5 +225,22 @@ mod test {
         s.push(Object::Quote("Winter".to_string()));
         let item = s.pop().unwrap();
         assert_eq!(item, Object::Quote("Winter".to_string()));
+    }
+
+    #[test]
+    fn get_list_from_memory_as_str_works() {
+        let mut memory = Memory::new(10);
+        let mut machine = BasicMachine::new();
+        machine.initilize_registers();
+        let s = "(( 1  2 )
+                           (3 
+                               (4  
+                                  5)))";
+        let mut tokens = tokenizer(s);
+        let root = build_syntax_tree_into_memeory(&mut tokens, &mut memory, &mut machine);
+        machine.set_register_contents("root", Object::Index(root));
+        let reg = machine.get_register("root").unwrap();
+        let s = String::from("(( 1 2)( 3( 4 5)))");
+        assert_eq!(s, reg.get_list_frome_memory_as_str(&memory));
     }
 }
