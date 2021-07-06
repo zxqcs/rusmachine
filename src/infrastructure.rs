@@ -53,7 +53,7 @@ pub mod register {
             let car_item = memory.car(i);
             let cdr_item = memory.cdr(i);
 
-            get_list_from_memory_as_str_iter(&mut s,  &car_item, &cdr_item, memory);
+            get_list_from_memory_as_str_iter(&mut s, &car_item, &cdr_item, memory);
             s
         }
 
@@ -68,38 +68,43 @@ pub mod register {
         }
     }
 
-    fn get_list_from_memory_as_str_iter(s: &mut String, car_item: &Object, cdr_item: &Object, memory: &Memory) {
+    fn get_list_from_memory_as_str_iter(
+        s: &mut String,
+        car_item: &Object,
+        cdr_item: &Object,
+        memory: &Memory,
+    ) {
         match car_item {
             Object::Bool(x) => {
                 s.push(' ');
                 s.push_str(&x.to_string());
-            },
+            }
             Object::Integer(x) => {
                 s.push(' ');
                 s.push_str(&x.to_string());
-            },
+            }
             Object::LispString(x) => {
                 s.push(' ');
                 s.push_str(&x);
-            }, 
+            }
             Object::Nummber(x) => {
                 s.push(' ');
                 s.push_str(&x.to_string());
-            },
+            }
             Object::Quote(x) => {
                 s.push(' ');
                 s.push_str(&x);
-            },
+            }
             Object::Symbol(x) => {
                 s.push(' ');
                 s.push_str(&x);
-            },
+            }
             Object::Pair(x) => {
                 s.push('(');
                 let car_item = &memory.car(*x);
                 let cdr_item = &memory.cdr(*x);
                 get_list_from_memory_as_str_iter(s, car_item, cdr_item, memory);
-            },
+            }
             _ => {
                 panic!("not a proper object in car position of A Lisp List!");
             }
@@ -108,12 +113,12 @@ pub mod register {
         match cdr_item {
             Object::Nil => {
                 s.push(')');
-            },
+            }
             Object::Pair(x) => {
                 let car_item = &memory.car(*x);
                 let cdr_item = &memory.cdr(*x);
                 get_list_from_memory_as_str_iter(s, car_item, cdr_item, memory);
-            },
+            }
             _ => {
                 panic!("not a proper object in cdr position of A Lisp List!");
             }
@@ -133,7 +138,7 @@ pub mod register {
                 let car_item = &memory.car(*x);
                 let cdr_item = &memory.cdr(*x);
                 print_list_iter(car_item, cdr_item, memory);
-            },
+            }
             _ => {
                 panic!("not a proper object in car position of A Lisp List!");
             }
@@ -142,12 +147,12 @@ pub mod register {
         match cdr_item {
             Object::Nil => {
                 print!(")");
-            },
+            }
             Object::Pair(x) => {
                 let car_item = &memory.car(*x);
                 let cdr_item = &memory.cdr(*x);
                 print_list_iter(car_item, cdr_item, memory);
-            },
+            }
             _ => {
                 panic!("not a proper object in cdr position of A Lisp List!");
             }
