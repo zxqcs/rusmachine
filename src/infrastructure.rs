@@ -57,7 +57,7 @@ pub mod register {
             s
         }
 
-        // thest two API may possibly be cancelled later, since the meaning of 
+        // thest two API may possibly be cancelled later, since the meaning of
         // car and cdr is vague.
         pub fn car(&self, memory: &Memory) -> Object {
             let i = self.get_memory_index();
@@ -254,6 +254,12 @@ mod test {
         let another_root = build_syntax_tree_into_memeory(&mut ttokens, &mut memory, &mut machine);
         machine.set_register_contents("root", Object::Index(root));
         let s = String::from("(( 7 8) 9)");
-        assert_eq!(ss, machine.get_register("root").unwrap().get_list_frome_memory_as_str(&memory));
+        assert_eq!(
+            ss,
+            machine
+                .get_register("root")
+                .unwrap()
+                .get_list_frome_memory_as_str(&memory)
+        );
     }
 }

@@ -27,6 +27,10 @@ pub mod memory {
             }
         }
 
+        pub fn capacity(&self) -> usize {
+            self.the_cars.capacity()
+        }
+
         pub fn update(&mut self, message: &'static str, item: Object, index: usize) {
             let s = Box::new(item);
             match message {

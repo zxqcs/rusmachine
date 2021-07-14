@@ -117,6 +117,16 @@ pub mod basic_machine {
             }
         }
 
+        pub fn get_register_contents_as_in_memory(&self, name: &'static str, memory: &Memory) -> String{
+            let reg = self.get_register(name);
+            match reg {
+                Some(r) => r.get_list_frome_memory_as_str(memory),
+                None => {
+                    panic!("No such registers exists!");
+                }
+            }
+        }
+
         pub fn register_increment_by_one(&mut self, name: &'static str) {
             match name {
                 "free" | "scan" | "pc" => {
@@ -164,4 +174,20 @@ pub mod basic_machine {
 }
 
 #[cfg(test)]
-mod test {}
+mod test {
+    use crate::memory::memory::Memory;
+
+    use super::basic_machine::BasicMachine;
+
+    #[test]
+    fn set_register_contents_as_in_memory_works() {
+        let mut memory = Memory::new(10);
+        let mut machine = BasicMachine::new();
+        machine.initilize_registers();
+        let s = "(define x '(+ 1 2))";
+        machine.set_register_contents_as_in_memory("root", s, &mut memory);
+        let ss = machine.get_register_contents_as_in_memory("root", &memory);
+        assert_eq!(ss, String::from("( define x ( + 1 2))"));
+    }
+
+}
