@@ -57,6 +57,8 @@ pub mod register {
             s
         }
 
+        // thest two API may possibly be cancelled later, since the meaning of 
+        // car and cdr is vague.
         pub fn car(&self, memory: &Memory) -> Object {
             let i = self.get_memory_index();
             memory.car(i)
@@ -234,7 +236,7 @@ mod test {
 
     #[test]
     fn get_list_from_memory_as_str_works() {
-        let mut memory = Memory::new(10);
+        let mut memory = Memory::new(20);
         let mut machine = BasicMachine::new();
         machine.initilize_registers();
         let s = "(( 1  2 )
@@ -247,5 +249,11 @@ mod test {
         let reg = machine.get_register("root").unwrap();
         let s = String::from("(( 1 2)( 3( 4 5)))");
         assert_eq!(s, reg.get_list_frome_memory_as_str(&memory));
+        let ss = "(( 7 8) 9)";
+        let mut ttokens = tokenizer(ss);
+        let another_root = build_syntax_tree_into_memeory(&mut ttokens, &mut memory, &mut machine);
+        machine.set_register_contents("root", Object::Index(root));
+        let s = String::from("(( 7 8) 9)");
+        assert_eq!(ss, machine.get_register("root").unwrap().get_list_frome_memory_as_str(&memory));
     }
 }
