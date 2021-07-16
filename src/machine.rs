@@ -13,16 +13,31 @@ pub mod basic_machine {
     }
 
     impl BasicMachine {
+        // Register exp is used to hold the expression to be evaluated
+        // Register env contains the environment
+        // Register val contains the value obtained by evaluating the expression in
+        // designated environment
+        // Register continue is used to implement recursion
+        // The registers proc, argl, and unev are used in evaluating combinations
+        // The registers root, free, scan, old, oldcr, new are used in gc, which shall not 
+        // be stored in the gc process
+        // The registers pc, flag is brought by basic machine
         pub fn initilize_registers(&mut self) {
             self.registers.insert("pc", Register::new("pc"));
             self.registers.insert("flag", Register::new("flag"));
-            // these registers below doesn't need to be stored in the process of GC
             self.registers.insert("root", Register::new("ROOT"));
             self.registers.insert("free", Register::new("FREE"));
             self.registers.insert("scan", Register::new("SCAN"));
             self.registers.insert("old", Register::new("OLD"));
             self.registers.insert("oldcr", Register::new("OLDCR"));
             self.registers.insert("new", Register::new("NEW"));
+            self.registers.insert("exp", Register::new("EXP"));
+            self.registers.insert("env", Register::new("ENV"));
+            self.registers.insert("unev", Register::new("UENV"));
+            self.registers.insert("continue", Register::new("CONTINUE"));
+            self.registers.insert("val", Register::new("VAL"));
+            self.registers.insert("argl", Register::new("ARGL"));
+            self.registers.insert("proc", Register::new("PROC"));
             self.registers
                 .insert("relocate_continue", Register::new("RELOCATE_CONTINUE"));
         }
