@@ -19,7 +19,7 @@ pub mod basic_machine {
         // designated environment
         // Register continue is used to implement recursion
         // The registers proc, argl, and unev are used in evaluating combinations
-        // The registers root, free, scan, old, oldcr, new are used in gc, which shall not 
+        // The registers root, free, scan, old, oldcr, new are used in gc, which shall not
         // be stored in the gc process
         // The registers pc, flag is brought by basic machine
         pub fn initilize_registers(&mut self) {
@@ -132,7 +132,11 @@ pub mod basic_machine {
             }
         }
 
-        pub fn get_register_contents_as_in_memory(&self, name: &'static str, memory: &Memory) -> String{
+        pub fn get_register_contents_as_in_memory(
+            &self,
+            name: &'static str,
+            memory: &Memory,
+        ) -> String {
             let reg = self.get_register(name);
             match reg {
                 Some(r) => r.get_list_frome_memory_as_str(memory),
@@ -204,5 +208,4 @@ mod test {
         let ss = machine.get_register_contents_as_in_memory("root", &memory);
         assert_eq!(ss, String::from("( define x ( + 1 2))"));
     }
-
 }
