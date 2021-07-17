@@ -1,10 +1,11 @@
-mod anotherts;
 mod gc;
 mod infrastructure;
 mod machine;
 mod memory;
 mod parser;
+mod parserfordev;
 mod representation;
+mod tpfordev;
 
 use crate::machine::basic_machine::BasicMachine;
 use crate::parser::parser::{build_syntax_tree_into_memeory, tokenizer};

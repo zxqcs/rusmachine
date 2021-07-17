@@ -1,4 +1,4 @@
-mod type_system {
+pub mod type_system {
     #[allow(dead_code)]
     #[derive(Debug, Clone)]
     pub enum Pair {
