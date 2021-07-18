@@ -64,6 +64,7 @@ pub mod basic_machine {
             }
         }
 
+        #[allow(dead_code)]
         pub fn get_register_contents(&self, name: &'static str) -> Option<Object> {
             let register = self.registers.get(name);
             match register {
@@ -74,6 +75,7 @@ pub mod basic_machine {
 
         // in this case, a memory address is stored in machine's register
         // a list can be printed by calling this fn
+        #[allow(dead_code)]
         pub fn print_register_contents(&self, name: &'static str, memory: &Memory) {
             let reg = self.get_register(name);
             match reg {
@@ -116,6 +118,7 @@ pub mod basic_machine {
             self.set_register_contents(name, Object::Index(index));
         }
 
+        #[allow(dead_code)]
         pub fn assign_from_one_register_to_another(
             &mut self,
             to: &'static str,
@@ -132,6 +135,7 @@ pub mod basic_machine {
             }
         }
 
+        #[allow(dead_code)]
         pub fn get_register_contents_as_in_memory(
             &self,
             name: &'static str,
@@ -169,18 +173,23 @@ pub mod basic_machine {
         }
 
         // assign the car part of list of register y to register x
+        #[allow(dead_code)]
         pub fn assign_car(&mut self, x: &'static str, y: &'static str, memory: &mut Memory) {}
 
         // assign the cdr part of list of register y to register x
+        #[allow(dead_code)]
         pub fn assign_cdr(&mut self, x: &'static str, y: &'static str, memory: &mut Memory) {}
 
         // change the car part of list of register x to register y
+        #[allow(dead_code)]
         pub fn set_car(&mut self, x: &'static str, y: &'static str, memory: &mut Memory) {}
 
         // change the cdr part of list of register x to register y
+        #[allow(dead_code)]
         pub fn set_cdr(&mut self, x: &'static str, y: &'static str, memory: &mut Memory) {}
 
         // build a new list from register y and register z, then assign this new list to register x
+        #[allow(dead_code)]
         pub fn cons(
             &mut self,
             x: &'static str,
