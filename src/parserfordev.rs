@@ -25,49 +25,49 @@ pub mod parser {
                 x if x == "(".to_string() => {
                     let subtree = build_syntax_tree_helper(tokens);
                     tree_buffer = append(tree_buffer, scheme_list!(subtree));
-                },
+                }
                 // tail of a Exp::List
                 x if x == ")".to_string() => {
                     break;
-                },
+                }
                 x if x == "Nil".to_string() => {
                     tree_buffer = append(tree_buffer, Exp::List(Pair::Nil));
-                },
+                }
                 // bool value
                 x if x == "true".to_string() => {
                     tree_buffer = append(tree_buffer, scheme_list!(Exp::Bool(true)));
-                },
+                }
                 x if x == "false".to_string() => {
                     tree_buffer = append(tree_buffer, scheme_list!(Exp::Bool(false)));
-                },
+                }
                 // symbol value
                 x if is_symbol(&x) => {
                     tree_buffer = append(tree_buffer, scheme_list!(Exp::Symbol(x)));
-                },
+                }
                 // scheme string, for example, "winter is coming!"
                 x if x.chars().nth(0) == Some('"') => {
                     let s = read_scheme_string(x, tokens);
                     tree_buffer = append(tree_buffer, scheme_list!(Exp::SchemeString(s)));
-                },
+                }
                 // scheme quote, for example, 'winter
                 x if x.chars().nth(0) == Some('\'') => {
                     let s = read_scheme_quote(x, tokens);
                     tree_buffer = append(tree_buffer, scheme_list!(Exp::Quote(s)));
-                },
+                }
                 // i32
                 x if is_i32(x.clone()) => {
                     tree_buffer = append(
                         tree_buffer,
                         scheme_list!(Exp::Integer(x.parse::<i32>().unwrap())),
                     );
-                },
+                }
                 // f32
                 x if is_f32(x.clone()) => {
                     tree_buffer = append(
                         tree_buffer,
                         scheme_list!(Exp::FloatNumber(x.parse::<f32>().unwrap())),
                     );
-                },
+                }
                 _ => {
                     panic!("unknow token!");
                 }
@@ -145,38 +145,38 @@ pub mod parser {
     }
 
     #[allow(dead_code)]
-    pub fn exp_to_str_iter(s: &mut String, exp: Exp){
+    pub fn exp_to_str_iter(s: &mut String, exp: Exp) {
         match exp {
             Exp::FloatNumber(x) => {
                 s.push(' ');
                 s.push_str(&x.to_string());
-            },
+            }
             Exp::Integer(x) => {
                 s.push(' ');
                 s.push_str(&x.to_string());
-            },
+            }
             Exp::Symbol(x) => {
                 s.push(' ');
                 s.push_str(&x.to_string());
-            },
+            }
             Exp::Quote(x) => {
                 s.push(' ');
                 s.push('\'');
                 s.push_str(&x.to_string());
-            },
+            }
             Exp::SchemeString(x) => {
                 s.push(' ');
                 s.push('"');
                 s.push_str(&x.to_string());
                 s.push('"');
-            },
+            }
             Exp::Bool(x) => {
                 s.push(' ');
                 s.push_str(&x.to_string());
-            },
+            }
             Exp::List(Pair::Nil) => {
                 s.push_str(&"()".to_string());
-            },
+            }
             Exp::List(Pair::Cons(x, y)) => {
                 s.push_str(&"(".to_string());
                 exp_to_str_iter(s, *x);
@@ -241,7 +241,8 @@ mod test {
                 scheme_list!(Exp::Integer(1), Exp::Integer(2)),
                 scheme_list!(
                     Exp::Integer(3),
-                    scheme_list!(Exp::Integer(4), Exp::Integer(5)))
+                    scheme_list!(Exp::Integer(4), Exp::Integer(5))
+                )
             )
         );
         assert_eq!(
@@ -269,7 +270,7 @@ mod test {
         let exp2 = str_to_exp(s2);
         let exp3 = str_to_exp(s3);
         let exp4 = str_to_exp(s4);
-        let exp5 = str_to_exp(s5); 
+        let exp5 = str_to_exp(s5);
         let ss1 = exp_to_str(exp1);
         let ss2 = exp_to_str(exp2);
         let ss3 = exp_to_str(exp3);

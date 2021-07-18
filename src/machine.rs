@@ -215,6 +215,6 @@ mod test {
         let s = "(define x '(+ 1 2))";
         machine.set_register_contents_as_in_memory("root", s, &mut memory);
         let ss = machine.get_register_contents_as_in_memory("root", &memory);
-        assert_eq!(ss, String::from("( define x ( + 1 2))"));
+        assert_eq!(ss, String::from("( define x '( + 1 2))"));
     }
 }

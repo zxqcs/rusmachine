@@ -10,7 +10,7 @@ mod tpfordev;
 use crate::machine::basic_machine::BasicMachine;
 use crate::parser::parser::{build_syntax_tree_into_memeory, tokenizer};
 use crate::parserfordev::parser::{print, str_to_exp};
-use crate::tpfordev::type_system::{Pair, Exp, scheme_cons, append};
+use crate::tpfordev::type_system::{append, scheme_cons, Exp, Pair};
 use gc::garbage_collector::garbage_collector;
 use infrastructure::{register, stack::Stack};
 use memory::memory::Memory;
@@ -38,7 +38,8 @@ fn main() {
             scheme_list!(Exp::Integer(1), Exp::Integer(2)),
             scheme_list!(
                 Exp::Integer(3),
-                scheme_list!(Exp::Integer(4), Exp::Integer(5)))
+                scheme_list!(Exp::Integer(4), Exp::Integer(5))
+            )
         )
     );
     assert_eq!(

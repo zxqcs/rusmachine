@@ -247,19 +247,19 @@ pub mod parser {
                         x if x == "false" => item = Object::Bool(false),
                         x if is_i32(x.clone()) => {
                             item = Object::Integer(x.parse::<i32>().unwrap());
-                        },
+                        }
                         x if is_f32(x.clone()) => {
                             item = Object::Nummber(x.parse::<f32>().unwrap());
-                        },
+                        }
                         x if is_symbol(&x) => item = Object::Symbol(x),
                         x if x.chars().nth(0) == Some('"') => {
                             let s = read_scheme_string(x, tokens);
                             item = Object::LispString(s);
-                        },
+                        }
                         x if x.chars().nth(0) == Some('\'') => {
                             let s = read_scheme_quote(x, tokens);
                             item = Object::Quote(s);
-                        },
+                        }
                         _ => {}
                     }
                     match pair_index {

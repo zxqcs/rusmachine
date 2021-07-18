@@ -87,7 +87,9 @@ pub mod register {
             }
             Object::LispString(x) => {
                 s.push(' ');
+                s.push('"');
                 s.push_str(&x);
+                s.push('"');
             }
             Object::Nummber(x) => {
                 s.push(' ');
@@ -95,6 +97,7 @@ pub mod register {
             }
             Object::Quote(x) => {
                 s.push(' ');
+                s.push('\'');
                 s.push_str(&x);
             }
             Object::Symbol(x) => {
