@@ -1,5 +1,6 @@
 mod assembler {
     use crate::machine::basic_machine::BasicMachine;
+    use crate::parserfordev::parser::str_to_exp;
     use crate::scheme_list;
     use crate::tpfordev::type_system::{
         append, car, cdr, scheme_cons, set_car, set_cdr, Exp, Pair,
@@ -7,7 +8,18 @@ mod assembler {
 
     #[allow(dead_code)]
     pub fn extract_labels(text: &'static str) -> Exp {
-        Exp::Integer(1)
+        let text = str_to_exp(text);
+        extract_labels_iter(text)
+    }
+
+    #[allow(dead_code)]
+    pub fn extract_labels_iter(text: Exp) -> Exp {
+        let null = Exp::List(Pair::Nil);
+        if text.is_null() {
+            scheme_cons(null.clone(), null)
+        } else {
+            Exp::Integer(1)
+        }
     }
 
     #[allow(dead_code)]
@@ -22,12 +34,12 @@ mod assembler {
     }
 
     #[allow(dead_code)]
-    fn instruction_text(inst: Exp) -> Exp {
+    fn instruction_text(inst: &Exp) -> Exp {
         car(inst).unwrap()
     }
 
     #[allow(dead_code)]
-    fn instruction_execution_proc(inst: Exp) -> Exp {
+    fn instruction_execution_proc(inst: &Exp) -> Exp {
         cdr(inst).unwrap()
     }
 

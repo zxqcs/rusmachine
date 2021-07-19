@@ -43,6 +43,13 @@ pub mod type_system {
                 _ => false,
             }
         }
+
+        pub fn is_null(&self) -> bool {
+            match self {
+                Exp::List(Pair::Nil) => true,
+                _ => false,
+            }
+        }
     }
 
     #[macro_export]
@@ -86,8 +93,8 @@ pub mod type_system {
             rhs
         } else {
             scheme_cons(
-                car(lhs.clone()).unwrap(),
-                append(cdr(lhs.clone()).unwrap(), rhs),
+                car(&lhs).unwrap(),
+                append(cdr(&lhs).unwrap(), rhs),
             )
         }
     }
@@ -114,16 +121,17 @@ pub mod type_system {
         if exp == Exp::List(Pair::Nil) {
             0
         } else {
-            1 + list_length(cdr(exp.clone()).unwrap())
+            1 + list_length(cdr(&exp).unwrap())
         }
     }
 
-    pub fn car(exp: Exp) -> Result<Exp, &'static str> {
-        match &exp {
+    #[allow(dead_code)]
+    pub fn car(exp: &Exp) -> Result<Exp, &'static str> {
+        match exp {
             Exp::List(_x) => {
                 if exp.is_pair() {
                     if let Exp::List(Pair::Cons(x, _y)) = exp {
-                        Ok(*x.clone())
+                        Ok((**x).clone())
                     } else {
                         Err("error happens!")
                     }
@@ -136,12 +144,12 @@ pub mod type_system {
     }
 
     #[allow(dead_code)]
-    pub fn cdr(exp: Exp) -> Result<Exp, &'static str> {
-        match &exp {
+    pub fn cdr(exp: &Exp) -> Result<Exp, &'static str> {
+        match exp {
             Exp::List(_x) => {
                 if exp.is_pair() {
                     if let Exp::List(Pair::Cons(_x, y)) = exp {
-                        let z = Exp::List(*y);
+                        let z = Exp::List((**y).clone());
                         Ok(z)
                     } else {
                         Err("error happens!")
@@ -152,5 +160,33 @@ pub mod type_system {
             }
             _ => Err("type mismatch, not even a List!"),
         }
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::type_system::{car, cdr};
+    use crate::parserfordev::parser::str_to_exp;
+    #[test]
+    fn car_works() {
+        let exp = str_to_exp("((1 2) (3 (4 5)))");
+        let exp1 = car(&exp).unwrap();
+        let exp2 = car(&exp1).unwrap();
+        assert_eq!(exp1, str_to_exp("(1 2)"));
+        assert_eq!(exp2, str_to_exp("1"));
+    }
+
+    #[test]
+    fn cdr_works() {
+        let exp = str_to_exp("((1 2) (3 (4 5)))");
+        let exp1 = cdr(&exp).unwrap();
+        let exp2 = cdr(&exp1).unwrap();
+        let exp3 = car(&exp1).unwrap();
+        let exp4 = cdr(&exp3).unwrap();
+
+        assert_eq!(exp1, str_to_exp("((3 ( 4 5)))"));
+        assert_eq!(exp2, str_to_exp("()"));
+        assert_eq!(exp3, str_to_exp("(3 ( 4 5))"));
+        assert_eq!(exp4, str_to_exp("(( 4 5))"));
     }
 }

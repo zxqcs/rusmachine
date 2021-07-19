@@ -10,11 +10,12 @@ pub mod parser {
         let mut tokens = reverse(tokens);
         let tree = build_syntax_tree_helper(&mut tokens);
         if tree != Exp::List(Pair::Nil) {
-            car(tree).unwrap()
+            car(&tree).unwrap()
         } else {
             Exp::List(Pair::Nil)
         }
     }
+
     #[allow(dead_code)]
     fn build_syntax_tree_helper(tokens: &mut Vec<String>) -> Exp {
         let mut tree_buffer = Exp::List(Pair::Nil);
@@ -203,7 +204,7 @@ pub mod parser {
     pub fn str_to_exp(s: &'static str) -> Exp {
         let mut tokens = tokenizer(s);
         if !syntax_checker(&tokens) {
-            panic!("symtax wrong!");
+            panic!("syntax wrong!");
         }
         let exp = build_syntax_tree(&mut tokens);
         exp
