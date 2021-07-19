@@ -165,12 +165,25 @@ pub mod type_system {
             _ => Err("type mismatch, not even a List!"),
         }
     }
+
+    #[allow(dead_code)]
+    pub fn scheme_map(proc: fn(Exp) -> Exp, items: Exp) -> Exp {
+        if items.is_null() {
+            Exp::List(Pair::Nil)
+        } else {
+            scheme_cons(
+                proc(car(&items).unwrap()),
+                scheme_map(proc, cdr(&items).unwrap())
+            )
+        }
+    }
 }
 
 #[cfg(test)]
 mod test {
-    use super::type_system::{car, cdr};
+    use super::type_system::{car, cdr, scheme_map};
     use crate::parserfordev::parser::str_to_exp;
+    use crate::tpfordev::type_system::Exp;
     #[test]
     fn car_works() {
         let exp = str_to_exp("((1 2) (3 (4 5)))");
@@ -192,5 +205,23 @@ mod test {
         assert_eq!(exp2, str_to_exp("()"));
         assert_eq!(exp3, str_to_exp("(3 ( 4 5))"));
         assert_eq!(exp4, str_to_exp("(( 4 5))"));
+    }
+
+    #[test]
+    fn scheme_map_works() {
+        let items = str_to_exp("(1 2 3 4)");
+        let result = scheme_map(square, items); 
+        assert_eq!(result, str_to_exp("(1 4 9 16)"));
+    }
+
+    fn square(x: Exp) -> Exp {
+        match x {
+            Exp::Integer(i) => {
+                Exp::Integer(i * i)
+            },
+            _ => {
+                panic!("type mismatch!");
+            }
+        }
     }
 }
