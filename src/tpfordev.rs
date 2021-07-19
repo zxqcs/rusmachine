@@ -50,6 +50,13 @@ pub mod type_system {
                 _ => false,
             }
         }
+
+        pub fn is_symbol(&self) -> bool {
+            match self {
+                Exp::Symbol(_x) => true,
+                _ => false,
+            }
+        }
     }
 
     #[macro_export]
@@ -92,10 +99,7 @@ pub mod type_system {
         if lhs == null {
             rhs
         } else {
-            scheme_cons(
-                car(&lhs).unwrap(),
-                append(cdr(&lhs).unwrap(), rhs),
-            )
+            scheme_cons(car(&lhs).unwrap(), append(cdr(&lhs).unwrap(), rhs))
         }
     }
 

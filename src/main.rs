@@ -2,22 +2,65 @@ mod assembler;
 mod gc;
 mod infrastructure;
 mod machine;
+mod machine_cases;
 mod memory;
 mod parser;
 mod parserfordev;
 mod representation;
 mod tpfordev;
 
+use crate::assembler::assembler::extract_labels;
 use crate::machine::basic_machine::BasicMachine;
 use crate::parser::parser::{build_syntax_tree_into_memeory, tokenizer};
 use crate::parserfordev::parser::{print, str_to_exp};
-use crate::tpfordev::type_system::{append, scheme_cons, Exp, Pair};
+use crate::tpfordev::type_system::{Exp, Pair, append, car, cdr, scheme_cons};
 use gc::garbage_collector::garbage_collector;
 use infrastructure::{register, stack::Stack};
+use machine_cases::machine_cases::machine_case;
 use memory::memory::Memory;
+use parserfordev::parser::exp_to_str;
 use representation::type_system::Object;
 
 fn main() {
+    let factorial = machine_case::new();
+    let result = extract_labels(factorial.controller_text);
+    let insts = car(&result).unwrap();
+    let labels = cdr(&result).unwrap();
+    let insts = exp_to_str(insts);
+    let labels = exp_to_str(labels);
+    println!("{}", insts);
+    println!("{}", labels);
+}
+
+fn build_syntax_tree_into_memeory_works() {
+    let mut memory = Memory::new(10);
+    let mut machine = BasicMachine::new();
+    machine.initilize_registers();
+    let s = "(( 1  2 )
+                       (3 
+                           (4  
+                              5)))";
+    let mut tokens = tokenizer(s);
+    let root = build_syntax_tree_into_memeory(&mut tokens, &mut memory, &mut machine);
+    machine.set_register_contents("root", Object::Index(root));
+    let reg = machine.get_register("root").unwrap();
+    reg.print_list(&memory);
+    println!("{}", memory);
+}
+
+fn set_register_contents_as_in_memory_works() {
+    let mut memory = Memory::new(10);
+    let mut machine = BasicMachine::new();
+    machine.initilize_registers();
+    let s = "(( 1  2 )
+                       (3 
+                           (4  
+                              5)))";
+    machine.set_register_contents_as_in_memory("root", s, &mut memory);
+    machine.get_register("root").unwrap().print_list(&memory);
+}
+
+fn str_to_exp_works() {
     let s1 = "true";
     let s2 = "3.14";
     let s3 = "(( 1  2 )
@@ -57,32 +100,4 @@ fn main() {
     print(exp3);
     print(exp4);
     print(exp5);
-}
-
-fn build_syntax_tree_into_memeory_works() {
-    let mut memory = Memory::new(10);
-    let mut machine = BasicMachine::new();
-    machine.initilize_registers();
-    let s = "(( 1  2 )
-                       (3 
-                           (4  
-                              5)))";
-    let mut tokens = tokenizer(s);
-    let root = build_syntax_tree_into_memeory(&mut tokens, &mut memory, &mut machine);
-    machine.set_register_contents("root", Object::Index(root));
-    let reg = machine.get_register("root").unwrap();
-    reg.print_list(&memory);
-    println!("{}", memory);
-}
-
-fn set_register_contents_as_in_memory_works() {
-    let mut memory = Memory::new(10);
-    let mut machine = BasicMachine::new();
-    machine.initilize_registers();
-    let s = "(( 1  2 )
-                       (3 
-                           (4  
-                              5)))";
-    machine.set_register_contents_as_in_memory("root", s, &mut memory);
-    machine.get_register("root").unwrap().print_list(&memory);
 }

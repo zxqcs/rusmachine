@@ -1,4 +1,4 @@
-mod assembler {
+pub mod assembler {
     use crate::machine::basic_machine::BasicMachine;
     use crate::parserfordev::parser::str_to_exp;
     use crate::scheme_list;
@@ -18,7 +18,18 @@ mod assembler {
         if text.is_null() {
             scheme_cons(null.clone(), null)
         } else {
-            Exp::Integer(1)
+            let result = extract_labels_iter(cdr(&text).unwrap());
+            let insts = car(&result).unwrap();
+            let labels = cdr(&result).unwrap();
+            let next_inst = car(&text).unwrap();
+            if next_inst.is_symbol() {
+                scheme_cons(
+                    insts.clone(),
+                    scheme_cons(make_label_entry(next_inst, insts), labels),
+                )
+            } else {
+                scheme_cons(scheme_cons(make_instruction(next_inst), insts), labels)
+            }
         }
     }
 
