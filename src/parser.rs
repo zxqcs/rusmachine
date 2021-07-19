@@ -317,7 +317,7 @@ pub mod parser {
         }
     }
 
-    pub fn read_scheme_string(mut t: String, tokens: &mut Vec<String>) -> String {
+    pub fn read_scheme_string(t: String, tokens: &mut Vec<String>) -> String {
         let mut tt = (&t[1..]).to_string();
         loop {
             let s = tokens.pop();
@@ -497,15 +497,13 @@ mod test {
 
     #[test]
     fn read_scheme_quote_works() {
-        let t = vec!["'", "(", "1", "(", "2", "3", ")", ")"];
-        let mut tokens: Vec<String> = t.into_iter().map(|x| x.to_string()).collect();
-        tokens = reverse(&mut tokens);
+        let quote = "'(1 ( 2 3 ))";
+        let mut tokens = reverse(&mut tokenizer(quote));
         let x = tokens.pop().unwrap();
         let s = read_scheme_quote(x, &mut tokens);
         assert_eq!(s, "( 1 ( 2 3))".to_string());
-        let tt = vec!["'symbol", "(", "1", "2", ")"];
-        let mut ttokens: Vec<String> = tt.into_iter().map(|x| x.to_string()).collect();
-        ttokens = reverse(&mut ttokens);
+        let another_quote = "'symbol ( 1 2)";
+        let mut ttokens = reverse(&mut tokenizer(another_quote));
         let xx = ttokens.pop().unwrap();
         let ss = read_scheme_quote(xx, &mut ttokens);
         assert_eq!(ss, "symbol".to_string());
