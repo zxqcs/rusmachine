@@ -3,7 +3,7 @@ pub mod parser {
         read_scheme_quote, read_scheme_string, reverse, syntax_checker, tokenizer,
     };
     use crate::scheme_list;
-    use crate::tpfordev::type_system::{append, car, scheme_cons, Exp, Pair};
+    use crate::tpfordev::type_system::{Exp, Pair, append, car, scheme_cons, scheme_for_each, scheme_map_clousre};
 
     #[allow(dead_code)]
     pub fn build_syntax_tree(tokens: &mut Vec<String>) -> Exp {
@@ -208,6 +208,18 @@ pub mod parser {
         }
         let exp = build_syntax_tree(&mut tokens);
         exp
+    }
+
+    #[allow(dead_code)]
+    pub fn scheme_list_pretty_print(items: &Exp) {
+        let pretty_print = |x: Exp| {
+            let line = exp_to_str(x);
+            print!("    ");
+            println!("{}", line);
+        };
+        println!("(");
+        scheme_for_each(pretty_print, items);
+        println!(")");
     }
 }
 

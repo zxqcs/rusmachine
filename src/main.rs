@@ -12,7 +12,7 @@ mod tpfordev;
 use crate::assembler::assembler::extract_labels;
 use crate::machine::basic_machine::BasicMachine;
 use crate::parser::parser::{build_syntax_tree_into_memeory, tokenizer};
-use crate::parserfordev::parser::{print, str_to_exp};
+use crate::parserfordev::parser::{print, scheme_list_pretty_print, str_to_exp};
 use crate::tpfordev::type_system::{append, car, cdr, scheme_cons, Exp, Pair};
 use gc::garbage_collector::garbage_collector;
 use infrastructure::{register, stack::Stack};
@@ -26,12 +26,10 @@ fn main() {
     let result = extract_labels(factorial.controller_text);
     let insts = car(&result).unwrap();
     let labels = cdr(&result).unwrap();
-    let insts = exp_to_str(insts);
-    let labels = exp_to_str(labels);
     println!("insts=>");
-    println!("{}", insts);
+    scheme_list_pretty_print(&insts);
     println!("labels=>");
-    println!("{}", labels);
+    scheme_list_pretty_print(&labels);
 }
 
 fn build_syntax_tree_into_memeory_works() {

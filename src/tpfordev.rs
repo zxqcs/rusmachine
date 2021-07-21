@@ -192,6 +192,19 @@ pub mod type_system {
             )
         }
     }
+
+    #[allow(dead_code)]
+    pub fn scheme_for_each<F>(mut f: F, items: &Exp) 
+    where
+        F: FnMut(Exp),
+    {
+        if items.is_null() {
+            ;
+        } else {
+                f(car(items).unwrap());
+                scheme_for_each(f, &cdr(items).unwrap());
+        }
+    }
 }
 
 #[cfg(test)]
