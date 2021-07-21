@@ -3,7 +3,8 @@ pub mod assembler {
     use crate::parserfordev::parser::str_to_exp;
     use crate::scheme_list;
     use crate::tpfordev::type_system::{
-        append, car, cdr, scheme_cons, scheme_map, scheme_map_clousre, set_car, set_cdr, Exp, Pair,
+        append, car, cdr, scheme_assoc, scheme_cons, scheme_map, scheme_map_clousre, set_car,
+        set_cdr, Exp, Pair,
     };
 
     #[allow(dead_code)]
@@ -86,8 +87,15 @@ pub mod assembler {
     }
 
     #[allow(dead_code)]
-    fn lookup_label(labels: Exp, label_name: Exp) -> Exp {
-        Exp::Integer(1)
+    pub fn lookup_label(labels: &Exp, label_name: &Exp) -> Option<Exp> {
+        let val = scheme_assoc(labels, label_name);
+        match val {
+            Some(x) => {
+                let result = cdr(&x).unwrap();
+                Some(result)
+            }
+            None => None,
+        }
     }
 
     #[allow(dead_code)]
@@ -120,4 +128,29 @@ pub mod assembler {
     ) -> impl FnMut(&mut BasicMachine) {
     }
     */
+}
+
+#[cfg(test)]
+mod test {
+    use crate::{
+        machine_cases::MachineCase::MachineCase, parserfordev::parser::str_to_exp,
+        tpfordev::type_system::cdr,
+    };
+
+    use super::assembler::{extract_labels, lookup_label};
+
+    #[test]
+    fn lookup_label_works() {
+        let factorial = MachineCase::new();
+        let text = factorial.controller_text;
+        let result = extract_labels(text);
+        let labels = cdr(&result).unwrap();
+        let label_key = str_to_exp("base-case");
+        let insts = lookup_label(&labels, &label_key).unwrap();
+        let checkout = str_to_exp(
+            "(((assgin val (const 1))) 
+                                       ((goto (reg continue))))",
+        );
+        assert_eq!(insts, checkout);
+    }
 }

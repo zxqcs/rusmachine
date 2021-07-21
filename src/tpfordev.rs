@@ -209,14 +209,13 @@ pub mod type_system {
     pub fn scheme_assoc(items: &Exp, key: &Exp) -> Option<Exp> {
         if items.is_pair() {
             let mut list = (*items).clone();
-            while let Ok(x) = car(&list)  {
+            while let Ok(x) = car(&list) {
                 let item = car(&x).unwrap();
                 match item {
                     y if y == *key => {
                         return Some(x);
-                    },
-                    _ => {
                     }
+                    _ => {}
                 }
                 list = cdr(&list).unwrap();
             }
@@ -291,8 +290,13 @@ mod test {
         let result_a = scheme_assoc(&items, &key).unwrap();
         let checkout_a = str_to_exp("(summer 2)");
         assert_eq!(result_a, checkout_a);
-        key = Exp::Symbol("USA".to_string()); 
+        key = Exp::Symbol("USA".to_string());
         let result_b = scheme_assoc(&items, &key);
         assert_eq!(result_b, None);
+        let list = str_to_exp("(((bird)) ((egg)) ((cake)) ((pear)))");
+        key = str_to_exp("(egg)");
+        let result_c = scheme_assoc(&list, &key).unwrap();
+        let checkout_c = str_to_exp("((egg))");
+        assert_eq!(result_c, checkout_c);
     }
 }
