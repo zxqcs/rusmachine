@@ -92,6 +92,32 @@ pub mod assembler {
 
     #[allow(dead_code)]
     pub fn make_execution_procedure(inst: Exp, labels: &Exp, machine: &mut BasicMachine) -> Exp {
+        /*
+        let symbol = car(&inst).unwrap();
+        match symbol {
+            Exp::Symbol("assign") => {}
+            Exp::Symbol("test") => {}
+            Exp::Symbol("branch") => {}
+            Exp::Symbol("goto") => {}
+            Exp::Symbol("save") => {}
+            Exp::Symbol("restore") => {}
+            Exp::Symbol("perform") => {}
+            _ => {
+                println!("inst=> {}", inst);
+                panic!("Unknown instruction type: ASSEMBLE")
+            }
+        }
+        */
         Exp::Integer(1)
     }
+
+    /*
+    #[allow(dead_code)]
+    fn make_assign(
+        inst: Exp,
+        labels: &Exp,
+        machine: &mut BasicMachine,
+    ) -> impl FnMut(&mut BasicMachine) {
+    }
+    */
 }

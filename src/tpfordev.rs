@@ -194,22 +194,42 @@ pub mod type_system {
     }
 
     #[allow(dead_code)]
-    pub fn scheme_for_each<F>(mut f: F, items: &Exp) 
+    pub fn scheme_for_each<F>(mut f: F, items: &Exp)
     where
         F: FnMut(Exp),
     {
         if items.is_null() {
-            ;
         } else {
-                f(car(items).unwrap());
-                scheme_for_each(f, &cdr(items).unwrap());
+            f(car(items).unwrap());
+            scheme_for_each(f, &cdr(items).unwrap());
+        }
+    }
+
+    #[allow(dead_code)]
+    pub fn scheme_assoc(items: &Exp, key: &Exp) -> Option<Exp> {
+        if items.is_pair() {
+            let mut list = (*items).clone();
+            while let Ok(x) = car(&list)  {
+                let item = car(&x).unwrap();
+                match item {
+                    y if y == *key => {
+                        return Some(x);
+                    },
+                    _ => {
+                    }
+                }
+                list = cdr(&list).unwrap();
+            }
+            return None;
+        } else {
+            return None;
         }
     }
 }
 
 #[cfg(test)]
 mod test {
-    use super::type_system::{car, cdr, scheme_map, scheme_map_clousre};
+    use super::type_system::{car, cdr, scheme_assoc, scheme_map, scheme_map_clousre};
     use crate::parserfordev::parser::str_to_exp;
     use crate::tpfordev::type_system::Exp;
     #[test]
@@ -262,5 +282,17 @@ mod test {
                 panic!("type mismatch!");
             }
         }
+    }
+
+    #[test]
+    fn scheme_assoc_works() {
+        let items = str_to_exp("((spring 1) (summer 2) (autumn 3) (winter 4))");
+        let mut key = Exp::Symbol("summer".to_string());
+        let result_a = scheme_assoc(&items, &key).unwrap();
+        let checkout_a = str_to_exp("(summer 2)");
+        assert_eq!(result_a, checkout_a);
+        key = Exp::Symbol("USA".to_string()); 
+        let result_b = scheme_assoc(&items, &key);
+        assert_eq!(result_b, None);
     }
 }
