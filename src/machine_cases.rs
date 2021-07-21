@@ -1,12 +1,12 @@
-pub mod machine_cases {
-    pub struct machine_case {
+pub mod MachineCase {
+    pub struct MachineCase {
         pub name: &'static str,
         pub controller_text: &'static str,
     }
 
-    impl machine_case {
+    impl MachineCase {
         pub fn new() -> Self {
-            machine_case {
+            MachineCase {
                 name: "factorial_machine",
                 controller_text: "(controller   
                     (assign continue (label fact-done)) 

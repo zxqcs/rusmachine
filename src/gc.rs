@@ -204,11 +204,11 @@ pub mod garbage_collector {
         let label_five = Object::Symbol("update_cdr".to_string());
 
         match label {
-            label_one => reassign_root(machine, memory),
-            label_two => gc_loop(machine, memory),
-            label_three => gc_flip(memory),
-            label_four => update_car(machine, memory),
-            label_five => update_cdr(machine, memory),
+            x if *x == label_one => reassign_root(machine, memory),
+            x if *x == label_two => gc_loop(machine, memory),
+            x if *x == label_three => gc_flip(memory),
+            x if *x == label_four => update_car(machine, memory),
+            x if *x == label_five => update_cdr(machine, memory),
             _ => panic!("not a proper label!"),
         }
     }

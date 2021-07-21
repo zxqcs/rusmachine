@@ -3,8 +3,22 @@ pub mod assembler {
     use crate::parserfordev::parser::str_to_exp;
     use crate::scheme_list;
     use crate::tpfordev::type_system::{
-        append, car, cdr, scheme_cons, set_car, set_cdr, Exp, Pair,
+        append, car, cdr, scheme_cons, scheme_map, scheme_map_clousre, set_car, set_cdr, Exp, Pair,
     };
+
+    #[allow(dead_code)]
+    fn assemble(controller_text: &'static str, machine: &mut BasicMachine) -> Exp {
+        let result = extract_labels(controller_text);
+        let insts = car(&result).unwrap();
+        let labels = cdr(&result).unwrap();
+        let set_instruction_execution_proc = |inst| {
+            let proc = make_execution_procedure(instruction_text(&inst), &labels, machine);
+            let new_inst = set_instruction_execution_proc(inst, proc);
+            new_inst
+        };
+        let insts = update_inst(&insts, set_instruction_execution_proc);
+        insts
+    }
 
     #[allow(dead_code)]
     pub fn extract_labels(text: &'static str) -> Exp {
@@ -34,8 +48,11 @@ pub mod assembler {
     }
 
     #[allow(dead_code)]
-    pub fn update_inst(insts: Exp, labels: Exp, machine: &mut BasicMachine) -> Exp {
-        Exp::Integer(1)
+    pub fn update_inst<F>(insts: &Exp, f: F) -> Exp
+    where
+        F: FnMut(Exp) -> Exp,
+    {
+        scheme_map_clousre(f, insts)
     }
 
     #[allow(dead_code)]
@@ -70,6 +87,11 @@ pub mod assembler {
 
     #[allow(dead_code)]
     fn lookup_label(labels: Exp, label_name: Exp) -> Exp {
+        Exp::Integer(1)
+    }
+
+    #[allow(dead_code)]
+    pub fn make_execution_procedure(inst: Exp, labels: &Exp, machine: &mut BasicMachine) -> Exp {
         Exp::Integer(1)
     }
 }

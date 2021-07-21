@@ -173,7 +173,22 @@ pub mod type_system {
         } else {
             scheme_cons(
                 proc(car(&items).unwrap()),
-                scheme_map(proc, cdr(&items).unwrap())
+                scheme_map(proc, cdr(&items).unwrap()),
+            )
+        }
+    }
+
+    #[allow(dead_code)]
+    pub fn scheme_map_clousre<F>(mut f: F, items: &Exp) -> Exp
+    where
+        F: FnMut(Exp) -> Exp,
+    {
+        if items.is_null() {
+            Exp::List(Pair::Nil)
+        } else {
+            scheme_cons(
+                f(car(items).unwrap()),
+                scheme_map_clousre(f, &cdr(items).unwrap()),
             )
         }
     }
@@ -181,7 +196,7 @@ pub mod type_system {
 
 #[cfg(test)]
 mod test {
-    use super::type_system::{car, cdr, scheme_map};
+    use super::type_system::{car, cdr, scheme_map, scheme_map_clousre};
     use crate::parserfordev::parser::str_to_exp;
     use crate::tpfordev::type_system::Exp;
     #[test]
@@ -210,15 +225,26 @@ mod test {
     #[test]
     fn scheme_map_works() {
         let items = str_to_exp("(1 2 3 4)");
-        let result = scheme_map(square, items); 
+        let result = scheme_map(square, items);
+        assert_eq!(result, str_to_exp("(1 4 9 16)"));
+    }
+
+    #[test]
+    fn scheme_map_clousre_works() {
+        let square = |x: Exp| match x {
+            Exp::Integer(i) => Exp::Integer(i * i),
+            _ => {
+                panic!("type mismatch!");
+            }
+        };
+        let items = str_to_exp("(1 2 3 4)");
+        let result = scheme_map_clousre(square, &items);
         assert_eq!(result, str_to_exp("(1 4 9 16)"));
     }
 
     fn square(x: Exp) -> Exp {
         match x {
-            Exp::Integer(i) => {
-                Exp::Integer(i * i)
-            },
+            Exp::Integer(i) => Exp::Integer(i * i),
             _ => {
                 panic!("type mismatch!");
             }

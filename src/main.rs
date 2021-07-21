@@ -16,13 +16,13 @@ use crate::parserfordev::parser::{print, str_to_exp};
 use crate::tpfordev::type_system::{append, car, cdr, scheme_cons, Exp, Pair};
 use gc::garbage_collector::garbage_collector;
 use infrastructure::{register, stack::Stack};
-use machine_cases::machine_cases::machine_case;
+use machine_cases::MachineCase::MachineCase;
 use memory::memory::Memory;
 use parserfordev::parser::exp_to_str;
 use representation::type_system::Object;
 
 fn main() {
-    let factorial = machine_case::new();
+    let factorial = MachineCase::new();
     let result = extract_labels(factorial.controller_text);
     let insts = car(&result).unwrap();
     let labels = cdr(&result).unwrap();
