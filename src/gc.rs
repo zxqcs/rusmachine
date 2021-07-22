@@ -1,5 +1,4 @@
 pub mod garbage_collector {
-    use crate::infrastructure::register::Register;
     use crate::machine::basic_machine::BasicMachine;
     use crate::memory::memory::Memory;
     use crate::representation::type_system::Object;
@@ -216,7 +215,6 @@ pub mod garbage_collector {
 
 #[cfg(test)]
 mod test {
-    use super::garbage_collector;
 
     #[test]
     fn is_pair_works() {}

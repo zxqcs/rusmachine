@@ -3,9 +3,7 @@ pub mod parser {
         read_scheme_quote, read_scheme_string, reverse, syntax_checker, tokenizer,
     };
     use crate::scheme_list;
-    use crate::tpfordev::type_system::{
-        append, car, scheme_cons, scheme_for_each, scheme_map_clousre, Exp, Pair,
-    };
+    use crate::tpfordev::type_system::{append, car, scheme_cons, scheme_for_each, Exp, Pair};
 
     #[allow(dead_code)]
     pub fn build_syntax_tree(tokens: &mut Vec<String>) -> Exp {

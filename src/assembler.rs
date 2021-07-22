@@ -1,10 +1,8 @@
 pub mod assembler {
     use crate::machine::basic_machine::BasicMachine;
     use crate::parserfordev::parser::str_to_exp;
-    use crate::scheme_list;
     use crate::tpfordev::type_system::{
-        append, car, cdr, scheme_assoc, scheme_cons, scheme_map, scheme_map_clousre, set_car,
-        set_cdr, Exp, Pair,
+        car, cdr, scheme_assoc, scheme_cons, scheme_map_clousre, set_cdr, Exp, Pair,
     };
 
     #[allow(dead_code)]
@@ -128,6 +126,9 @@ pub mod assembler {
     ) -> impl FnMut(&mut BasicMachine) {
     }
     */
+    fn make_primitive_exp(exp: Exp, machine: &mut BasicMachine, labels: &Exp) {}
+
+    fn make_operation_exp(exp: Exp, machine: &mut BasicMachine, labels: &Exp) {}
 }
 
 #[cfg(test)]

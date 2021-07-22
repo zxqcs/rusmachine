@@ -131,38 +131,28 @@ pub mod type_system {
 
     #[allow(dead_code)]
     pub fn car(exp: &Exp) -> Result<Exp, &'static str> {
-        match exp {
-            Exp::List(_x) => {
-                if exp.is_pair() {
-                    if let Exp::List(Pair::Cons(x, _y)) = exp {
-                        Ok((**x).clone())
-                    } else {
-                        Err("error happens!")
-                    }
-                } else {
-                    Err("not a pair!")
-                }
+        if exp.is_pair() {
+            if let Exp::List(Pair::Cons(x, _y)) = exp {
+                Ok((**x).clone())
+            } else {
+                Err("error happens in running car!")
             }
-            _ => Err("type mismatch, not even a List!"),
+        } else {
+            Err("not a proper list!")
         }
     }
 
     #[allow(dead_code)]
     pub fn cdr(exp: &Exp) -> Result<Exp, &'static str> {
-        match exp {
-            Exp::List(_x) => {
-                if exp.is_pair() {
-                    if let Exp::List(Pair::Cons(_x, y)) = exp {
-                        let z = Exp::List((**y).clone());
-                        Ok(z)
-                    } else {
-                        Err("error happens!")
-                    }
-                } else {
-                    Err("not a pair!")
-                }
+        if exp.is_pair() {
+            if let Exp::List(Pair::Cons(_x, y)) = exp {
+                let z = Exp::List((**y).clone());
+                Ok(z)
+            } else {
+                Err("error happens in running cdr!")
             }
-            _ => Err("type mismatch, not even a List!"),
+        } else {
+            Err("not a proper lsit!")
         }
     }
 

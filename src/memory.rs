@@ -1,7 +1,7 @@
 pub mod memory {
     use crate::representation::type_system::Object;
     use std::{
-        fmt::{self, write},
+        fmt::{self},
         usize,
     };
     pub struct Memory {
