@@ -68,12 +68,12 @@ pub mod basic_machine {
             machine
         }
 
-        pub fn get_register(&self, name: &String) -> Option<&Register> {
-            self.registers.get(name)
+        pub fn get_register(&self, name: String) -> Option<&Register> {
+            self.registers.get(&name)
         }
 
-        pub fn get_register_contents_ref(&self, name: &String) -> Option<&Object> {
-            let item = self.registers.get(name).clone();
+        pub fn get_register_contents_ref(&self, name: String) -> Option<&Object> {
+            let item = self.registers.get(&name).clone();
             match item {
                 Some(x) => Some(x.get()),
                 None => None,
@@ -81,8 +81,8 @@ pub mod basic_machine {
         }
 
         #[allow(dead_code)]
-        pub fn get_register_contents(&self, name: &String) -> Option<Object> {
-            let register = self.registers.get(name);
+        pub fn get_register_contents(&self, name: String) -> Option<Object> {
+            let register = self.registers.get(&name);
             match register {
                 Some(x) => Some((*x.get()).clone()),
                 None => None,
@@ -92,7 +92,7 @@ pub mod basic_machine {
         // in this case, a memory address is stored in machine's register
         // a list can be printed by calling this fn
         #[allow(dead_code)]
-        pub fn print_register_contents(&self, name: &String, memory: &Memory) {
+        pub fn print_register_contents(&self, name: String, memory: &Memory) {
             let reg = self.get_register(name);
             match reg {
                 Some(r) => {
@@ -105,8 +105,8 @@ pub mod basic_machine {
         }
 
         // set a Oject directly in some Register
-        pub fn set_register_contents(&mut self, name: &String, item: Object) {
-            let register = self.registers.get_mut(name);
+        pub fn set_register_contents(&mut self, name: String, item: Object) {
+            let register = self.registers.get_mut(&name);
 
             match register {
                 Some(x) => {
@@ -126,8 +126,8 @@ pub mod basic_machine {
         #[allow(dead_code)]
         pub fn set_register_contents_as_in_memory(
             &mut self,
-            name: &String,
-            object: &'static str,
+            name: String,
+            object: String,
             memory: &mut Memory,
         ) {
             let mut tokens = tokenizer(object);
@@ -136,7 +136,7 @@ pub mod basic_machine {
         }
 
         #[allow(dead_code)]
-        pub fn assign_from_one_register_to_another(&mut self, to: &String, from: &String) {
+        pub fn assign_from_one_register_to_another(&mut self, to: String, from: String) {
             let from = self.get_register_contents(from);
             match from {
                 Some(x) => {
@@ -149,7 +149,7 @@ pub mod basic_machine {
         }
 
         #[allow(dead_code)]
-        pub fn get_register_contents_as_in_memory(&self, name: &String, memory: &Memory) -> String {
+        pub fn get_register_contents_as_in_memory(&self, name: String, memory: &Memory) -> String {
             let reg = self.get_register(name);
             match reg {
                 Some(r) => r.get_list_frome_memory_as_str(memory),
@@ -159,17 +159,17 @@ pub mod basic_machine {
             }
         }
 
-        pub fn register_increment_by_one(&mut self, name: &String) {
+        pub fn register_increment_by_one(&mut self, name: String) {
             let free = "free".to_string();
             let scan = "scan".to_string();
             let pc = "pc".to_string();
             match name {
                 x if *x == free || *x == scan || *x == pc => {
-                    let item = self.get_register_contents_ref(name).unwrap();
+                    let item = self.get_register_contents_ref(x.clone()).unwrap();
                     match item {
                         &Object::Index(i) => {
                             let item = Object::Index(i + 1);
-                            self.set_register_contents(name, item);
+                            self.set_register_contents(x, item);
                         }
                         _ => {
                             panic!(
@@ -225,8 +225,8 @@ mod test {
         let mut machine = BasicMachine::new();
         machine.initilize_registers();
         let s = "(define x '(+ 1 2))";
-        machine.set_register_contents_as_in_memory(&"root".to_string(), s, &mut memory);
-        let ss = machine.get_register_contents_as_in_memory(&"root".to_string(), &memory);
+        machine.set_register_contents_as_in_memory("root".to_string(), s.to_string(), &mut memory);
+        let ss = machine.get_register_contents_as_in_memory("root".to_string(), &memory);
         assert_eq!(ss, String::from("( define x '( + 1 2))"));
     }
 }

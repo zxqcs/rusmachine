@@ -2,12 +2,14 @@ pub mod assembler {
     use crate::machine::basic_machine::BasicMachine;
     use crate::parserfordev::parser::{exp_to_str, str_to_exp};
     use crate::primitives::primitives::{cadr, is_tagged_list};
+    use crate::representation::type_system::Object;
+    use crate::memory::memory::Memory;
     use crate::tpfordev::type_system::{
         car, cdr, scheme_assoc, scheme_cons, scheme_map_clousre, set_cdr, Exp, Pair,
     };
 
     #[allow(dead_code)]
-    fn assemble(controller_text: &'static str, machine: &mut BasicMachine) -> Exp {
+    fn assemble(controller_text: String, machine: &mut BasicMachine) -> Exp {
         let result = extract_labels(controller_text);
         let insts = car(&result).unwrap();
         let labels = cdr(&result).unwrap();
@@ -21,7 +23,7 @@ pub mod assembler {
     }
 
     #[allow(dead_code)]
-    pub fn extract_labels(text: &'static str) -> Exp {
+    pub fn extract_labels(text: String) -> Exp {
         let text = str_to_exp(text);
         extract_labels_iter(text)
     }
@@ -128,17 +130,38 @@ pub mod assembler {
     }
     */
     #[allow(dead_code)]
-    fn make_primitive_exp(exp: Exp, machine: &mut BasicMachine, labels: &Exp) {
+    fn make_primitive_exp(exp: Exp, machine: &mut BasicMachine, memory: &mut Memory, labels: &Exp) -> Box<dyn FnOnce(&mut BasicMachine, &mut Memory) -> Exp> {
         match exp {
             x if is_constant_exp(&x) => {
                 let c = constant_exp_value(&x);
+                let lambda = |machine: &mut BasicMachine, memory: &mut Memory| {
+                    let data = c;
+                    data
+                };
+                Box::new(lambda)
             }
             x if is_label_exp(&x) => {
-                let insts = lookup_label(labels, &label_exp_label(&x));
+                let insts = lookup_label(labels, &label_exp_label(&x)).unwrap();
+                let lambda = |machine: &mut BasicMachine, memory: &mut Memory| {
+                    let data = insts;
+                    data
+                };
+                Box::new(lambda)
             }
             x if is_register_exp(&x) => {
                 let name = exp_to_str(register_exp_reg(&x));
-                let r = machine.get_register_contents(&name).unwrap();
+                let lambda = |machine: &mut BasicMachine, memory: &mut Memory| {
+                    let content = machine.get_register_contents(name.clone()).unwrap();
+                    let mem = &(*memory);
+                    match content {
+                        Object::Index(x) => {
+                            let result = machine.get_register_contents_as_in_memory(name, mem);
+                            return str_to_exp(result);
+                        },
+                        _ => { return Exp::Integer(1) }
+                    }
+                };
+                Box::new(lambda)
             }
             _ => {
                 print!("{}=>", exp_to_str(exp));
@@ -194,13 +217,13 @@ mod test {
     fn lookup_label_works() {
         let factorial = MachineCase::new();
         let text = factorial.controller_text;
-        let result = extract_labels(text);
+        let result = extract_labels(text.to_string());
         let labels = cdr(&result).unwrap();
-        let label_key = str_to_exp("base-case");
+        let label_key = str_to_exp("base-case".to_string());
         let insts = lookup_label(&labels, &label_key).unwrap();
         let checkout = str_to_exp(
             "(((assgin val (const 1))) 
-                                       ((goto (reg continue))))",
+                                       ((goto (reg continue))))".to_string(),
         );
         assert_eq!(insts, checkout);
     }

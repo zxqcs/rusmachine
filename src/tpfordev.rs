@@ -223,32 +223,32 @@ mod test {
     use crate::tpfordev::type_system::Exp;
     #[test]
     fn car_works() {
-        let exp = str_to_exp("((1 2) (3 (4 5)))");
+        let exp = str_to_exp("((1 2) (3 (4 5)))".to_string());
         let exp1 = car(&exp).unwrap();
         let exp2 = car(&exp1).unwrap();
-        assert_eq!(exp1, str_to_exp("(1 2)"));
-        assert_eq!(exp2, str_to_exp("1"));
+        assert_eq!(exp1, str_to_exp("(1 2)".to_string()));
+        assert_eq!(exp2, str_to_exp("1".to_string()));
     }
 
     #[test]
     fn cdr_works() {
-        let exp = str_to_exp("((1 2) (3 (4 5)))");
+        let exp = str_to_exp("((1 2) (3 (4 5)))".to_string());
         let exp1 = cdr(&exp).unwrap();
         let exp2 = cdr(&exp1).unwrap();
         let exp3 = car(&exp1).unwrap();
         let exp4 = cdr(&exp3).unwrap();
 
-        assert_eq!(exp1, str_to_exp("((3 ( 4 5)))"));
-        assert_eq!(exp2, str_to_exp("()"));
-        assert_eq!(exp3, str_to_exp("(3 ( 4 5))"));
-        assert_eq!(exp4, str_to_exp("(( 4 5))"));
+        assert_eq!(exp1, str_to_exp("((3 ( 4 5)))".to_string()));
+        assert_eq!(exp2, str_to_exp("()".to_string()));
+        assert_eq!(exp3, str_to_exp("(3 ( 4 5))".to_string()));
+        assert_eq!(exp4, str_to_exp("(( 4 5))".to_string()));
     }
 
     #[test]
     fn scheme_map_works() {
-        let items = str_to_exp("(1 2 3 4)");
+        let items = str_to_exp("(1 2 3 4)".to_string());
         let result = scheme_map(square, items);
-        assert_eq!(result, str_to_exp("(1 4 9 16)"));
+        assert_eq!(result, str_to_exp("(1 4 9 16)".to_string()));
     }
 
     #[test]
@@ -259,9 +259,9 @@ mod test {
                 panic!("type mismatch!");
             }
         };
-        let items = str_to_exp("(1 2 3 4)");
+        let items = str_to_exp("(1 2 3 4)".to_string());
         let result = scheme_map_clousre(square, &items);
-        assert_eq!(result, str_to_exp("(1 4 9 16)"));
+        assert_eq!(result, str_to_exp("(1 4 9 16)".to_string()));
     }
 
     fn square(x: Exp) -> Exp {
@@ -275,18 +275,18 @@ mod test {
 
     #[test]
     fn scheme_assoc_works() {
-        let items = str_to_exp("((spring 1) (summer 2) (autumn 3) (winter 4))");
+        let items = str_to_exp("((spring 1) (summer 2) (autumn 3) (winter 4))".to_string());
         let mut key = Exp::Symbol("summer".to_string());
         let result_a = scheme_assoc(&items, &key).unwrap();
-        let checkout_a = str_to_exp("(summer 2)");
+        let checkout_a = str_to_exp("(summer 2)".to_string());
         assert_eq!(result_a, checkout_a);
         key = Exp::Symbol("USA".to_string());
         let result_b = scheme_assoc(&items, &key);
         assert_eq!(result_b, None);
-        let list = str_to_exp("(((bird)) ((egg)) ((cake)) ((pear)))");
-        key = str_to_exp("(egg)");
+        let list = str_to_exp("(((bird)) ((egg)) ((cake)) ((pear)))".to_string());
+        key = str_to_exp("(egg)".to_string());
         let result_c = scheme_assoc(&list, &key).unwrap();
-        let checkout_c = str_to_exp("((egg))");
+        let checkout_c = str_to_exp("((egg))".to_string());
         assert_eq!(result_c, checkout_c);
     }
 }

@@ -201,7 +201,7 @@ pub mod parser {
     }
 
     #[allow(dead_code)]
-    pub fn str_to_exp(s: &'static str) -> Exp {
+    pub fn str_to_exp(s: String) -> Exp {
         let mut tokens = tokenizer(s);
         if !syntax_checker(&tokens) {
             panic!("syntax wrong!");
@@ -241,11 +241,11 @@ mod test {
                5)))";
         let s4 = "(define x \"winter is coming\")";
         let s5 = "'( 1 ( 2 3))";
-        let exp1 = str_to_exp(s1);
-        let exp2 = str_to_exp(s2);
-        let exp3 = str_to_exp(s3);
-        let exp4 = str_to_exp(s4);
-        let exp5 = str_to_exp(s5);
+        let exp1 = str_to_exp(s1.to_string());
+        let exp2 = str_to_exp(s2.to_string());
+        let exp3 = str_to_exp(s3.to_string());
+        let exp4 = str_to_exp(s4.to_string());
+        let exp5 = str_to_exp(s5.to_string());
         assert_eq!(exp1, Exp::Bool(true));
         assert_eq!(exp2, Exp::FloatNumber(3.14));
         assert_eq!(
@@ -279,11 +279,11 @@ mod test {
                5)))";
         let s4 = "(define x \"winter is coming\")";
         let s5 = "'( 1 ( 2 3))";
-        let exp1 = str_to_exp(s1);
-        let exp2 = str_to_exp(s2);
-        let exp3 = str_to_exp(s3);
-        let exp4 = str_to_exp(s4);
-        let exp5 = str_to_exp(s5);
+        let exp1 = str_to_exp(s1.to_string());
+        let exp2 = str_to_exp(s2.to_string());
+        let exp3 = str_to_exp(s3.to_string());
+        let exp4 = str_to_exp(s4.to_string());
+        let exp5 = str_to_exp(s5.to_string());
         let ss1 = exp_to_str(exp1);
         let ss2 = exp_to_str(exp2);
         let ss3 = exp_to_str(exp3);

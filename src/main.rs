@@ -21,7 +21,7 @@ use representation::type_system::Object;
 
 fn main() {
     let factorial = MachineCase::new();
-    let result = extract_labels(factorial.controller_text);
+    let result = extract_labels(factorial.controller_text.to_string());
     let insts = car(&result).unwrap();
     let labels = cdr(&result).unwrap();
     println!("insts=>");
@@ -38,10 +38,10 @@ fn build_syntax_tree_into_memeory_works() {
                        (3 
                            (4  
                               5)))";
-    let mut tokens = tokenizer(s);
+    let mut tokens = tokenizer(s.to_string());
     let root = build_syntax_tree_into_memeory(&mut tokens, &mut memory, &mut machine);
-    machine.set_register_contents(&"root".to_string(), Object::Index(root));
-    let reg = machine.get_register(&"root".to_string()).unwrap();
+    machine.set_register_contents("root".to_string(), Object::Index(root));
+    let reg = machine.get_register("root".to_string()).unwrap();
     reg.print_list(&memory);
     println!("{}", memory);
 }
@@ -54,9 +54,9 @@ fn set_register_contents_as_in_memory_works() {
                        (3 
                            (4  
                               5)))";
-    machine.set_register_contents_as_in_memory(&"root".to_string(), s, &mut memory);
+    machine.set_register_contents_as_in_memory("root".to_string(), s.to_string(), &mut memory);
     machine
-        .get_register(&"root".to_string())
+        .get_register("root".to_string())
         .unwrap()
         .print_list(&memory);
 }
@@ -70,11 +70,11 @@ fn str_to_exp_works() {
            5)))";
     let s4 = "(define x \"winter is coming\")";
     let s5 = "'( 1 ( 2 3))";
-    let exp1 = str_to_exp(s1);
-    let exp2 = str_to_exp(s2);
-    let exp3 = str_to_exp(s3);
-    let exp4 = str_to_exp(s4);
-    let exp5 = str_to_exp(s5);
+    let exp1 = str_to_exp(s1.to_string());
+    let exp2 = str_to_exp(s2.to_string());
+    let exp3 = str_to_exp(s3.to_string());
+    let exp4 = str_to_exp(s4.to_string());
+    let exp5 = str_to_exp(s5.to_string());
     assert_eq!(exp1, Exp::Bool(true));
     assert_eq!(exp2, Exp::FloatNumber(3.14));
     assert_eq!(

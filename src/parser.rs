@@ -40,9 +40,9 @@ pub mod parser {
         }
     }
 
-    pub fn tokenizer(s: &'static str) -> Vec<String> {
+    pub fn tokenizer(s: String) -> Vec<String> {
         let mut tokens: Vec<String> = vec![];
-        let mut ss = s.replace("(", " ( ");
+        let ss = s.replace("(", " ( ");
         let ss = ss.replace(")", " ) ");
         let v: Vec<&str> = ss.trim().split_whitespace().collect();
         for item in v {
@@ -99,8 +99,8 @@ pub mod parser {
             panic!("syntax wrong!");
         }
         let mut tokens = reverse(tokens);
-        machine.set_register_contents(&"free".to_string(), Object::Index(0));
-        let free = machine.get_register(&"free".to_string()).unwrap();
+        machine.set_register_contents("free".to_string(), Object::Index(0));
+        let free = machine.get_register("free".to_string()).unwrap();
         let mut stack = PairStack::new();
         let root = free.get_memory_index();
 
@@ -121,7 +121,7 @@ pub mod parser {
 
         while let Some(t) = tokens.pop() {
             let token = t;
-            let free = machine.get_register(&"free".to_string()).unwrap();
+            let free = machine.get_register("free".to_string()).unwrap();
             // free_index indicates the first index of memory space that is not used
             let free_index = free.get_memory_index();
             // pair_index indicates the current memory index that is being written
@@ -136,7 +136,7 @@ pub mod parser {
                             if flag {
                                 memory.update("car", item, i);
                                 stack.push(free_index);
-                                machine.register_increment_by_one(&"free".to_string());
+                                machine.register_increment_by_one("free".to_string());
                                 let next_token = tokens.last();
                                 let null = ")".to_string();
                                 match next_token {
@@ -149,9 +149,9 @@ pub mod parser {
                                 // push the new pair index into stack
                                 stack.push(free_index);
                                 let pair_index = free_index;
-                                machine.register_increment_by_one(&"free".to_string());
+                                machine.register_increment_by_one("free".to_string());
                                 let free_index = machine
-                                    .get_register(&"free".to_string())
+                                    .get_register("free".to_string())
                                     .unwrap()
                                     .get_memory_index();
                                 let item = Object::Pair(free_index);
@@ -165,11 +165,11 @@ pub mod parser {
                                         flag = true;
                                         stack.push(
                                             machine
-                                                .get_register(&"free".to_string())
+                                                .get_register("free".to_string())
                                                 .unwrap()
                                                 .get_memory_index(),
                                         );
-                                        machine.register_increment_by_one(&"free".to_string());
+                                        machine.register_increment_by_one("free".to_string());
                                     }
                                 }
                             }
@@ -177,7 +177,7 @@ pub mod parser {
                         None => {
                             stack.push(free_index);
                             // note that the free indicator is always ahead of pair_index
-                            machine.register_increment_by_one(&"free".to_string());
+                            machine.register_increment_by_one("free".to_string());
                         }
                     }
                 }
@@ -217,7 +217,7 @@ pub mod parser {
                                                 None => {}
                                             }
                                             stack.push(free_index);
-                                            machine.register_increment_by_one(&"free".to_string());
+                                            machine.register_increment_by_one("free".to_string());
                                             flag = true;
                                         }
                                     }
@@ -275,7 +275,7 @@ pub mod parser {
                                 stack.pop();
                                 stack.push(free_index);
                                 let pair_index = free_index;
-                                machine.register_increment_by_one(&"free".to_string());
+                                machine.register_increment_by_one("free".to_string());
                                 memory.update("car", item, pair_index);
                                 flag = false;
                             }
@@ -408,7 +408,7 @@ mod test {
                          (if (= n 1)
                               1
                              (* n 
-                                (fac (- n 1)))))";
+                                (fac (- n 1)))))".to_string();
         let tokens = tokenizer(s);
         let v = vec![
             "(", "define", "(", "fac", "n", ")", "(", "if", "(", "=", "n", "1", ")", "1", "(", "*",
@@ -425,7 +425,7 @@ mod test {
         let s = "(( 1  2 )
                            (3 
                                (4  
-                                  5)))";
+                                  5)))".to_string();
         let mut tokens = tokenizer(s);
         build_syntax_tree_into_memeory(&mut tokens, &mut memory, &mut machine);
         let car_0 = memory.car(0);
@@ -499,12 +499,12 @@ mod test {
 
     #[test]
     fn read_scheme_quote_works() {
-        let quote = "'(1 ( 2 3 ))";
+        let quote = "'(1 ( 2 3 ))".to_string();
         let mut tokens = reverse(&mut tokenizer(quote));
         let x = tokens.pop().unwrap();
         let s = read_scheme_quote(x, &mut tokens);
         assert_eq!(s, "( 1 ( 2 3))".to_string());
-        let another_quote = "'symbol ( 1 2)";
+        let another_quote = "'symbol ( 1 2)".to_string();
         let mut ttokens = reverse(&mut tokenizer(another_quote));
         let xx = ttokens.pop().unwrap();
         let ss = read_scheme_quote(xx, &mut ttokens);
