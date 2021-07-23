@@ -135,7 +135,7 @@ pub mod assembler {
     }
     */
     #[allow(dead_code)]
-    fn make_primitive_exp(
+    pub fn make_primitive_exp(
         exp: Exp,
         machine: &mut BasicMachine,
         memory: &mut Memory,
@@ -214,16 +214,29 @@ pub mod assembler {
 
     #[allow(dead_code)]
     fn make_operation_exp(exp: Exp, machine: &mut BasicMachine, labels: &Exp) {}
+
+    #[allow(dead_code)]
+    pub fn consume_box_closure(
+        x: Box<dyn FnOnce(&mut BasicMachine, &mut Memory) -> Exp>,
+        machine: &mut BasicMachine,
+        memory: &mut Memory,
+    ) -> Exp {
+        x(machine, memory)
+    }
 }
 
 #[cfg(test)]
 mod test {
     use crate::{
-        machine_cases::MachineCase::MachineCase, parserfordev::parser::str_to_exp,
-        tpfordev::type_system::cdr,
+        assembler::assembler::consume_box_closure,
+        machine::basic_machine::BasicMachine,
+        machine_cases::MachineCase::MachineCase,
+        memory::memory::Memory,
+        parserfordev::parser::str_to_exp,
+        tpfordev::type_system::{cdr, Exp, Pair},
     };
 
-    use super::assembler::{extract_labels, lookup_label};
+    use super::assembler::{extract_labels, lookup_label, make_primitive_exp};
 
     #[test]
     fn lookup_label_works() {
@@ -239,5 +252,19 @@ mod test {
                 .to_string(),
         );
         assert_eq!(insts, checkout);
+    }
+
+    #[test]
+    fn make_primitive_exp_works() {
+        let mut memory = Memory::new(10);
+        let mut machine = BasicMachine::new();
+        let labels = Exp::List(Pair::Nil);
+        machine.initilize_registers();
+        let s = "(define x '(+ 1 2))";
+        machine.set_register_contents_as_in_memory("root".to_string(), s.to_string(), &mut memory);
+        let exp = "(reg root)".to_string();
+        let r = make_primitive_exp(str_to_exp(exp), &mut machine, &mut memory, &labels);
+        let result = consume_box_closure(r, &mut machine, &mut memory);
+        assert_eq!(result, str_to_exp(s.to_string()));
     }
 }

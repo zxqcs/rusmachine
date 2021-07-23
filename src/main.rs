@@ -10,7 +10,7 @@ mod primitives;
 mod representation;
 mod tpfordev;
 
-use crate::assembler::assembler::extract_labels;
+use crate::assembler::assembler::{consume_box_closure, extract_labels, make_primitive_exp};
 use crate::machine::basic_machine::BasicMachine;
 use crate::parser::parser::{build_syntax_tree_into_memeory, tokenizer};
 use crate::parserfordev::parser::{print, scheme_list_pretty_print, str_to_exp};
@@ -20,14 +20,7 @@ use memory::memory::Memory;
 use representation::type_system::Object;
 
 fn main() {
-    let factorial = MachineCase::new();
-    let result = extract_labels(factorial.controller_text.to_string());
-    let insts = car(&result).unwrap();
-    let labels = cdr(&result).unwrap();
-    println!("insts=>");
-    scheme_list_pretty_print(&insts);
-    println!("labels=>");
-    scheme_list_pretty_print(&labels);
+    make_primitive_exp_works();
 }
 
 fn build_syntax_tree_into_memeory_works() {
@@ -101,4 +94,17 @@ fn str_to_exp_works() {
     print(exp3);
     print(exp4);
     print(exp5);
+}
+
+fn make_primitive_exp_works() {
+    let mut memory = Memory::new(10);
+    let mut machine = BasicMachine::new();
+    let labels = Exp::List(Pair::Nil);
+    machine.initilize_registers();
+    let s = "(define x '(+ 1 2))";
+    machine.set_register_contents_as_in_memory("root".to_string(), s.to_string(), &mut memory);
+    let exp = "(reg root)".to_string();
+    let r = make_primitive_exp(str_to_exp(exp), &mut machine, &mut memory, &labels);
+    let result = consume_box_closure(r, &mut machine, &mut memory);
+    assert_eq!(result, str_to_exp(s.to_string()));
 }

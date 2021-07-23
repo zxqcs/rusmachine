@@ -142,6 +142,7 @@ pub mod parser {
     pub fn exp_to_str(exp: Exp) -> String {
         let mut s = "".to_string();
         exp_to_str_iter(&mut s, exp);
+        s = (&s).trim().to_string();
         s
     }
 
@@ -289,10 +290,10 @@ mod test {
         let ss3 = exp_to_str(exp3);
         let ss4 = exp_to_str(exp4);
         let ss5 = exp_to_str(exp5);
-        assert_eq!(ss1, " true".to_string());
-        assert_eq!(ss2, " 3.14".to_string());
+        assert_eq!(ss1, "true".to_string());
+        assert_eq!(ss2, "3.14".to_string());
         assert_eq!(ss3, "(( 1 2)( 3( 4 5)))".to_string());
         assert_eq!(ss4, "( define x  \"winter is coming\")".to_string());
-        assert_eq!(ss5, " '( 1 ( 2 3))".to_string());
+        assert_eq!(ss5, "'( 1 ( 2 3))".to_string());
     }
 }
