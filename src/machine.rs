@@ -7,7 +7,7 @@ pub mod basic_machine {
     use std::collections::HashMap;
 
     pub struct BasicMachine {
-        registers: HashMap<&'static str, Register>,
+        registers: HashMap<String, Register>,
         stack: Stack,
         // instruction_sequence: Vec<Box<T>>,
     }
@@ -23,23 +23,39 @@ pub mod basic_machine {
         // be stored in the gc process
         // The registers pc, flag is brought by basic machine
         pub fn initilize_registers(&mut self) {
-            self.registers.insert("pc", Register::new("pc"));
-            self.registers.insert("flag", Register::new("flag"));
-            self.registers.insert("root", Register::new("ROOT"));
-            self.registers.insert("free", Register::new("FREE"));
-            self.registers.insert("scan", Register::new("SCAN"));
-            self.registers.insert("old", Register::new("OLD"));
-            self.registers.insert("oldcr", Register::new("OLDCR"));
-            self.registers.insert("new", Register::new("NEW"));
-            self.registers.insert("exp", Register::new("EXP"));
-            self.registers.insert("env", Register::new("ENV"));
-            self.registers.insert("unev", Register::new("UENV"));
-            self.registers.insert("continue", Register::new("CONTINUE"));
-            self.registers.insert("val", Register::new("VAL"));
-            self.registers.insert("argl", Register::new("ARGL"));
-            self.registers.insert("proc", Register::new("PROC"));
+            self.registers.insert("pc".to_string(), Register::new("pc"));
             self.registers
-                .insert("relocate_continue", Register::new("RELOCATE_CONTINUE"));
+                .insert("flag".to_string(), Register::new("flag"));
+            self.registers
+                .insert("root".to_string(), Register::new("ROOT"));
+            self.registers
+                .insert("free".to_string(), Register::new("FREE"));
+            self.registers
+                .insert("scan".to_string(), Register::new("SCAN"));
+            self.registers
+                .insert("old".to_string(), Register::new("OLD"));
+            self.registers
+                .insert("oldcr".to_string(), Register::new("OLDCR"));
+            self.registers
+                .insert("new".to_string(), Register::new("NEW"));
+            self.registers
+                .insert("exp".to_string(), Register::new("EXP"));
+            self.registers
+                .insert("env".to_string(), Register::new("ENV"));
+            self.registers
+                .insert("unev".to_string(), Register::new("UENV"));
+            self.registers
+                .insert("continue".to_string(), Register::new("CONTINUE"));
+            self.registers
+                .insert("val".to_string(), Register::new("VAL"));
+            self.registers
+                .insert("argl".to_string(), Register::new("ARGL"));
+            self.registers
+                .insert("proc".to_string(), Register::new("PROC"));
+            self.registers.insert(
+                "relocate_continue".to_string(),
+                Register::new("RELOCATE_CONTINUE"),
+            );
         }
 
         // fn initialize_instruction_seq(&mut self) {}
@@ -52,11 +68,11 @@ pub mod basic_machine {
             machine
         }
 
-        pub fn get_register(&self, name: &'static str) -> Option<&Register> {
+        pub fn get_register(&self, name: &String) -> Option<&Register> {
             self.registers.get(name)
         }
 
-        pub fn get_register_contents_ref(&self, name: &'static str) -> Option<&Object> {
+        pub fn get_register_contents_ref(&self, name: &String) -> Option<&Object> {
             let item = self.registers.get(name).clone();
             match item {
                 Some(x) => Some(x.get()),
@@ -65,7 +81,7 @@ pub mod basic_machine {
         }
 
         #[allow(dead_code)]
-        pub fn get_register_contents(&self, name: &'static str) -> Option<Object> {
+        pub fn get_register_contents(&self, name: &String) -> Option<Object> {
             let register = self.registers.get(name);
             match register {
                 Some(x) => Some((*x.get()).clone()),
@@ -76,7 +92,7 @@ pub mod basic_machine {
         // in this case, a memory address is stored in machine's register
         // a list can be printed by calling this fn
         #[allow(dead_code)]
-        pub fn print_register_contents(&self, name: &'static str, memory: &Memory) {
+        pub fn print_register_contents(&self, name: &String, memory: &Memory) {
             let reg = self.get_register(name);
             match reg {
                 Some(r) => {
@@ -89,7 +105,7 @@ pub mod basic_machine {
         }
 
         // set a Oject directly in some Register
-        pub fn set_register_contents(&mut self, name: &'static str, item: Object) {
+        pub fn set_register_contents(&mut self, name: &String, item: Object) {
             let register = self.registers.get_mut(name);
 
             match register {
@@ -107,9 +123,10 @@ pub mod basic_machine {
         // set a list in memory from a str and return a index to some register
         // for example, let s = "(1 (2 3))";
         // set s in memory and return the beginning index, such as, 3 to Register root
+        #[allow(dead_code)]
         pub fn set_register_contents_as_in_memory(
             &mut self,
-            name: &'static str,
+            name: &String,
             object: &'static str,
             memory: &mut Memory,
         ) {
@@ -119,11 +136,7 @@ pub mod basic_machine {
         }
 
         #[allow(dead_code)]
-        pub fn assign_from_one_register_to_another(
-            &mut self,
-            to: &'static str,
-            from: &'static str,
-        ) {
+        pub fn assign_from_one_register_to_another(&mut self, to: &String, from: &String) {
             let from = self.get_register_contents(from);
             match from {
                 Some(x) => {
@@ -136,11 +149,7 @@ pub mod basic_machine {
         }
 
         #[allow(dead_code)]
-        pub fn get_register_contents_as_in_memory(
-            &self,
-            name: &'static str,
-            memory: &Memory,
-        ) -> String {
+        pub fn get_register_contents_as_in_memory(&self, name: &String, memory: &Memory) -> String {
             let reg = self.get_register(name);
             match reg {
                 Some(r) => r.get_list_frome_memory_as_str(memory),
@@ -150,9 +159,12 @@ pub mod basic_machine {
             }
         }
 
-        pub fn register_increment_by_one(&mut self, name: &'static str) {
+        pub fn register_increment_by_one(&mut self, name: &String) {
+            let free = "free".to_string();
+            let scan = "scan".to_string();
+            let pc = "pc".to_string();
             match name {
-                "free" | "scan" | "pc" => {
+                x if *x == free || *x == scan || *x == pc => {
                     let item = self.get_register_contents_ref(name).unwrap();
                     match item {
                         &Object::Index(i) => {
@@ -213,8 +225,8 @@ mod test {
         let mut machine = BasicMachine::new();
         machine.initilize_registers();
         let s = "(define x '(+ 1 2))";
-        machine.set_register_contents_as_in_memory("root", s, &mut memory);
-        let ss = machine.get_register_contents_as_in_memory("root", &memory);
+        machine.set_register_contents_as_in_memory(&"root".to_string(), s, &mut memory);
+        let ss = machine.get_register_contents_as_in_memory(&"root".to_string(), &memory);
         assert_eq!(ss, String::from("( define x '( + 1 2))"));
     }
 }

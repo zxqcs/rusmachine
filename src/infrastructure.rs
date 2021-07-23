@@ -248,19 +248,19 @@ mod test {
                                   5)))";
         let mut tokens = tokenizer(s);
         let root = build_syntax_tree_into_memeory(&mut tokens, &mut memory, &mut machine);
-        machine.set_register_contents("root", Object::Index(root));
-        let reg = machine.get_register("root").unwrap();
+        machine.set_register_contents(&"root".to_string(), Object::Index(root));
+        let reg = machine.get_register(&"root".to_string()).unwrap();
         let s = String::from("(( 1 2)( 3( 4 5)))");
         assert_eq!(s, reg.get_list_frome_memory_as_str(&memory));
         let ss = "(( 7 8) 9)";
         let mut ttokens = tokenizer(ss);
         let another_root = build_syntax_tree_into_memeory(&mut ttokens, &mut memory, &mut machine);
-        machine.set_register_contents("root", Object::Index(root));
+        machine.set_register_contents(&"root".to_string(), Object::Index(root));
         let s = String::from("(( 7 8) 9)");
         assert_eq!(
             ss,
             machine
-                .get_register("root")
+                .get_register(&"root".to_string())
                 .unwrap()
                 .get_list_frome_memory_as_str(&memory)
         );

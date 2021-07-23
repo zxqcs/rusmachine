@@ -77,7 +77,12 @@ pub mod primitives {
 
 #[cfg(test)]
 mod test {
-    use crate::{parserfordev::parser::str_to_exp, primitives::primitives::{caadr, caar, cadddr, caddr, cadr, cdadr, cdar, cdddr, cddr, is_tagged_list}};
+    use crate::{
+        parserfordev::parser::str_to_exp,
+        primitives::primitives::{
+            caadr, caar, cadddr, caddr, cadr, cdadr, cdar, cdddr, cddr, is_tagged_list,
+        },
+    };
 
     #[test]
     fn cadr_works() {

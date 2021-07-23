@@ -1,6 +1,7 @@
 pub mod assembler {
     use crate::machine::basic_machine::BasicMachine;
-    use crate::parserfordev::parser::str_to_exp;
+    use crate::parserfordev::parser::{exp_to_str, str_to_exp};
+    use crate::primitives::primitives::{cadr, is_tagged_list};
     use crate::tpfordev::type_system::{
         car, cdr, scheme_assoc, scheme_cons, scheme_map_clousre, set_cdr, Exp, Pair,
     };
@@ -126,8 +127,57 @@ pub mod assembler {
     ) -> impl FnMut(&mut BasicMachine) {
     }
     */
-    fn make_primitive_exp(exp: Exp, machine: &mut BasicMachine, labels: &Exp) {}
+    #[allow(dead_code)]
+    fn make_primitive_exp(exp: Exp, machine: &mut BasicMachine, labels: &Exp) {
+        match exp {
+            x if is_constant_exp(&x) => {
+                let c = constant_exp_value(&x);
+            }
+            x if is_label_exp(&x) => {
+                let insts = lookup_label(labels, &label_exp_label(&x));
+            }
+            x if is_register_exp(&x) => {
+                let name = exp_to_str(register_exp_reg(&x));
+                let r = machine.get_register_contents(&name).unwrap();
+            }
+            _ => {
+                print!("{}=>", exp_to_str(exp));
+                panic!("error: Unknow expression type: ASSEMBLE");
+            }
+        }
+    }
 
+    #[allow(dead_code)]
+    fn is_register_exp(exp: &Exp) -> bool {
+        is_tagged_list(exp, "reg")
+    }
+
+    #[allow(dead_code)]
+    fn register_exp_reg(exp: &Exp) -> Exp {
+        cadr(exp).unwrap()
+    }
+
+    #[allow(dead_code)]
+    fn constant_exp_value(exp: &Exp) -> Exp {
+        cadr(exp).unwrap()
+    }
+
+    #[allow(dead_code)]
+    fn is_constant_exp(exp: &Exp) -> bool {
+        is_tagged_list(exp, "const")
+    }
+
+    #[allow(dead_code)]
+    fn label_exp_label(exp: &Exp) -> Exp {
+        cadr(exp).unwrap()
+    }
+
+    #[allow(dead_code)]
+    fn is_label_exp(exp: &Exp) -> bool {
+        is_tagged_list(exp, "label")
+    }
+
+    #[allow(dead_code)]
     fn make_operation_exp(exp: Exp, machine: &mut BasicMachine, labels: &Exp) {}
 }
 

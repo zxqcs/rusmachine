@@ -40,8 +40,8 @@ fn build_syntax_tree_into_memeory_works() {
                               5)))";
     let mut tokens = tokenizer(s);
     let root = build_syntax_tree_into_memeory(&mut tokens, &mut memory, &mut machine);
-    machine.set_register_contents("root", Object::Index(root));
-    let reg = machine.get_register("root").unwrap();
+    machine.set_register_contents(&"root".to_string(), Object::Index(root));
+    let reg = machine.get_register(&"root".to_string()).unwrap();
     reg.print_list(&memory);
     println!("{}", memory);
 }
@@ -54,8 +54,11 @@ fn set_register_contents_as_in_memory_works() {
                        (3 
                            (4  
                               5)))";
-    machine.set_register_contents_as_in_memory("root", s, &mut memory);
-    machine.get_register("root").unwrap().print_list(&memory);
+    machine.set_register_contents_as_in_memory(&"root".to_string(), s, &mut memory);
+    machine
+        .get_register(&"root".to_string())
+        .unwrap()
+        .print_list(&memory);
 }
 
 fn str_to_exp_works() {
