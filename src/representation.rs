@@ -17,16 +17,18 @@ pub mod type_system {
         Empty,              // live in memory only
     }
 
-    pub fn object_to_exp(o: Object) -> Exp {
-        match o {
-            Object::Number(x) => Exp::FloatNumber(x),
-            Object::Integer(x) => Exp::Integer(x),
-            Object::Symbol(x) => Exp::Symbol(x),
-            Object::Quote(x) => Exp::Quote(x),
-            Object::LispString(x) => Exp::SchemeString(x),
-            Object::Bool(x) => Exp::Bool(x),
-            _ => {
-                panic!("Error, the type can't be converted to Exp!");
+    impl Object {
+        pub fn object_to_exp(&self) -> Exp {
+            match self {
+                Object::Number(x) => Exp::FloatNumber(*x),
+                Object::Integer(x) => Exp::Integer(*x),
+                Object::Symbol(x) => Exp::Symbol((*x).clone()),
+                Object::Quote(x) => Exp::Quote((*x).clone()),
+                Object::LispString(x) => Exp::SchemeString((*x).clone()),
+                Object::Bool(x) => Exp::Bool(*x),
+                _ => {
+                    panic!("Error, the type can't be converted to Exp!");
+                }
             }
         }
     }

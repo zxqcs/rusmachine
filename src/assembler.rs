@@ -3,7 +3,7 @@ pub mod assembler {
     use crate::memory::memory::Memory;
     use crate::parserfordev::parser::{exp_to_str, str_to_exp};
     use crate::primitives::primitives::{cadr, is_tagged_list};
-    use crate::representation::type_system::{object_to_exp, Object};
+    use crate::representation::type_system::Object;
     use crate::tpfordev::type_system::{
         car, cdr, scheme_assoc, scheme_cons, scheme_map_clousre, set_cdr, Exp, Pair,
     };
@@ -169,7 +169,7 @@ pub mod assembler {
                             return str_to_exp(result);
                         }
                         _ => {
-                            return object_to_exp(content);
+                            return content.object_to_exp();
                         }
                     }
                 };
