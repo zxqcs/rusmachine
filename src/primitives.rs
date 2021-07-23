@@ -97,7 +97,10 @@ mod test {
         let mut items = str_to_exp("((1 2) (3 4 5) 6 7)".to_string());
         assert_eq!(cddr(&items).unwrap(), str_to_exp("(6 7)".to_string()));
         items = str_to_exp("(test (op =) (reg n) (const 1))".to_string());
-        assert_eq!(cddr(&items).unwrap(), str_to_exp("((reg n) (const 1))".to_string()));
+        assert_eq!(
+            cddr(&items).unwrap(),
+            str_to_exp("((reg n) (const 1))".to_string())
+        );
     }
 
     #[test]

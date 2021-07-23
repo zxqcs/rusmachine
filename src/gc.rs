@@ -51,10 +51,8 @@ pub mod garbage_collector {
                     already_moved(machine, memory);
                 }
                 _ => {
-                    machine.assign_from_one_register_to_another(
-                        "new".to_string(),
-                        "free".to_string(),
-                    );
+                    machine
+                        .assign_from_one_register_to_another("new".to_string(), "free".to_string());
                     machine.register_increment_by_one("free".to_string());
                     // copy the car and cdr to new memeory
                     let item = machine.get_register_contents("oldcr".to_string()).unwrap();

@@ -251,7 +251,7 @@ pub mod parser {
                             item = Object::Integer(x.parse::<i32>().unwrap());
                         }
                         x if is_f32(x.clone()) => {
-                            item = Object::Nummber(x.parse::<f32>().unwrap());
+                            item = Object::Number(x.parse::<f32>().unwrap());
                         }
                         x if is_symbol(&x) => item = Object::Symbol(x),
                         x if x.chars().nth(0) == Some('"') => {
@@ -408,7 +408,8 @@ mod test {
                          (if (= n 1)
                               1
                              (* n 
-                                (fac (- n 1)))))".to_string();
+                                (fac (- n 1)))))"
+            .to_string();
         let tokens = tokenizer(s);
         let v = vec![
             "(", "define", "(", "fac", "n", ")", "(", "if", "(", "=", "n", "1", ")", "1", "(", "*",
@@ -425,7 +426,8 @@ mod test {
         let s = "(( 1  2 )
                            (3 
                                (4  
-                                  5)))".to_string();
+                                  5)))"
+            .to_string();
         let mut tokens = tokenizer(s);
         build_syntax_tree_into_memeory(&mut tokens, &mut memory, &mut machine);
         let car_0 = memory.car(0);

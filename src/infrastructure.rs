@@ -91,7 +91,7 @@ pub mod register {
                 s.push_str(&x);
                 s.push('"');
             }
-            Object::Nummber(x) => {
+            Object::Number(x) => {
                 s.push(' ');
                 s.push_str(&x.to_string());
             }
@@ -135,7 +135,7 @@ pub mod register {
             Object::Bool(x) => print!("{} ", *x),
             Object::Integer(x) => print!("{} ", *x),
             Object::LispString(x) => print!("{} ", *x),
-            Object::Nummber(x) => print!("{} ", *x),
+            Object::Number(x) => print!("{} ", *x),
             Object::Quote(x) => print!("{} ", *x),
             Object::Symbol(x) => print!("{} ", *x),
             Object::Pair(x) => {

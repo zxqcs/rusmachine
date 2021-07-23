@@ -1,20 +1,20 @@
 pub mod assembler {
     use crate::machine::basic_machine::BasicMachine;
+    use crate::memory::memory::Memory;
     use crate::parserfordev::parser::{exp_to_str, str_to_exp};
     use crate::primitives::primitives::{cadr, is_tagged_list};
-    use crate::representation::type_system::Object;
-    use crate::memory::memory::Memory;
+    use crate::representation::type_system::{object_to_exp, Object};
     use crate::tpfordev::type_system::{
         car, cdr, scheme_assoc, scheme_cons, scheme_map_clousre, set_cdr, Exp, Pair,
     };
 
     #[allow(dead_code)]
-    fn assemble(controller_text: String, machine: &mut BasicMachine) -> Exp {
+    fn assemble(controller_text: String, machine: &mut BasicMachine, memory: &mut Memory) -> Exp {
         let result = extract_labels(controller_text);
         let insts = car(&result).unwrap();
         let labels = cdr(&result).unwrap();
         let set_instruction_execution_proc = |inst| {
-            let proc = make_execution_procedure(instruction_text(&inst), &labels, machine);
+            let proc = make_execution_procedure(instruction_text(&inst), &labels, machine, memory);
             let new_inst = set_instruction_execution_proc(inst, proc);
             new_inst
         };
@@ -100,7 +100,12 @@ pub mod assembler {
     }
 
     #[allow(dead_code)]
-    pub fn make_execution_procedure(inst: Exp, labels: &Exp, machine: &mut BasicMachine) -> Exp {
+    pub fn make_execution_procedure(
+        inst: Exp,
+        labels: &Exp,
+        machine: &mut BasicMachine,
+        memory: &mut Memory,
+    ) -> Exp {
         /*
         let symbol = car(&inst).unwrap();
         match symbol {
@@ -130,7 +135,12 @@ pub mod assembler {
     }
     */
     #[allow(dead_code)]
-    fn make_primitive_exp(exp: Exp, machine: &mut BasicMachine, memory: &mut Memory, labels: &Exp) -> Box<dyn FnOnce(&mut BasicMachine, &mut Memory) -> Exp> {
+    fn make_primitive_exp(
+        exp: Exp,
+        machine: &mut BasicMachine,
+        memory: &mut Memory,
+        labels: &Exp,
+    ) -> Box<dyn FnOnce(&mut BasicMachine, &mut Memory) -> Exp> {
         match exp {
             x if is_constant_exp(&x) => {
                 let c = constant_exp_value(&x);
@@ -157,8 +167,10 @@ pub mod assembler {
                         Object::Index(x) => {
                             let result = machine.get_register_contents_as_in_memory(name, mem);
                             return str_to_exp(result);
-                        },
-                        _ => { return Exp::Integer(1) }
+                        }
+                        _ => {
+                            return object_to_exp(content);
+                        }
                     }
                 };
                 Box::new(lambda)
@@ -223,7 +235,8 @@ mod test {
         let insts = lookup_label(&labels, &label_key).unwrap();
         let checkout = str_to_exp(
             "(((assgin val (const 1))) 
-                                       ((goto (reg continue))))".to_string(),
+                                       ((goto (reg continue))))"
+                .to_string(),
         );
         assert_eq!(insts, checkout);
     }
