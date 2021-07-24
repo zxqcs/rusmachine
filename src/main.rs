@@ -10,12 +10,11 @@ mod primitives;
 mod representation;
 mod tpfordev;
 
-use crate::assembler::assembler::{consume_box_closure, extract_labels, make_primitive_exp};
+use crate::assembler::assembler::{consume_box_closure, make_primitive_exp};
 use crate::machine::basic_machine::BasicMachine;
 use crate::parser::parser::{build_syntax_tree_into_memeory, tokenizer};
-use crate::parserfordev::parser::{print, scheme_list_pretty_print, str_to_exp};
-use crate::tpfordev::type_system::{append, car, cdr, scheme_cons, Exp, Pair};
-use machine_cases::MachineCase::MachineCase;
+use crate::parserfordev::parser::{print, str_to_exp};
+use crate::tpfordev::type_system::{append, scheme_cons, Exp, Pair};
 use memory::memory::Memory;
 use representation::type_system::Object;
 
@@ -23,6 +22,7 @@ fn main() {
     make_primitive_exp_works();
 }
 
+#[allow(dead_code)]
 fn build_syntax_tree_into_memeory_works() {
     let mut memory = Memory::new(10);
     let mut machine = BasicMachine::new();
@@ -39,6 +39,7 @@ fn build_syntax_tree_into_memeory_works() {
     println!("{}", memory);
 }
 
+#[allow(dead_code)]
 fn set_register_contents_as_in_memory_works() {
     let mut memory = Memory::new(10);
     let mut machine = BasicMachine::new();
@@ -54,6 +55,7 @@ fn set_register_contents_as_in_memory_works() {
         .print_list(&memory);
 }
 
+#[allow(dead_code)]
 fn str_to_exp_works() {
     let s1 = "true";
     let s2 = "3.14";
@@ -96,6 +98,7 @@ fn str_to_exp_works() {
     print(exp5);
 }
 
+#[allow(dead_code)]
 fn make_primitive_exp_works() {
     let mut memory = Memory::new(10);
     let mut machine = BasicMachine::new();

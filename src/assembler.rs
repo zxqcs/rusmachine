@@ -213,7 +213,23 @@ pub mod assembler {
     }
 
     #[allow(dead_code)]
-    fn make_operation_exp(exp: Exp, machine: &mut BasicMachine, labels: &Exp) {}
+    pub fn make_operation_exp(exp: Exp, machine: &mut BasicMachine, labels: &Exp) {}
+
+    #[allow(dead_code)]
+    pub fn is_operation_exp(exp: &Exp) -> bool {
+        exp.is_pair() && is_tagged_list(&car(exp).unwrap(), "op")
+    }
+
+    #[allow(dead_code)]
+    pub fn operation_exp_op(operation_exp: &Exp) -> Exp {
+        let temp = car(operation_exp).unwrap();
+        cadr(&temp).unwrap()
+    }
+
+    #[allow(dead_code)]
+    pub fn operation_exp_oprands(operation_exp: &Exp) -> Exp {
+        cdr(operation_exp).unwrap()
+    }
 
     #[allow(dead_code)]
     pub fn consume_box_closure(
@@ -228,7 +244,9 @@ pub mod assembler {
 #[cfg(test)]
 mod test {
     use crate::{
-        assembler::assembler::consume_box_closure,
+        assembler::assembler::{
+            consume_box_closure, is_operation_exp, operation_exp_op, operation_exp_oprands,
+        },
         machine::basic_machine::BasicMachine,
         machine_cases::MachineCase::MachineCase,
         memory::memory::Memory,
@@ -262,9 +280,34 @@ mod test {
         machine.initilize_registers();
         let s = "(define x '(+ 1 2))";
         machine.set_register_contents_as_in_memory("root".to_string(), s.to_string(), &mut memory);
-        let exp = "(reg root)".to_string();
-        let r = make_primitive_exp(str_to_exp(exp), &mut machine, &mut memory, &labels);
-        let result = consume_box_closure(r, &mut machine, &mut memory);
+        let mut exp = "(reg root)".to_string();
+        let r1 = make_primitive_exp(str_to_exp(exp), &mut machine, &mut memory, &labels);
+        let mut result = consume_box_closure(r1, &mut machine, &mut memory);
         assert_eq!(result, str_to_exp(s.to_string()));
+        exp = "(const 1)".to_string();
+        let r2 = make_primitive_exp(str_to_exp(exp), &mut machine, &mut memory, &labels);
+        result = consume_box_closure(r2, &mut machine, &mut memory);
+        assert_eq!(result, str_to_exp("1".to_string()));
+    }
+
+    #[test]
+    fn is_operation_exp_works() {
+        let exp = str_to_exp("((op =) (reg n) (const 1))".to_string());
+        assert_eq!(is_operation_exp(&exp), true);
+    }
+
+    #[test]
+    fn operation_exp_op_works() {
+        let exp = str_to_exp("((op =) (reg n) (const 1))".to_string());
+        assert_eq!(operation_exp_op(&exp), str_to_exp("=".to_string()));
+    }
+
+    #[test]
+    fn operation_exp_operands_works() {
+        let exp = str_to_exp("((op =) (reg n) (const 1))".to_string());
+        assert_eq!(
+            operation_exp_oprands(&exp),
+            str_to_exp("((reg n) (const 1))".to_string())
+        );
     }
 }
