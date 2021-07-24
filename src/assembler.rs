@@ -125,15 +125,6 @@ pub mod assembler {
         Exp::Integer(1)
     }
 
-    /*
-    #[allow(dead_code)]
-    fn make_assign(
-        inst: Exp,
-        labels: &Exp,
-        machine: &mut BasicMachine,
-    ) -> impl FnMut(&mut BasicMachine) {
-    }
-    */
     #[allow(dead_code)]
     pub fn make_primitive_exp(
         exp: Exp,
@@ -213,7 +204,35 @@ pub mod assembler {
     }
 
     #[allow(dead_code)]
-    pub fn make_operation_exp(exp: Exp, machine: &mut BasicMachine, labels: &Exp) {}
+    pub fn make_operation_exp(
+        exp: Exp,
+        machine: &mut BasicMachine,
+        memory: &mut Memory,
+        labels: &Exp,
+    ) {
+        let operands = operation_exp_oprands(&exp);
+        let evalued_operands = eval_operands_iter(operands, machine, memory, labels);
+        
+    }
+
+    fn eval_operands_iter(
+        operands: Exp,
+        machine: &mut BasicMachine,
+        memory: &mut Memory,
+        labels: &Exp,
+    ) -> Exp {
+        if operands.is_null() {
+            Exp::List(Pair::Nil)
+        } else {
+            let item = car(&operands).unwrap();
+            let r = make_primitive_exp(item, machine, memory, labels);
+            let exp = consume_box_closure(r, machine, memory);
+            scheme_cons(
+                exp,
+                eval_operands_iter(cdr(&operands).unwrap(), machine, memory, labels),
+            )
+        }
+    }
 
     #[allow(dead_code)]
     pub fn is_operation_exp(exp: &Exp) -> bool {

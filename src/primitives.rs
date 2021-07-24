@@ -73,6 +73,21 @@ pub mod primitives {
             false
         }
     }
+
+    #[allow(dead_code)]
+    pub fn is_variable(exp: &Exp) -> bool {
+        exp.is_symbol()
+    }
+
+    #[allow(dead_code)]
+    pub fn is_self_evaluating(exp: &Exp) -> bool {
+        match exp {
+            Exp::SchemeString(x) => true,
+            Exp::Integer(x) => true,
+            Exp::FloatNumber(x) => true,
+            _ => false,
+        }
+    }
 }
 
 #[cfg(test)]
