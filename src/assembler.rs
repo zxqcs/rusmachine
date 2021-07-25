@@ -175,7 +175,7 @@ pub mod assembler {
 
     #[allow(dead_code)]
     fn is_register_exp(exp: &Exp) -> bool {
-        is_tagged_list(exp, "reg")
+        is_tagged_list(&[(*exp).clone(), Exp::Symbol("reg".to_string())])
     }
 
     #[allow(dead_code)]
@@ -190,7 +190,7 @@ pub mod assembler {
 
     #[allow(dead_code)]
     fn is_constant_exp(exp: &Exp) -> bool {
-        is_tagged_list(exp, "const")
+        is_tagged_list(&[(*exp).clone(), Exp::Symbol("const".to_string())])
     }
 
     #[allow(dead_code)]
@@ -200,7 +200,7 @@ pub mod assembler {
 
     #[allow(dead_code)]
     fn is_label_exp(exp: &Exp) -> bool {
-        is_tagged_list(exp, "label")
+        is_tagged_list(&[(*exp).clone(), Exp::Symbol("label".to_string())])
     }
 
     #[allow(dead_code)]
@@ -212,7 +212,6 @@ pub mod assembler {
     ) {
         let operands = operation_exp_oprands(&exp);
         let evalued_operands = eval_operands_iter(operands, machine, memory, labels);
-        
     }
 
     fn eval_operands_iter(
@@ -236,7 +235,7 @@ pub mod assembler {
 
     #[allow(dead_code)]
     pub fn is_operation_exp(exp: &Exp) -> bool {
-        exp.is_pair() && is_tagged_list(&car(exp).unwrap(), "op")
+        exp.is_pair() && is_tagged_list(&[car(exp).unwrap(), Exp::Symbol("op".to_string())])
     }
 
     #[allow(dead_code)]

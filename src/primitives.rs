@@ -1,5 +1,8 @@
 pub mod primitives {
-    use crate::tpfordev::type_system::{car, cdr, Exp};
+    use crate::{
+        scheme_list,
+        tpfordev::type_system::{append, car, cdr, scheme_cons, Exp, Pair},
+    };
     #[allow(dead_code)]
     pub fn cadr(exp: &Exp) -> Result<Exp, &'static str> {
         let s = cdr(exp).unwrap();
@@ -59,11 +62,19 @@ pub mod primitives {
     }
 
     #[allow(dead_code)]
-    pub fn is_tagged_list(exp: &Exp, tag: &'static str) -> bool {
+    pub fn is_tagged_list(args: &[Exp]) -> bool {
+        let exp = &args[0];
+        let tag_arg = &args[1];
+        let mut tag = &"".to_string();
+        if let Exp::Symbol(y) = tag_arg {
+            tag = y;
+        } else {
+            panic!("Invalid tag!");
+        }
         if exp.is_pair() {
             if let Ok(Exp::Symbol(x)) = car(exp) {
                 match x {
-                    t if t == tag => true,
+                    t if t == *tag => true,
                     _ => false,
                 }
             } else {
@@ -75,18 +86,35 @@ pub mod primitives {
     }
 
     #[allow(dead_code)]
-    pub fn is_variable(exp: &Exp) -> bool {
+    pub fn is_variable(args: &[Exp]) -> bool {
+        let exp = &args[0];
         exp.is_symbol()
     }
 
     #[allow(dead_code)]
-    pub fn is_self_evaluating(exp: &Exp) -> bool {
+    pub fn is_self_evaluating(args: &[Exp]) -> bool {
+        let exp = &args[0];
         match exp {
-            Exp::SchemeString(x) => true,
-            Exp::Integer(x) => true,
-            Exp::FloatNumber(x) => true,
+            Exp::SchemeString(_x) => true,
+            Exp::Integer(_x) => true,
+            Exp::FloatNumber(_x) => true,
             _ => false,
         }
+    }
+
+    #[allow(dead_code)]
+    pub fn assignment_variable(args: &[Exp]) -> Exp {
+        let exp = &args[0];
+        cadr(exp).unwrap()
+    }
+
+    #[allow(dead_code)]
+    pub fn make_procedure(args: &[Exp]) -> Exp {
+        let parameters = &args[0];
+        let body = &args[1];
+        let env = &args[2];
+        let tag = Exp::Symbol("procedure".to_string());
+        scheme_list!(tag, parameters.clone(), body.clone(), env.clone())
     }
 }
 
@@ -97,6 +125,7 @@ mod test {
         primitives::primitives::{
             caadr, caar, cadddr, caddr, cadr, cdadr, cdar, cdddr, cddr, is_tagged_list,
         },
+        tpfordev::type_system::Exp,
     };
 
     #[test]
@@ -165,8 +194,14 @@ mod test {
     #[test]
     fn is_tagged_list_works() {
         let mut items = str_to_exp("(reg continue)".to_string());
-        assert_eq!(is_tagged_list(&items, "reg"), true);
+        assert_eq!(
+            is_tagged_list(&[items, Exp::Symbol("reg".to_string())]),
+            true
+        );
         items = str_to_exp("(const 1)".to_string());
-        assert_eq!(is_tagged_list(&items, "const"), true);
+        assert_eq!(
+            is_tagged_list(&[items, Exp::Symbol("const".to_string())]),
+            true
+        );
     }
 }

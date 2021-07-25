@@ -4,13 +4,18 @@ pub mod basic_machine {
     use crate::memory::memory::Memory;
     use crate::parser::parser::{build_syntax_tree_into_memeory, tokenizer};
     use crate::representation::type_system::Object;
+    use crate::tpfordev::type_system::Exp;
     use std::collections::HashMap;
 
     pub struct BasicMachine {
         registers: HashMap<String, Register>,
         stack: Stack,
+        ops_bool: HashMap<String, CallbackBool>,
+        ops_exp: HashMap<String, CallbackExp>,
         // instruction_sequence: Vec<Box<T>>,
     }
+    type CallbackBool = fn(&[Exp]) -> bool;
+    type CallbackExp = fn(&[Exp]) -> Exp;
 
     impl BasicMachine {
         // Register exp is used to hold the expression to be evaluated
@@ -58,12 +63,30 @@ pub mod basic_machine {
             );
         }
 
+        pub fn add_op_bool(&mut self, fn_name: String, func: CallbackBool) {
+            self.ops_bool.insert(fn_name, func);
+        }
+
+        pub fn add_op_exp(&mut self, fn_name: String, func: CallbackExp) {
+            self.ops_exp.insert(fn_name, func);
+        }
+
+        pub fn call_op_bool(&mut self, fn_name: String, argv: &[Exp]) -> bool {
+            self.ops_bool[&fn_name](argv)
+        }
+
+        pub fn call_op_exp(&mut self, fn_name: String, argv: &[Exp]) -> Exp {
+            self.ops_exp[&fn_name](argv)
+        }
+
         // fn initialize_instruction_seq(&mut self) {}
 
         pub fn new() -> Self {
             let machine = BasicMachine {
                 registers: HashMap::new(),
                 stack: Stack::new(),
+                ops_bool: HashMap::new(),
+                ops_exp: HashMap::new(),
             };
             machine
         }
@@ -215,7 +238,8 @@ pub mod basic_machine {
 
 #[cfg(test)]
 mod test {
-    use crate::memory::memory::Memory;
+    use crate::{memory::memory::Memory, parserfordev::parser::str_to_exp, primitives::primitives::{assignment_variable, caddr, cadr, is_self_evaluating, is_variable, make_procedure}, scheme_list, tpfordev::type_system::{Exp, Pair}};
+    use crate::tpfordev::type_system::{scheme_cons, append};
 
     use super::basic_machine::BasicMachine;
 
@@ -228,5 +252,50 @@ mod test {
         machine.set_register_contents_as_in_memory("root".to_string(), s.to_string(), &mut memory);
         let ss = machine.get_register_contents_as_in_memory("root".to_string(), &memory);
         assert_eq!(ss, String::from("( define x '( + 1 2))"));
+    }
+
+    #[test]
+    fn machine_ops_bool_works() {
+        let mut machine = BasicMachine::new();
+        machine.add_op_bool("self_evaluating".to_string(), is_self_evaluating);
+        let exp1 = Exp::SchemeString("winter is coming".to_string());
+        let exp2 = Exp::Symbol("x".to_string());
+        assert_eq!(
+            machine.call_op_bool("self_evaluating".to_string(), &[exp1.clone()]),
+            true
+        );
+        assert_eq!(
+            machine.call_op_bool("self_evaluating".to_string(), &[exp2.clone()]),
+            false
+        );
+        machine.add_op_bool("is_variable".to_string(), is_variable);
+        assert_eq!(
+            machine.call_op_bool("is_variable".to_string(), &[exp2]),
+            true
+        );
+        assert_eq!(
+            machine.call_op_bool("is_variable".to_string(), &[exp1]),
+            false
+        );
+    }
+
+    #[test]
+    fn machine_ops_exp_works() {
+        let mut machine = BasicMachine::new();
+        machine.add_op_exp("assignment_variable".to_string(), assignment_variable);
+        let assisgn_exp = "(assign a (reg b ))".to_string();
+        let assign = str_to_exp(assisgn_exp);
+        let var = machine.call_op_exp("assignment_variable".to_string(), &[assign]);
+        assert_eq!(var, Exp::Symbol("a".to_string()));
+        machine.add_op_exp("make_procedure".to_string(), make_procedure);
+        let lambda_exp = "(lambda (x) (* x x))".to_string();
+        let lambda = str_to_exp(lambda_exp);
+        let parameters = cadr(&lambda).unwrap();
+        let body = caddr(&lambda).unwrap();
+        let env = Exp::List(Pair::Nil);
+        let args = &[parameters.clone(), body.clone(), env.clone()];
+        let proc = machine.call_op_exp("make_procedure".to_string(), args);
+        let tag = Exp::Symbol("procedure".to_string());
+        assert_eq!(proc, scheme_list!(tag, parameters, body, env));
     }
 }
