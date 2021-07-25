@@ -14,6 +14,12 @@ pub mod basic_machine {
         ops_exp: HashMap<String, CallbackExp>,
         // instruction_sequence: Vec<Box<T>>,
     }
+
+    pub enum CallBack {
+        Exp(CallbackExp),
+        Bool(CallbackBool),
+    }
+
     type CallbackBool = fn(&[Exp]) -> bool;
     type CallbackExp = fn(&[Exp]) -> Exp;
 
@@ -79,7 +85,19 @@ pub mod basic_machine {
             self.ops_exp[&fn_name](argv)
         }
 
-        // fn initialize_instruction_seq(&mut self) {}
+        pub fn get_callback(&mut self, fn_name: String) -> Option<CallBack>{
+            let op = self.ops_bool.get(&fn_name);
+            match op {
+                Some(x) => Some(CallBack::Bool(*x)),
+                None => {
+                    let op_alt = self.ops_exp.get(&fn_name);
+                    match op_alt {
+                        Some(x) => Some(CallBack::Exp(*x)),
+                        None => None,
+                    }
+                },
+            }
+        }
 
         pub fn new() -> Self {
             let machine = BasicMachine {
@@ -241,7 +259,7 @@ mod test {
     use crate::{memory::memory::Memory, parserfordev::parser::str_to_exp, primitives::primitives::{assignment_variable, caddr, cadr, is_self_evaluating, is_variable, make_procedure}, scheme_list, tpfordev::type_system::{Exp, Pair}};
     use crate::tpfordev::type_system::{scheme_cons, append};
 
-    use super::basic_machine::BasicMachine;
+    use super::basic_machine::{BasicMachine, CallBack};
 
     #[test]
     fn set_register_contents_as_in_memory_works() {
@@ -297,5 +315,29 @@ mod test {
         let proc = machine.call_op_exp("make_procedure".to_string(), args);
         let tag = Exp::Symbol("procedure".to_string());
         assert_eq!(proc, scheme_list!(tag, parameters, body, env));
+    }
+
+    #[test] 
+    fn machine_get_callback_works() {
+        let mut machine = BasicMachine::new();
+        machine.add_op_bool("self_evaluating".to_string(), is_self_evaluating);
+        machine.add_op_exp("assignment_variable".to_string(), assignment_variable);
+        let exp1 = Exp::SchemeString("winter is coming".to_string());
+        let assisgn_exp = "(assign a (reg b ))".to_string();
+        let assign = str_to_exp(assisgn_exp);
+        let mut fn_name = "assignment_variable".to_string();
+        let cb = machine.get_callback(fn_name);
+        match cb {
+            Some(CallBack::Bool(x)) => {
+                let result = x(&[exp1]);
+                assert_eq!(result, true);
+            }, 
+            Some(CallBack::Exp(x)) => {
+                let result = x(&[assign]);
+                assert_eq!(result, Exp::Symbol("a".to_string()));
+            },
+            None => {
+            }
+        }
     }
 }
