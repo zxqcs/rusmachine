@@ -85,20 +85,30 @@ pub mod primitives {
         }
     }
 
+    // It should be noted that a Exp::Bool is returned instead of a real Rust bool
+    // Because this procedure is used as a primitive op for our machine, hence, a Scheme bool is 
+    // returned here! 
     #[allow(dead_code)]
-    pub fn is_variable(args: &[Exp]) -> bool {
+    pub fn is_variable(args: &[Exp]) -> Exp {
         let exp = &args[0];
-        exp.is_symbol()
+        let flag = exp.is_symbol();
+        match flag {
+            true => Exp::Bool(true),
+            fales => Exp::Bool(false),
+        }
     }
 
+    // It should be noted that a Exp::Bool is returned instead of a real Rust bool
+    // Because this procedure is used as a primitive op for our machine, hence, a Scheme bool is 
+    // returned here! 
     #[allow(dead_code)]
-    pub fn is_self_evaluating(args: &[Exp]) -> bool {
+    pub fn is_self_evaluating(args: &[Exp]) -> Exp {
         let exp = &args[0];
         match exp {
-            Exp::SchemeString(_x) => true,
-            Exp::Integer(_x) => true,
-            Exp::FloatNumber(_x) => true,
-            _ => false,
+            Exp::SchemeString(_x) => Exp::Bool(true),
+            Exp::Integer(_x) => Exp::Bool(true),
+            Exp::FloatNumber(_x) => Exp::Bool(true),
+            _ => Exp::Bool(false),
         }
     }
 

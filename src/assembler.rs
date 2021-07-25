@@ -209,13 +209,12 @@ pub mod assembler {
         machine: &mut BasicMachine,
         memory: &mut Memory,
         labels: &Exp,
-    ) {
+    )
+    {
         let op_name = exp_to_str(operation_exp_op(&exp));
         let operands = operation_exp_oprands(&exp);
         let evaluated_operands = eval_operands_iter(operands, machine, memory, labels);
     }
-
-
 
     fn eval_operands_iter(
         operands: Exp,
