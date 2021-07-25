@@ -121,11 +121,11 @@ pub mod type_system {
         }
     }
     #[allow(dead_code)]
-    pub fn list_length(exp: Exp) -> i32 {
-        if exp == Exp::List(Pair::Nil) {
+    pub fn list_length(exp: &Exp) -> i32 {
+        if exp == &Exp::List(Pair::Nil) {
             0
         } else {
-            1 + list_length(cdr(&exp).unwrap())
+            1 + list_length(&cdr(&exp).unwrap())
         }
     }
 

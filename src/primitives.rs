@@ -86,25 +86,23 @@ pub mod primitives {
     }
 
     // It should be noted that a Exp::Bool is returned instead of a real Rust bool
-    // Because this procedure is used as a primitive op for our machine, hence, a Scheme bool is 
-    // returned here! 
+    // Because this procedure is used as a primitive op for our machine, hence, a Scheme bool is
+    // returned here!
     #[allow(dead_code)]
-    pub fn is_variable(args: &[Exp]) -> Exp {
-        let exp = &args[0];
-        let flag = exp.is_symbol();
+    pub fn is_variable(args: &Exp) -> Exp {
+        let flag = args.is_symbol();
         match flag {
             true => Exp::Bool(true),
-            fales => Exp::Bool(false),
+            false => Exp::Bool(false),
         }
     }
 
     // It should be noted that a Exp::Bool is returned instead of a real Rust bool
-    // Because this procedure is used as a primitive op for our machine, hence, a Scheme bool is 
-    // returned here! 
+    // Because this procedure is used as a primitive op for our machine, hence, a Scheme bool is
+    // returned here!
     #[allow(dead_code)]
-    pub fn is_self_evaluating(args: &[Exp]) -> Exp {
-        let exp = &args[0];
-        match exp {
+    pub fn is_self_evaluating(args: &Exp) -> Exp {
+        match args {
             Exp::SchemeString(_x) => Exp::Bool(true),
             Exp::Integer(_x) => Exp::Bool(true),
             Exp::FloatNumber(_x) => Exp::Bool(true),
@@ -113,16 +111,15 @@ pub mod primitives {
     }
 
     #[allow(dead_code)]
-    pub fn assignment_variable(args: &[Exp]) -> Exp {
-        let exp = &args[0];
-        cadr(exp).unwrap()
+    pub fn assignment_variable(args: &Exp) -> Exp {
+        cadr(args).unwrap()
     }
 
     #[allow(dead_code)]
-    pub fn make_procedure(args: &[Exp]) -> Exp {
-        let parameters = &args[0];
-        let body = &args[1];
-        let env = &args[2];
+    pub fn make_procedure(args: &Exp) -> Exp {
+        let parameters = car(args).unwrap();
+        let body = cadr(args).unwrap();
+        let env = caddr(args).unwrap();
         let tag = Exp::Symbol("procedure".to_string());
         scheme_list!(tag, parameters.clone(), body.clone(), env.clone())
     }

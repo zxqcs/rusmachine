@@ -4,9 +4,7 @@ pub mod assembler {
     use crate::parserfordev::parser::{exp_to_str, str_to_exp};
     use crate::primitives::primitives::{cadr, is_tagged_list};
     use crate::representation::type_system::Object;
-    use crate::tpfordev::type_system::{
-        car, cdr, scheme_assoc, scheme_cons, scheme_map_clousre, set_cdr, Exp, Pair,
-    };
+    use crate::tpfordev::type_system::{Exp, Pair, car, cdr, scheme_assoc, scheme_cons, scheme_map_clousre, set_cdr};
 
     #[allow(dead_code)]
     fn assemble(controller_text: String, machine: &mut BasicMachine, memory: &mut Memory) -> Exp {
@@ -209,8 +207,7 @@ pub mod assembler {
         machine: &mut BasicMachine,
         memory: &mut Memory,
         labels: &Exp,
-    )
-    {
+    ) {
         let op_name = exp_to_str(operation_exp_op(&exp));
         let operands = operation_exp_oprands(&exp);
         let evaluated_operands = eval_operands_iter(operands, machine, memory, labels);
