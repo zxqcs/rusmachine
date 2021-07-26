@@ -62,26 +62,21 @@ pub mod primitives {
     }
 
     #[allow(dead_code)]
-    pub fn is_tagged_list(args: &[Exp]) -> bool {
-        let exp = &args[0];
-        let tag_arg = &args[1];
-        let mut tag = &"".to_string();
-        if let Exp::Symbol(y) = tag_arg {
-            tag = y;
-        } else {
-            panic!("Invalid tag!");
-        }
-        if exp.is_pair() {
-            if let Ok(Exp::Symbol(x)) = car(exp) {
-                match x {
-                    t if t == *tag => true,
-                    _ => false,
+    pub fn is_tagged_list(args: &Exp) -> Exp {
+        let exp = car(args).unwrap();
+        let tag = cadr(args).unwrap();
+        if let Exp::Symbol(y) = tag {
+            if let Exp::Symbol(x) = car(&exp).unwrap() {
+                if x == y {
+                    Exp::Bool(true)
+                } else {
+                    Exp::Bool(false)
                 }
             } else {
-                false
-            }
+                Exp::Bool(false)
+            } 
         } else {
-            false
+            panic!("Invalid tag!");
         }
     }
 
@@ -127,13 +122,9 @@ pub mod primitives {
 
 #[cfg(test)]
 mod test {
-    use crate::{
-        parserfordev::parser::str_to_exp,
-        primitives::primitives::{
+    use crate::{parserfordev::parser::str_to_exp, primitives::primitives::{
             caadr, caar, cadddr, caddr, cadr, cdadr, cdar, cdddr, cddr, is_tagged_list,
-        },
-        tpfordev::type_system::Exp,
-    };
+        }, scheme_list, tpfordev::type_system::Exp, Pair, scheme_cons, append};
 
     #[test]
     fn cadr_works() {
@@ -201,14 +192,16 @@ mod test {
     #[test]
     fn is_tagged_list_works() {
         let mut items = str_to_exp("(reg continue)".to_string());
+        let mut exp = scheme_list!(items, Exp::Symbol("reg".to_string()));
         assert_eq!(
-            is_tagged_list(&[items, Exp::Symbol("reg".to_string())]),
-            true
+            is_tagged_list(&exp),
+            Exp::Bool(true)
         );
         items = str_to_exp("(const 1)".to_string());
+        exp = scheme_list!(items, Exp::Symbol("const".to_string()));
         assert_eq!(
-            is_tagged_list(&[items, Exp::Symbol("const".to_string())]),
-            true
+            is_tagged_list(&exp),
+            Exp::Bool(true)
         );
     }
 }

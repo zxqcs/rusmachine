@@ -4,8 +4,9 @@ pub mod assembler {
     use crate::parserfordev::parser::{exp_to_str, str_to_exp};
     use crate::primitives::primitives::{cadr, is_tagged_list};
     use crate::representation::type_system::Object;
+    use crate::scheme_list;
     use crate::tpfordev::type_system::{
-        car, cdr, scheme_assoc, scheme_cons, scheme_map_clousre, set_cdr, Exp, Pair,
+        car, cdr, scheme_assoc, scheme_cons, scheme_map_clousre, set_cdr, Exp, Pair, append
     };
 
     #[allow(dead_code)]
@@ -175,7 +176,12 @@ pub mod assembler {
 
     #[allow(dead_code)]
     fn is_register_exp(exp: &Exp) -> bool {
-        is_tagged_list(&[(*exp).clone(), Exp::Symbol("reg".to_string())])
+        let arg = scheme_list!((*exp).clone(), Exp::Symbol("reg".to_string())); 
+        let r = is_tagged_list(&arg);
+        match r {
+            Exp::Bool(true) => true,
+            _ => false,
+        }
     }
 
     #[allow(dead_code)]
@@ -190,7 +196,12 @@ pub mod assembler {
 
     #[allow(dead_code)]
     fn is_constant_exp(exp: &Exp) -> bool {
-        is_tagged_list(&[(*exp).clone(), Exp::Symbol("const".to_string())])
+        let arg = scheme_list!((*exp).clone(), Exp::Symbol("const".to_string())); 
+        let r = is_tagged_list(&arg);
+        match r {
+            Exp::Bool(true) => true,
+            _ => false,
+        }
     }
 
     #[allow(dead_code)]
@@ -200,7 +211,12 @@ pub mod assembler {
 
     #[allow(dead_code)]
     fn is_label_exp(exp: &Exp) -> bool {
-        is_tagged_list(&[(*exp).clone(), Exp::Symbol("label".to_string())])
+        let arg = scheme_list!((*exp).clone(), Exp::Symbol("label".to_string())); 
+        let r = is_tagged_list(&arg);
+        match r {
+            Exp::Bool(true) => true,
+            _ => false,
+        }
     }
 
     #[allow(dead_code)]
@@ -242,7 +258,16 @@ pub mod assembler {
 
     #[allow(dead_code)]
     pub fn is_operation_exp(exp: &Exp) -> bool {
-        exp.is_pair() && is_tagged_list(&[car(exp).unwrap(), Exp::Symbol("op".to_string())])
+        if exp.is_pair() {
+            let arg = scheme_list!(car(exp).unwrap(), Exp::Symbol("op".to_string())); 
+            let r = is_tagged_list(&arg);
+            match r {
+                Exp::Bool(true) => true,
+                _ => false,
+            }
+        } else {
+            false
+        }
     }
 
     #[allow(dead_code)]
