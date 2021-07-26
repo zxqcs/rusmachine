@@ -74,7 +74,7 @@ pub mod primitives {
                 }
             } else {
                 Exp::Bool(false)
-            } 
+            }
         } else {
             panic!("Invalid tag!");
         }
@@ -85,7 +85,8 @@ pub mod primitives {
     // returned here!
     #[allow(dead_code)]
     pub fn is_variable(args: &Exp) -> Exp {
-        let flag = args.is_symbol();
+        let exp = car(args).unwrap();
+        let flag = exp.is_symbol();
         match flag {
             true => Exp::Bool(true),
             false => Exp::Bool(false),
@@ -97,7 +98,8 @@ pub mod primitives {
     // returned here!
     #[allow(dead_code)]
     pub fn is_self_evaluating(args: &Exp) -> Exp {
-        match args {
+        let exp = car(args).unwrap();
+        match exp {
             Exp::SchemeString(_x) => Exp::Bool(true),
             Exp::Integer(_x) => Exp::Bool(true),
             Exp::FloatNumber(_x) => Exp::Bool(true),
@@ -122,9 +124,16 @@ pub mod primitives {
 
 #[cfg(test)]
 mod test {
-    use crate::{parserfordev::parser::str_to_exp, primitives::primitives::{
+    use crate::{
+        append,
+        parserfordev::parser::str_to_exp,
+        primitives::primitives::{
             caadr, caar, cadddr, caddr, cadr, cdadr, cdar, cdddr, cddr, is_tagged_list,
-        }, scheme_list, tpfordev::type_system::Exp, Pair, scheme_cons, append};
+        },
+        scheme_cons, scheme_list,
+        tpfordev::type_system::Exp,
+        Pair,
+    };
 
     #[test]
     fn cadr_works() {
@@ -193,15 +202,9 @@ mod test {
     fn is_tagged_list_works() {
         let mut items = str_to_exp("(reg continue)".to_string());
         let mut exp = scheme_list!(items, Exp::Symbol("reg".to_string()));
-        assert_eq!(
-            is_tagged_list(&exp),
-            Exp::Bool(true)
-        );
+        assert_eq!(is_tagged_list(&exp), Exp::Bool(true));
         items = str_to_exp("(const 1)".to_string());
         exp = scheme_list!(items, Exp::Symbol("const".to_string()));
-        assert_eq!(
-            is_tagged_list(&exp),
-            Exp::Bool(true)
-        );
+        assert_eq!(is_tagged_list(&exp), Exp::Bool(true));
     }
 }

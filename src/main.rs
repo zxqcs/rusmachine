@@ -15,11 +15,13 @@ use crate::machine::basic_machine::BasicMachine;
 use crate::parser::parser::{build_syntax_tree_into_memeory, tokenizer};
 use crate::parserfordev::parser::{print, str_to_exp};
 use crate::tpfordev::type_system::{append, scheme_cons, Exp, Pair};
+use assembler::assembler::make_operation_exp;
 use memory::memory::Memory;
+use primitives::primitives::is_self_evaluating;
 use representation::type_system::Object;
 
 fn main() {
-    make_primitive_exp_works();
+    make_operation_exp_works();
 }
 
 #[allow(dead_code)]
@@ -110,4 +112,18 @@ fn make_primitive_exp_works() {
     let r = make_primitive_exp(str_to_exp(exp), &mut machine, &mut memory, &labels);
     let result = consume_box_closure(r, &mut machine, &mut memory);
     assert_eq!(result, str_to_exp(s.to_string()));
+}
+
+fn make_operation_exp_works() {
+    let mut memory = Memory::new(10);
+    let mut machine = BasicMachine::new();
+    let labels = Exp::List(Pair::Nil);
+    machine.initilize_registers();
+    machine.add_op("is_self_evaluating".to_string(), is_self_evaluating);
+    let s = "winter is coming!";
+    machine.set_register_contents("root".to_string(), Object::LispString(s.to_string()));
+    let exp = str_to_exp("((op is_self_evaluating) (reg root))".to_string());
+    let cb = make_operation_exp(exp, &mut machine, &mut memory, &labels);
+    let result = consume_box_closure(cb, &mut machine, &mut memory);
+    assert_eq!(result, Exp::Bool(true));
 }

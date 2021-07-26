@@ -6,7 +6,7 @@ pub mod assembler {
     use crate::representation::type_system::Object;
     use crate::scheme_list;
     use crate::tpfordev::type_system::{
-        car, cdr, scheme_assoc, scheme_cons, scheme_map_clousre, set_cdr, Exp, Pair, append
+        append, car, cdr, scheme_assoc, scheme_cons, scheme_map_clousre, set_cdr, Exp, Pair,
     };
 
     #[allow(dead_code)]
@@ -176,7 +176,7 @@ pub mod assembler {
 
     #[allow(dead_code)]
     fn is_register_exp(exp: &Exp) -> bool {
-        let arg = scheme_list!((*exp).clone(), Exp::Symbol("reg".to_string())); 
+        let arg = scheme_list!((*exp).clone(), Exp::Symbol("reg".to_string()));
         let r = is_tagged_list(&arg);
         match r {
             Exp::Bool(true) => true,
@@ -196,7 +196,7 @@ pub mod assembler {
 
     #[allow(dead_code)]
     fn is_constant_exp(exp: &Exp) -> bool {
-        let arg = scheme_list!((*exp).clone(), Exp::Symbol("const".to_string())); 
+        let arg = scheme_list!((*exp).clone(), Exp::Symbol("const".to_string()));
         let r = is_tagged_list(&arg);
         match r {
             Exp::Bool(true) => true,
@@ -211,7 +211,7 @@ pub mod assembler {
 
     #[allow(dead_code)]
     fn is_label_exp(exp: &Exp) -> bool {
-        let arg = scheme_list!((*exp).clone(), Exp::Symbol("label".to_string())); 
+        let arg = scheme_list!((*exp).clone(), Exp::Symbol("label".to_string()));
         let r = is_tagged_list(&arg);
         match r {
             Exp::Bool(true) => true,
@@ -229,6 +229,7 @@ pub mod assembler {
         let op_name = exp_to_str(operation_exp_op(&exp));
         let operands = operation_exp_oprands(&exp);
         let evaluated_operands = eval_operands_iter(operands, machine, memory, labels);
+        println!("{:?}", evaluated_operands);
         let lambda = |machine: &mut BasicMachine, memory: &mut Memory| {
             let operands = evaluated_operands;
             let result = machine.call_op(op_name, &operands);
@@ -259,7 +260,7 @@ pub mod assembler {
     #[allow(dead_code)]
     pub fn is_operation_exp(exp: &Exp) -> bool {
         if exp.is_pair() {
-            let arg = scheme_list!(car(exp).unwrap(), Exp::Symbol("op".to_string())); 
+            let arg = scheme_list!(car(exp).unwrap(), Exp::Symbol("op".to_string()));
             let r = is_tagged_list(&arg);
             match r {
                 Exp::Bool(true) => true,
@@ -301,10 +302,12 @@ mod test {
         machine_cases::MachineCase::MachineCase,
         memory::memory::Memory,
         parserfordev::parser::str_to_exp,
+        primitives::primitives::is_self_evaluating,
+        representation::type_system::Object,
         tpfordev::type_system::{cdr, Exp, Pair},
     };
 
-    use super::assembler::{extract_labels, lookup_label, make_primitive_exp};
+    use super::assembler::{extract_labels, lookup_label, make_operation_exp, make_primitive_exp};
 
     #[test]
     fn lookup_label_works() {
@@ -362,5 +365,17 @@ mod test {
     }
 
     #[test]
-    fn make_operation_exp_works() {}
+    fn make_operation_exp_works() {
+        let mut memory = Memory::new(10);
+        let mut machine = BasicMachine::new();
+        let labels = Exp::List(Pair::Nil);
+        machine.initilize_registers();
+        machine.add_op("is_self_evaluating".to_string(), is_self_evaluating);
+        let s = "winter is coming!";
+        machine.set_register_contents("root".to_string(), Object::LispString(s.to_string()));
+        let exp = str_to_exp("((op is_self_evaluating) (reg root))".to_string());
+        let cb = make_operation_exp(exp, &mut machine, &mut memory, &labels);
+        let result = consume_box_closure(cb, &mut machine, &mut memory);
+        assert_eq!(result, Exp::Bool(true));
+    }
 }

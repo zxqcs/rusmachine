@@ -255,8 +255,8 @@ mod test {
     fn machine_ops_bool_works() {
         let mut machine = BasicMachine::new();
         machine.add_op("self_evaluating".to_string(), is_self_evaluating);
-        let exp1 = Exp::SchemeString("winter is coming".to_string());
-        let exp2 = Exp::Symbol("x".to_string());
+        let exp1 = scheme_list!(Exp::SchemeString("winter is coming".to_string()));
+        let exp2 = scheme_list!(Exp::Symbol("x".to_string()));
         assert_eq!(
             machine.call_op("self_evaluating".to_string(), &exp1.clone()),
             Exp::Bool(true)
