@@ -127,7 +127,37 @@ pub mod assembler {
     }
 
     #[allow(dead_code)]
-    pub fn make_assign(inst: Exp, machine: &mut BasicMachine, memory: &mut Memory, labels: &Exp) {}
+    pub fn make_assign(
+        inst: Exp,
+        machine: &mut BasicMachine,
+        memory: &mut Memory,
+        labels: &Exp,
+    ) -> Box<dyn FnOnce(&mut BasicMachine, &mut Memory) -> Exp> {
+        let reg_name = assign_reg_name(&inst);
+        let value_exp = assign_value_exp(&inst);
+        let mut lambda: Option<Box<dyn FnOnce(&mut BasicMachine, &mut Memory) -> Exp>> = None;
+        if is_operation_exp(&value_exp) {
+            lambda = Some(make_operation_exp(value_exp, machine, memory, labels));
+        } else {
+            lambda = Some(make_primitive_exp(value_exp, machine, memory, labels));
+        }
+        let value = consume_box_closure(lambda.unwrap(), machine, memory);
+        let assign_lambda = |machine: &mut BasicMachine, memory: &mut Memory| {
+            let name = exp_to_str(reg_name);
+            let data = value;
+            match data {
+                Exp::List(ref x) => {
+                    machine.set_register_contents_as_in_memory(name, exp_to_str(data), memory);
+                    Exp::Quote("ok".to_string())
+                }
+                _ => {
+                    machine.set_register_contents(name, data.exp_to_object());
+                    Exp::Quote("ok".to_string())
+                }
+            }
+        };
+        Box::new(assign_lambda)
+    }
 
     // (assgin t (op rem) (reg a) (reg b))
     // assign_reg_name: t
@@ -319,14 +349,14 @@ mod test {
         machine_cases::MachineCase::MachineCase,
         memory::memory::Memory,
         parserfordev::parser::str_to_exp,
-        primitives::primitives::is_self_evaluating,
+        primitives::primitives::{is_self_evaluating, multiply},
         representation::type_system::Object,
         tpfordev::type_system::{cdr, Exp, Pair},
     };
 
     use super::assembler::{
-        assign_reg_name, assign_value_exp, extract_labels, lookup_label, make_operation_exp,
-        make_primitive_exp,
+        assign_reg_name, assign_value_exp, extract_labels, lookup_label, make_assign,
+        make_operation_exp, make_primitive_exp,
     };
 
     #[test]
@@ -415,5 +445,21 @@ mod test {
         let assign_value_exp = assign_value_exp(&assign_inst);
         let assign_value_exp_checkout = str_to_exp("((op rem) (reg a) (reg b))".to_string());
         assert_eq!(assign_value_exp, assign_value_exp_checkout);
+    }
+
+    #[test]
+    fn make_assign_works() {
+        let mut inst = "(assgin root (op *) (reg val) (reg exp))".to_string();
+        let mut memory = Memory::new(10);
+        let mut machine = BasicMachine::new();
+        machine.initilize_registers();
+        let labels = Exp::List(Pair::Nil);
+        machine.set_register_contents("val".to_string(), Object::Number(3.14));
+        machine.set_register_contents("exp".to_string(), Object::Integer(3));
+        machine.add_op("*".to_string(), multiply);
+        let cb = make_assign(str_to_exp(inst), &mut machine, &mut memory, &labels);
+        let result = consume_box_closure(cb, &mut machine, &mut memory);
+        let value = machine.get_register_contents("root".to_string()).unwrap();
+        assert_eq!(value, Object::Number(9.42));
     }
 }

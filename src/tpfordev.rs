@@ -1,4 +1,6 @@
 pub mod type_system {
+    use crate::representation::type_system::Object;
+
     #[allow(dead_code)]
     #[derive(Debug, Clone)]
     pub enum Pair {
@@ -55,6 +57,18 @@ pub mod type_system {
             match self {
                 Exp::Symbol(_x) => true,
                 _ => false,
+            }
+        }
+
+        pub fn exp_to_object(&self) -> Object {
+            match self {
+                Exp::FloatNumber(x) => Object::Number(*x),
+                Exp::Integer(x) => Object::Integer(*x),
+                Exp::Symbol(x) => Object::Symbol((*x).to_string()),
+                Exp::Quote(x) => Object::Symbol((*x).to_string()),
+                Exp::Bool(x) => Object::Bool(*x),
+                Exp::SchemeString(x) => Object::LispString((*x).to_string()),
+                _ => panic!("Error: this type can't be converted to Object directly!"),
             }
         }
     }

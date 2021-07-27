@@ -1,5 +1,6 @@
 pub mod primitives {
     use crate::{
+        parserfordev::parser::exp_to_str,
         scheme_list,
         tpfordev::type_system::{append, car, cdr, scheme_cons, Exp, Pair},
     };
@@ -59,6 +60,15 @@ pub mod primitives {
         let s1 = cadr(exp).unwrap();
         let s2 = cdr(&s1);
         s2
+    }
+
+    #[allow(dead_code)]
+    pub fn multiply(exp: &Exp) -> Exp {
+        let lhs = exp_to_str(car(exp).unwrap());
+        let rhs = exp_to_str(cadr(exp).unwrap());
+        let operand_x = lhs.parse::<f32>().unwrap();
+        let operand_y = rhs.parse::<f32>().unwrap();
+        Exp::FloatNumber(operand_x * operand_y)
     }
 
     #[allow(dead_code)]
@@ -128,7 +138,7 @@ mod test {
         append,
         parserfordev::parser::str_to_exp,
         primitives::primitives::{
-            caadr, caar, cadddr, caddr, cadr, cdadr, cdar, cdddr, cddr, is_tagged_list,
+            caadr, caar, cadddr, caddr, cadr, cdadr, cdar, cdddr, cddr, is_tagged_list, multiply,
         },
         scheme_cons, scheme_list,
         tpfordev::type_system::Exp,
@@ -206,5 +216,13 @@ mod test {
         items = str_to_exp("(const 1)".to_string());
         exp = scheme_list!(items, Exp::Symbol("const".to_string()));
         assert_eq!(is_tagged_list(&exp), Exp::Bool(true));
+    }
+
+    #[test]
+    fn multiply_works() {
+        let lhs = Exp::Integer(3);
+        let rhs = Exp::FloatNumber(2.14);
+        let args = scheme_list!(lhs, rhs);
+        assert_eq!(multiply(&args), Exp::FloatNumber(6.42));
     }
 }
