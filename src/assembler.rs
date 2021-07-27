@@ -2,7 +2,7 @@ pub mod assembler {
     use crate::machine::basic_machine::BasicMachine;
     use crate::memory::memory::Memory;
     use crate::parserfordev::parser::{exp_to_str, str_to_exp};
-    use crate::primitives::primitives::{cadr, is_tagged_list};
+    use crate::primitives::primitives::{cadr, cddr, is_tagged_list};
     use crate::representation::type_system::Object;
     use crate::scheme_list;
     use crate::tpfordev::type_system::{
@@ -124,6 +124,23 @@ pub mod assembler {
         }
         */
         Exp::Integer(1)
+    }
+
+    #[allow(dead_code)]
+    pub fn make_assign(inst: Exp, machine: &mut BasicMachine, memory: &mut Memory, labels: &Exp) {}
+
+    // (assgin t (op rem) (reg a) (reg b))
+    // assign_reg_name: t
+    #[allow(dead_code)]
+    pub fn assign_reg_name(assign_instruction: &Exp) -> Exp {
+        cadr(assign_instruction).unwrap()
+    }
+
+    // (assgin t (op rem) (reg a) (reg b))
+    // assign_value_exp: ((op rem) (reg a) (reg b))
+    #[allow(dead_code)]
+    pub fn assign_value_exp(assign_instruction: &Exp) -> Exp {
+        cddr(assign_instruction).unwrap()
     }
 
     #[allow(dead_code)]
@@ -307,7 +324,10 @@ mod test {
         tpfordev::type_system::{cdr, Exp, Pair},
     };
 
-    use super::assembler::{extract_labels, lookup_label, make_operation_exp, make_primitive_exp};
+    use super::assembler::{
+        assign_reg_name, assign_value_exp, extract_labels, lookup_label, make_operation_exp,
+        make_primitive_exp,
+    };
 
     #[test]
     fn lookup_label_works() {
@@ -377,5 +397,23 @@ mod test {
         let cb = make_operation_exp(exp, &mut machine, &mut memory, &labels);
         let result = consume_box_closure(cb, &mut machine, &mut memory);
         assert_eq!(result, Exp::Bool(true));
+    }
+
+    #[test]
+    fn assign_reg_name_works() {
+        let inst = "(assgin t (op rem) (reg a) (reg b))".to_string();
+        let assign_inst = str_to_exp(inst);
+        let reg_name = assign_reg_name(&assign_inst);
+        let reg_name_chekcout = str_to_exp("t".to_string());
+        assert_eq!(reg_name, reg_name_chekcout);
+    }
+
+    #[test]
+    fn assign_value_exp_works() {
+        let inst = "(assgin t (op rem) (reg a) (reg b))".to_string();
+        let assign_inst = str_to_exp(inst);
+        let assign_value_exp = assign_value_exp(&assign_inst);
+        let assign_value_exp_checkout = str_to_exp("((op rem) (reg a) (reg b))".to_string());
+        assert_eq!(assign_value_exp, assign_value_exp_checkout);
     }
 }

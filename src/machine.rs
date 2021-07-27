@@ -171,27 +171,33 @@ pub mod basic_machine {
             }
         }
 
+        #[allow(dead_code)]
+        pub fn advance_pc(&mut self) {
+            let reg = "pc".to_string();
+            self.register_increment_by_one(reg);
+        }
+
+        #[allow(dead_code)]
+        pub fn advance_free(&mut self) {
+            let reg = "free".to_string();
+            self.register_increment_by_one(reg);
+        }
+
+        #[allow(dead_code)]
+        pub fn advance_scan(&mut self) {
+            let reg = "scan".to_string();
+            self.register_increment_by_one(reg);
+        }
+
         pub fn register_increment_by_one(&mut self, name: String) {
-            let free = "free".to_string();
-            let scan = "scan".to_string();
-            let pc = "pc".to_string();
-            match name {
-                x if *x == free || *x == scan || *x == pc => {
-                    let item = self.get_register_contents_ref(x.clone()).unwrap();
-                    match item {
-                        &Object::Index(i) => {
-                            let item = Object::Index(i + 1);
-                            self.set_register_contents(x, item);
-                        }
-                        _ => {
-                            panic!(
-                                "Not a proper index, panic when running register_increment_by_one!"
-                            );
-                        }
-                    }
+            let item = self.get_register_contents_ref(name.clone()).unwrap();
+            match item {
+                &Object::Index(i) => {
+                    let item = Object::Index(i + 1);
+                    self.set_register_contents(name, item);
                 }
                 _ => {
-                    panic!("Wrong type of Register got incremented!");
+                    panic!("Not a proper index, panic when running register_increment_by_one!")
                 }
             }
         }
