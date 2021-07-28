@@ -127,6 +127,35 @@ pub mod assembler {
     }
 
     #[allow(dead_code)]
+    pub fn make_test(
+        inst: Exp,
+        machine: &mut BasicMachine,
+        memory: &mut Memory,
+        labels: &Exp,
+    ) -> Box<dyn FnOnce(&mut BasicMachine, &mut Memory) -> Exp> {
+        let condition = test_condition(&inst);
+        if is_operation_exp(&condition) {
+            let condition_proc = make_operation_exp(condition, machine, memory, labels);
+            let value = consume_box_closure(condition_proc, machine, memory);
+            let lambda = |machine: &mut BasicMachine, memory: &mut Memory| {
+                let data = value;
+                machine.set_register_contents("flag".to_string(), data.exp_to_object());
+                Exp::Quote("ok".to_string())
+            };
+            Box::new(lambda)
+        } else {
+            println!("{:?}", inst);
+            panic!("Error: BAD TEST instruction: ASSEMBLE");
+        }
+    }
+
+    // (test (op =) (reg val) (const 0))
+    #[allow(dead_code)]
+    pub fn test_condition(test_instruction: &Exp) -> Exp {
+        cdr(test_instruction).unwrap()
+    }
+
+    #[allow(dead_code)]
     pub fn make_assign(
         inst: Exp,
         machine: &mut BasicMachine,
@@ -349,14 +378,14 @@ mod test {
         machine_cases::MachineCase::MachineCase,
         memory::memory::Memory,
         parserfordev::parser::str_to_exp,
-        primitives::primitives::{is_self_evaluating, multiply},
+        primitives::primitives::{eq, is_self_evaluating, multiply},
         representation::type_system::Object,
         tpfordev::type_system::{cdr, Exp, Pair},
     };
 
     use super::assembler::{
         assign_reg_name, assign_value_exp, extract_labels, lookup_label, make_assign,
-        make_operation_exp, make_primitive_exp,
+        make_operation_exp, make_primitive_exp, make_test,
     };
 
     #[test]
@@ -461,5 +490,22 @@ mod test {
         let result = consume_box_closure(cb, &mut machine, &mut memory);
         let value = machine.get_register_contents("root".to_string()).unwrap();
         assert_eq!(value, Object::Number(9.42));
+    }
+
+    #[test]
+    fn make_test_works() {
+        let mut inst = str_to_exp("(test  (op =) (reg val) (const 1))".to_string());
+        let mut memory = Memory::new(10);
+        let mut machine = BasicMachine::new();
+        machine.add_op("=".to_string(), eq);
+        machine.initilize_registers();
+        let labels = Exp::List(Pair::Nil);
+        machine.set_register_contents("val".to_string(), Object::Integer(1));
+        let cb = make_test(inst, &mut machine, &mut memory, &labels);
+        let result = consume_box_closure(cb, &mut machine, &mut memory);
+        assert_eq!(
+            machine.get_register_contents("flag".to_string()).unwrap(),
+            Object::Bool(true)
+        );
     }
 }

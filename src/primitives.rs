@@ -62,6 +62,7 @@ pub mod primitives {
         s2
     }
 
+    // This primitive procedure shall be implemented in another way, it is too slow!
     #[allow(dead_code)]
     pub fn multiply(exp: &Exp) -> Exp {
         let lhs = exp_to_str(car(exp).unwrap());
@@ -69,6 +70,17 @@ pub mod primitives {
         let operand_x = lhs.parse::<f32>().unwrap();
         let operand_y = rhs.parse::<f32>().unwrap();
         Exp::FloatNumber(operand_x * operand_y)
+    }
+
+    #[allow(dead_code)]
+    pub fn eq(exp: &Exp) -> Exp {
+        let lhs = car(exp).unwrap();
+        let rhs = cadr(exp).unwrap();
+        if lhs == rhs {
+            Exp::Bool(true)
+        } else {
+            Exp::Bool(false)
+        }
     }
 
     #[allow(dead_code)]

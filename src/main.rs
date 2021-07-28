@@ -10,7 +10,7 @@ mod primitives;
 mod representation;
 mod tpfordev;
 
-use crate::assembler::assembler::{consume_box_closure, make_primitive_exp};
+use crate::assembler::assembler::{consume_box_closure, make_primitive_exp, make_test};
 use crate::machine::basic_machine::BasicMachine;
 use crate::parser::parser::{build_syntax_tree_into_memeory, tokenizer};
 use crate::parserfordev::parser::{print, str_to_exp};
@@ -21,7 +21,7 @@ use primitives::primitives::is_self_evaluating;
 use representation::type_system::Object;
 
 fn main() {
-    make_operation_exp_works();
+    make_test_works();
 }
 
 #[allow(dead_code)]
@@ -126,4 +126,19 @@ fn make_operation_exp_works() {
     let cb = make_operation_exp(exp, &mut machine, &mut memory, &labels);
     let result = consume_box_closure(cb, &mut machine, &mut memory);
     assert_eq!(result, Exp::Bool(true));
+}
+
+fn make_test_works() {
+    let mut inst = str_to_exp("(test  (op =) (reg val) (const 1))".to_string());
+    let mut memory = Memory::new(10);
+    let mut machine = BasicMachine::new();
+    machine.initilize_registers();
+    let labels = Exp::List(Pair::Nil);
+    machine.set_register_contents("val".to_string(), Object::Integer(1));
+    let cb = make_test(inst, &mut machine, &mut memory, &labels);
+    let result = consume_box_closure(cb, &mut machine, &mut memory);
+    assert_eq!(
+        machine.get_register_contents("flag".to_string()).unwrap(),
+        Object::Bool(true)
+    );
 }
