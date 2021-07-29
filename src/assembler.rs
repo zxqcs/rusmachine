@@ -5,22 +5,24 @@ pub mod assembler {
     use crate::primitives::primitives::{cadr, cddr, is_tagged_list};
     use crate::representation::type_system::Object;
     use crate::scheme_list;
-    use crate::tpfordev::type_system::{Exp, Pair, append, car, cdr, scheme_assoc, scheme_cons, scheme_map_clousre, set_cdr};
-
-    #[allow(dead_code)]
-    fn assemble(controller_text: String, machine: &mut BasicMachine, memory: &mut Memory) -> Exp {
-        let result = extract_labels(controller_text);
-        let insts = car(&result).unwrap();
-        let labels = cdr(&result).unwrap();
-        let set_instruction_execution_proc = |inst| {
-            let proc = make_execution_procedure(instruction_text(&inst), &labels, machine, memory);
-            let new_inst = set_instruction_execution_proc(inst, proc);
-            new_inst
-        };
-        let insts = update_inst(&insts, set_instruction_execution_proc);
-        insts
-    }
-
+    use crate::tpfordev::type_system::{
+        append, car, cdr, scheme_assoc, scheme_cons, scheme_map_clousre, set_cdr, Exp, Pair,
+    };
+    /*
+        #[allow(dead_code)]
+        fn assemble(controller_text: String, machine: &mut BasicMachine, memory: &mut Memory) -> Exp {
+            let result = extract_labels(controller_text);
+            let insts = car(&result).unwrap();
+            let labels = cdr(&result).unwrap();
+            let set_instruction_execution_proc = |inst| {
+                let proc = make_execution_procedure(instruction_text(&inst), &labels, machine, memory);
+                let new_inst = set_instruction_execution_proc(inst, proc);
+                new_inst
+            };
+            let insts = update_inst(&insts, set_instruction_execution_proc);
+            insts
+        }
+    */
     #[allow(dead_code)]
     pub fn extract_labels(text: String) -> Exp {
         let text = str_to_exp(text);
@@ -106,35 +108,21 @@ pub mod assembler {
         memory: &mut Memory,
     ) -> Box<dyn FnOnce(&mut BasicMachine, &mut Memory) -> Exp> {
         let symbol = car(&inst).unwrap();
-        let assign =  Exp::Symbol("assign".to_string()); 
-        let test =  Exp::Symbol("test".to_string()); 
-        let branch =  Exp::Symbol("branch".to_string()); 
-        let goto =  Exp::Symbol("goto".to_string()); 
-        let save =  Exp::Symbol("save".to_string()); 
-        let restore =  Exp::Symbol("restore".to_string()); 
-        let perform =  Exp::Symbol("perform".to_string()); 
+        let assign = Exp::Symbol("assign".to_string());
+        let test = Exp::Symbol("test".to_string());
+        let branch = Exp::Symbol("branch".to_string());
+        let goto = Exp::Symbol("goto".to_string());
+        let save = Exp::Symbol("save".to_string());
+        let restore = Exp::Symbol("restore".to_string());
+        let perform = Exp::Symbol("perform".to_string());
         match symbol {
-            x if x == assign => {
-                make_assign(inst, machine, memory, labels)
-            },  
-            x if x == test => {
-                make_test(inst, machine, memory, labels)
-            },
-            x if x == branch => {
-                make_branch(inst, machine, memory, labels)
-            },
-            x if x == goto => {
-                make_goto(inst, machine, memory, labels)
-            },
-            x if x == save => {
-                make_save(inst, machine, memory, labels)
-            },
-            x if x == restore => {
-                make_restore(inst, machine, memory, labels)
-            },
-            x if x == perform => {
-                make_perform(inst, machine, memory, labels)
-            },
+            x if x == assign => make_assign(inst, machine, memory, labels),
+            x if x == test => make_test(inst, machine, memory, labels),
+            x if x == branch => make_branch(inst, machine, memory, labels),
+            x if x == goto => make_goto(inst, machine, memory, labels),
+            x if x == save => make_save(inst, machine, memory, labels),
+            x if x == restore => make_restore(inst, machine, memory, labels),
+            x if x == perform => make_perform(inst, machine, memory, labels),
             _ => {
                 println!("inst=> {:?}", inst);
                 panic!("Unknown instruction type: ASSEMBLE")
@@ -177,7 +165,7 @@ pub mod assembler {
             let data = reg_name;
             let contents = machine.stack.pop().unwrap();
             machine.set_register_contents(data, contents);
-            Exp::Quote("ok".to_string()) 
+            Exp::Quote("ok".to_string())
         };
         Box::new(lambda)
     }
@@ -225,7 +213,7 @@ pub mod assembler {
                     Exp::Quote("ok".to_string())
                 };
                 Box::new(lambda)
-            },
+            }
             x if is_register_exp(&x) => {
                 let reg_name = exp_to_str(register_exp_reg(&x));
                 let contents = machine.get_register_contents(reg_name).unwrap();
@@ -235,11 +223,11 @@ pub mod assembler {
                     Exp::Quote("ok".to_string())
                 };
                 Box::new(lambda)
-            },
+            }
             _ => {
                 println!("{:?}", inst);
                 panic!("Error: Bad GOTO instruction: ASSEMBLE");
-            },
+            }
         }
     }
 
@@ -258,12 +246,12 @@ pub mod assembler {
     ) -> Box<dyn FnOnce(&mut BasicMachine, &mut Memory) -> Exp> {
         let dest = branch_dest(&inst);
         if is_label_exp(&dest) {
-            let insts = lookup_label(labels, &label_exp_label(&dest)).unwrap();
+            let insts = exp_to_str(lookup_label(labels, &label_exp_label(&dest)).unwrap());
             let lambda = |machine: &mut BasicMachine, memory: &mut Memory| {
                 let data = insts;
                 let r = machine.get_register_contents("flag".to_string()).unwrap();
                 if r == Object::Bool(true) {
-                    machine.set_register_contents("pc".to_string(), data.exp_to_object());
+                    machine.set_register_contents_as_in_memory("pc".to_string(), data, memory);
                 } else {
                     machine.advance_pc();
                 }
@@ -275,7 +263,7 @@ pub mod assembler {
             panic!("Error: Bad BRANCH instruction: ASSEMBLE");
         }
     }
-     
+
     // (branch (label base-case))
     #[allow(dead_code)]
     fn branch_dest(branch_instruction: &Exp) -> Exp {
@@ -471,7 +459,7 @@ pub mod assembler {
     }
 
     // note that here the operands is organized as (arg1, arg2 ....)
-    // such that the operands can be sent to machine.call_op directly 
+    // such that the operands can be sent to machine.call_op directly
     fn eval_operands_iter(
         operands: Exp,
         machine: &mut BasicMachine,
@@ -538,11 +526,11 @@ mod test {
         parserfordev::parser::str_to_exp,
         primitives::primitives::{eq, is_self_evaluating, multiply},
         representation::type_system::Object,
-        tpfordev::type_system::{cdr, Exp, Pair},
+        tpfordev::type_system::{car, cdr, Exp, Pair},
     };
 
     use super::assembler::{
-        assign_reg_name, assign_value_exp, extract_labels, lookup_label, make_assign,
+        assign_reg_name, assign_value_exp, extract_labels, lookup_label, make_assign, make_branch,
         make_operation_exp, make_primitive_exp, make_test,
     };
 
@@ -665,11 +653,11 @@ mod test {
             machine.get_register_contents("flag".to_string()).unwrap(),
             Object::Bool(true)
         );
-        
+
         inst = str_to_exp("(test  (op =) (reg val) (const 3.14))".to_string());
         let cb = make_test(inst, &mut machine, &mut memory, &labels);
         result = consume_box_closure(cb, &mut machine, &mut memory);
-        
+
         assert_eq!(
             machine.get_register_contents("flag".to_string()).unwrap(),
             Object::Bool(false)
@@ -678,26 +666,36 @@ mod test {
 
     #[test]
     fn make_branch_works() {
-
+        let mut inst = str_to_exp("(branch (label base-case))".to_string());
+        let mut memory = Memory::new(100);
+        let mut machine = BasicMachine::new();
+        let text = MachineCase::new().controller_text.to_string();
+        let result = extract_labels(text);
+        let insts = car(&result).unwrap();
+        let labels = cdr(&result).unwrap();
+        machine.initilize_registers();
+        machine.set_register_contents("flag".to_string(), Object::Bool(true));
+        let checkout = str_to_exp(
+            "(((assgin val (const 1))) 
+                                       ((goto (reg continue))))"
+                .to_string(),
+        );
+        let cb = make_branch(inst, &mut machine, &mut memory, &labels);
+        let r = consume_box_closure(cb, &mut machine, &mut memory);
+        let contents =
+            str_to_exp(machine.get_register_contents_as_in_memory("pc".to_string(), &memory));
+        assert_eq!(contents, checkout);
     }
 
     #[test]
-    fn make_goto_works() {
-
-    }
+    fn make_goto_works() {}
 
     #[test]
-    fn make_save_works() {
-
-    }
+    fn make_save_works() {}
 
     #[test]
-    fn make_restore_works() {
-
-    }
+    fn make_restore_works() {}
 
     #[test]
-    fn make_perform_works() {
-
-    }
+    fn make_perform_works() {}
 }
