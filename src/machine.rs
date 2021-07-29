@@ -8,10 +8,10 @@ pub mod basic_machine {
     use std::collections::HashMap;
 
     pub struct BasicMachine {
-        registers: HashMap<String, Register>,
-        stack: Stack,
-        ops: HashMap<String, CallbackExp>,
-        instruction_sequence: Vec<Box<dyn FnOnce(&mut BasicMachine, &mut Memory)>>,
+        pub registers: HashMap<String, Register>,
+        pub stack: Stack,
+        pub ops: HashMap<String, CallbackExp>,
+        pub instruction_sequence: Vec<Box<dyn FnOnce(&mut BasicMachine, &mut Memory)>>,
     }
 
     type CallbackExp = fn(&Exp) -> Exp;
@@ -27,9 +27,9 @@ pub mod basic_machine {
         // be stored in the gc process
         // The registers pc, flag is brought by basic machine
         pub fn initilize_registers(&mut self) {
-            self.registers.insert("pc".to_string(), Register::new("pc"));
+            self.registers.insert("pc".to_string(), Register::new("PC"));
             self.registers
-                .insert("flag".to_string(), Register::new("flag"));
+                .insert("flag".to_string(), Register::new("FLAG"));
             self.registers
                 .insert("root".to_string(), Register::new("ROOT"));
             self.registers

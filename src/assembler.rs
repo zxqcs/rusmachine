@@ -5,9 +5,7 @@ pub mod assembler {
     use crate::primitives::primitives::{cadr, cddr, is_tagged_list};
     use crate::representation::type_system::Object;
     use crate::scheme_list;
-    use crate::tpfordev::type_system::{
-        append, car, cdr, scheme_assoc, scheme_cons, scheme_map_clousre, set_cdr, Exp, Pair,
-    };
+    use crate::tpfordev::type_system::{Exp, Pair, append, car, cdr, scheme_assoc, scheme_cons, scheme_map_clousre, set_cdr};
 
     #[allow(dead_code)]
     fn assemble(controller_text: String, machine: &mut BasicMachine, memory: &mut Memory) -> Exp {
@@ -106,24 +104,149 @@ pub mod assembler {
         labels: &Exp,
         machine: &mut BasicMachine,
         memory: &mut Memory,
-    ) -> Exp {
-        /*
+    ) -> Box<dyn FnOnce(&mut BasicMachine, &mut Memory) -> Exp> {
         let symbol = car(&inst).unwrap();
+        let assign =  Exp::Symbol("assign".to_string()); 
+        let test =  Exp::Symbol("test".to_string()); 
+        let branch =  Exp::Symbol("branch".to_string()); 
+        let goto =  Exp::Symbol("goto".to_string()); 
+        let save =  Exp::Symbol("save".to_string()); 
+        let restore =  Exp::Symbol("restore".to_string()); 
+        let perform =  Exp::Symbol("perform".to_string()); 
         match symbol {
-            Exp::Symbol("assign") => {}
-            Exp::Symbol("test") => {}
-            Exp::Symbol("branch") => {}
-            Exp::Symbol("goto") => {}
-            Exp::Symbol("save") => {}
-            Exp::Symbol("restore") => {}
-            Exp::Symbol("perform") => {}
+            x if x == assign => {
+                make_assign(inst, machine, memory, labels)
+            },  
+            x if x == test => {
+                make_test(inst, machine, memory, labels)
+            },
+            x if x == branch => {
+                make_branch(inst, machine, memory, labels)
+            },
+            x if x == goto => {
+                make_goto(inst, machine, memory, labels)
+            },
+            x if x == save => {
+                make_save(inst, machine, memory, labels)
+            },
+            x if x == restore => {
+                make_restore(inst, machine, memory, labels)
+            },
+            x if x == perform => {
+                make_perform(inst, machine, memory, labels)
+            },
             _ => {
-                println!("inst=> {}", inst);
+                println!("inst=> {:?}", inst);
                 panic!("Unknown instruction type: ASSEMBLE")
             }
         }
-        */
-        Exp::Integer(1)
+    }
+
+    #[allow(dead_code)]
+    pub fn make_save(
+        inst: Exp,
+        machine: &mut BasicMachine,
+        memory: &mut Memory,
+        labels: &Exp,
+    ) -> Box<dyn FnOnce(&mut BasicMachine, &mut Memory) -> Exp> {
+        let reg_name = exp_to_str(stack_inst_reg_name(&inst));
+        let lambda = |machine: &mut BasicMachine, memory: &mut Memory| {
+            let data = reg_name;
+            let contents = machine.get_register_contents(data).unwrap();
+            machine.stack.push(contents);
+            machine.advance_pc();
+            Exp::Quote("ok".to_string())
+        };
+        Box::new(lambda)
+    }
+
+    #[allow(dead_code)]
+    fn stack_inst_reg_name(stack_instruction: &Exp) -> Exp {
+        cadr(stack_instruction).unwrap()
+    }
+
+    #[allow(dead_code)]
+    pub fn make_restore(
+        inst: Exp,
+        machine: &mut BasicMachine,
+        memory: &mut Memory,
+        labels: &Exp,
+    ) -> Box<dyn FnOnce(&mut BasicMachine, &mut Memory) -> Exp> {
+        let reg_name = exp_to_str(stack_inst_reg_name(&inst));
+        let lambda = |machine: &mut BasicMachine, memory: &mut Memory| {
+            let data = reg_name;
+            let contents = machine.stack.pop().unwrap();
+            machine.set_register_contents(data, contents);
+            Exp::Quote("ok".to_string()) 
+        };
+        Box::new(lambda)
+    }
+
+    #[allow(dead_code)]
+    pub fn make_perform(
+        inst: Exp,
+        machine: &mut BasicMachine,
+        memory: &mut Memory,
+        labels: &Exp,
+    ) -> Box<dyn FnOnce(&mut BasicMachine, &mut Memory) -> Exp> {
+        let action = perform_action(&inst);
+        if is_operation_exp(&action) {
+            let action_proc = make_operation_exp(action, machine, memory, labels);
+            let lambda = |machine: &mut BasicMachine, memory: &mut Memory| {
+                let r = consume_box_closure(action_proc, machine, memory);
+                machine.advance_pc();
+                Exp::Quote("ok".to_string())
+            };
+            Box::new(lambda)
+        } else {
+            panic!("Error: Bad PERFORM instruction: ASSEMBLE, {:?}", inst);
+        }
+    }
+
+    #[allow(dead_code)]
+    fn perform_action(inst: &Exp) -> Exp {
+        cdr(inst).unwrap()
+    }
+
+    #[allow(dead_code)]
+    pub fn make_goto(
+        inst: Exp,
+        machine: &mut BasicMachine,
+        memory: &mut Memory,
+        labels: &Exp,
+    ) -> Box<dyn FnOnce(&mut BasicMachine, &mut Memory) -> Exp> {
+        let dest = goto_dest(&inst);
+        match dest {
+            x if is_label_exp(&x) => {
+                let insts = lookup_label(labels, &label_exp_label(&x)).unwrap();
+                let lambda = |machine: &mut BasicMachine, memory: &mut Memory| {
+                    let data = insts;
+                    machine.set_register_contents("pc".to_string(), data.exp_to_object());
+                    Exp::Quote("ok".to_string())
+                };
+                Box::new(lambda)
+            },
+            x if is_register_exp(&x) => {
+                let reg_name = exp_to_str(register_exp_reg(&x));
+                let contents = machine.get_register_contents(reg_name).unwrap();
+                let lambda = |machine: &mut BasicMachine, memory: &mut Memory| {
+                    let data = contents;
+                    machine.set_register_contents("pc".to_string(), data);
+                    Exp::Quote("ok".to_string())
+                };
+                Box::new(lambda)
+            },
+            _ => {
+                println!("{:?}", inst);
+                panic!("Error: Bad GOTO instruction: ASSEMBLE");
+            },
+        }
+    }
+
+    // (goto (reg continue))
+    #[allow(dead_code)]
+    pub fn goto_dest(goto_instruction: &Exp) -> Exp {
+        cadr(&goto_instruction).unwrap()
     }
 
     #[allow(dead_code)]
@@ -555,6 +678,26 @@ mod test {
 
     #[test]
     fn make_branch_works() {
-        
+
+    }
+
+    #[test]
+    fn make_goto_works() {
+
+    }
+
+    #[test]
+    fn make_save_works() {
+
+    }
+
+    #[test]
+    fn make_restore_works() {
+
+    }
+
+    #[test]
+    fn make_perform_works() {
+
     }
 }
