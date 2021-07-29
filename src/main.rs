@@ -15,13 +15,21 @@ use crate::machine::basic_machine::BasicMachine;
 use crate::parser::parser::{build_syntax_tree_into_memeory, tokenizer};
 use crate::parserfordev::parser::{print, str_to_exp};
 use crate::tpfordev::type_system::{append, scheme_cons, Exp, Pair};
-use assembler::assembler::make_operation_exp;
+use assembler::assembler::{extract_labels, make_operation_exp};
+use machine_cases::MachineCase::MachineCase;
 use memory::memory::Memory;
+use parserfordev::parser::scheme_list_pretty_print;
 use primitives::primitives::is_self_evaluating;
 use representation::type_system::Object;
+use tpfordev::type_system::{car, cdr};
 
 fn main() {
-    make_test_works();
+    let text = MachineCase::new().controller_text.to_string();
+    let result = extract_labels(text);
+    let insts = car(&result).unwrap();
+    let labels = cdr(&result).unwrap();
+    scheme_list_pretty_print(&insts);
+    scheme_list_pretty_print(&labels);
 }
 
 #[allow(dead_code)]

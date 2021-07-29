@@ -127,6 +127,39 @@ pub mod assembler {
     }
 
     #[allow(dead_code)]
+    pub fn make_branch(
+        inst: Exp,
+        machine: &mut BasicMachine,
+        memory: &mut Memory,
+        labels: &Exp,
+    ) -> Box<dyn FnOnce(&mut BasicMachine, &mut Memory) -> Exp> {
+        let dest = branch_dest(&inst);
+        if is_label_exp(&dest) {
+            let insts = lookup_label(labels, &label_exp_label(&dest)).unwrap();
+            let lambda = |machine: &mut BasicMachine, memory: &mut Memory| {
+                let data = insts;
+                let r = machine.get_register_contents("flag".to_string()).unwrap();
+                if r == Object::Bool(true) {
+                    machine.set_register_contents("pc".to_string(), data.exp_to_object());
+                } else {
+                    machine.advance_pc();
+                }
+                Exp::Quote("ok".to_string())
+            };
+            Box::new(lambda)
+        } else {
+            println!("{:?}", inst);
+            panic!("Error: Bad BRANCH instruction: ASSEMBLE");
+        }
+    }
+     
+    // (branch (label base-case))
+    #[allow(dead_code)]
+    fn branch_dest(branch_instruction: &Exp) -> Exp {
+        cadr(branch_instruction).unwrap()
+    }
+
+    #[allow(dead_code)]
     pub fn make_test(
         inst: Exp,
         machine: &mut BasicMachine,
@@ -314,6 +347,8 @@ pub mod assembler {
         Box::new(lambda)
     }
 
+    // note that here the operands is organized as (arg1, arg2 ....)
+    // such that the operands can be sent to machine.call_op directly 
     fn eval_operands_iter(
         operands: Exp,
         machine: &mut BasicMachine,
@@ -502,10 +537,24 @@ mod test {
         let labels = Exp::List(Pair::Nil);
         machine.set_register_contents("val".to_string(), Object::Integer(1));
         let cb = make_test(inst, &mut machine, &mut memory, &labels);
-        let result = consume_box_closure(cb, &mut machine, &mut memory);
+        let mut result = consume_box_closure(cb, &mut machine, &mut memory);
         assert_eq!(
             machine.get_register_contents("flag".to_string()).unwrap(),
             Object::Bool(true)
         );
+        
+        inst = str_to_exp("(test  (op =) (reg val) (const 3.14))".to_string());
+        let cb = make_test(inst, &mut machine, &mut memory, &labels);
+        result = consume_box_closure(cb, &mut machine, &mut memory);
+        
+        assert_eq!(
+            machine.get_register_contents("flag".to_string()).unwrap(),
+            Object::Bool(false)
+        );
+    }
+
+    #[test]
+    fn make_branch_works() {
+        
     }
 }
