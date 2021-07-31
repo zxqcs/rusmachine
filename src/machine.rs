@@ -142,9 +142,8 @@ pub mod basic_machine {
             object: String,
             memory: &mut Memory,
         ) {
-            let mut tokens = tokenizer(object);
-            let index = build_syntax_tree_into_memeory(&mut tokens, memory, self);
-            self.set_register_contents(name, Object::Index(index));
+            let item = memory.write(object, self);
+            self.set_register_contents(name, Object::Index(item));
         }
 
         #[allow(dead_code)]

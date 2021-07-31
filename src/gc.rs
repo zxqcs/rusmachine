@@ -3,6 +3,7 @@ pub mod garbage_collector {
     use crate::memory::memory::Memory;
     use crate::representation::type_system::Object;
 
+    #[allow(dead_code)]
     pub fn garbage_collector(machine: &mut BasicMachine, memory: &mut Memory) {
         machine.initilize_registers();
         machine.set_register_contents(&"free".to_string(), Object::Index(0));
@@ -51,8 +52,10 @@ pub mod garbage_collector {
                     already_moved(machine, memory);
                 }
                 _ => {
-                    machine
-                        .assign_from_one_register_to_another(&"new".to_string(), &"free".to_string());
+                    machine.assign_from_one_register_to_another(
+                        &"new".to_string(),
+                        &"free".to_string(),
+                    );
                     machine.register_increment_by_one(&"free".to_string());
                     // copy the car and cdr to new memeory
                     let item = machine.get_register_contents(&"oldcr".to_string()).unwrap();

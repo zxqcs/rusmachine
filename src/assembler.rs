@@ -216,32 +216,15 @@ pub mod assembler {
             }
             x if is_register_exp(&x) => {
                 let reg_name = exp_to_str(register_exp_reg(&x));
-                let contents = machine.get_register_contents(&reg_name).unwrap();
-                let exp;
-                let insts;
-                match contents {
-                    Object::Index(_i) => {
-                        exp = str_to_exp(machine.get_register_contents_as_in_memory(&reg_name, memory));
-                    },
-                    _ => {
-                        panic!("Error: Not a proper GOTO destination: {:?}", contents);
-                    }
-                }
-                if is_label_exp(&exp) {
-                    insts = lookup_label(labels, &label_exp_label(&x)).unwrap();
-                } else {
-                    panic!("Error: Value stored in Register {} is not a label value: {:?}", reg_name, exp);
-                }
                 let lambda = |machine: &mut BasicMachine, memory: &mut Memory| {
-                    let data = exp_to_str(insts);
-                    machine.set_register_contents_as_in_memory(&"pc".to_string(), data, memory);
+                    let data = reg_name;
+                    machine.assign_from_one_register_to_another(&"pc".to_string(), &data);
                     Exp::Quote("ok".to_string())
                 };
                 Box::new(lambda)
             }
             _ => {
-                println!("{:?}", inst);
-                panic!("Error: Bad GOTO instruction: ASSEMBLE");
+                panic!("Error: Bad GOTO instruction {:?}: ASSEMBLE", inst);
             }
         }
     }
@@ -379,10 +362,9 @@ pub mod assembler {
             }
             x if is_label_exp(&x) => {
                 let insts = lookup_label(labels, &label_exp_label(&x)).unwrap();
-                let lambda = |machine: &mut BasicMachine, memory: &mut Memory| {
-                    let data = insts;
-                    data
-                };
+                let index = memory.write(exp_to_str(insts), machine);
+                let lambda =
+                    move |machine: &mut BasicMachine, memory: &mut Memory| Exp::Index(index);
                 Box::new(lambda)
             }
             x if is_register_exp(&x) => {
@@ -535,12 +517,13 @@ pub mod assembler {
 mod test {
     use crate::{
         assembler::assembler::{
-            consume_box_closure, is_operation_exp, operation_exp_op, operation_exp_oprands,
+            consume_box_closure, is_operation_exp, make_goto, operation_exp_op,
+            operation_exp_oprands,
         },
         machine::basic_machine::BasicMachine,
         machine_cases::MachineCase::MachineCase,
         memory::memory::Memory,
-        parserfordev::parser::str_to_exp,
+        parserfordev::parser::{exp_to_str, str_to_exp},
         primitives::primitives::{eq, is_self_evaluating, multiply},
         representation::type_system::Object,
         tpfordev::type_system::{car, cdr, Exp, Pair},
@@ -705,7 +688,29 @@ mod test {
     }
 
     #[test]
-    fn make_goto_works() {}
+    fn make_goto_works() {
+        let inst = str_to_exp("(goto (reg continue))".to_string());
+        let mut memory = Memory::new(50);
+        let mut machine = BasicMachine::new();
+        let text = MachineCase::new().controller_text.to_string();
+        let result = extract_labels(text);
+        let insts = car(&result).unwrap();
+        let labels = cdr(&result).unwrap();
+        let base_case = lookup_label(&labels, &str_to_exp("base-case".to_string())).unwrap();
+        machine.initilize_registers();
+        machine.set_register_contents_as_in_memory(
+            &"continue".to_string(),
+            exp_to_str(base_case.clone()),
+            &mut memory,
+        );
+        let cb = make_goto(inst, &mut machine, &mut memory, &labels);
+        let r = consume_box_closure(cb, &mut machine, &mut memory);
+        let checkout = machine.get_register_contents(&"continue".to_string());
+        let result = machine.get_register_contents(&"pc".to_string());
+        assert_eq!(result, checkout);
+        let content = machine.get_register_contents_as_in_memory(&"pc".to_string(), &memory);
+        assert_eq!(str_to_exp(content), base_case);
+    }
 
     #[test]
     fn make_save_works() {}

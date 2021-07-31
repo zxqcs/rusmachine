@@ -33,6 +33,7 @@ pub mod type_system {
         Quote(String),
         SchemeString(String),
         Bool(bool),
+        Index(usize),
     }
 
     impl Exp {
@@ -67,6 +68,7 @@ pub mod type_system {
                 Exp::Symbol(x) => Object::Symbol((*x).to_string()),
                 Exp::Quote(x) => Object::Symbol((*x).to_string()),
                 Exp::Bool(x) => Object::Bool(*x),
+                Exp::Index(x) => Object::Index(*x),
                 Exp::SchemeString(x) => Object::LispString((*x).to_string()),
                 _ => panic!("Error: this type can't be converted to Object directly!"),
             }

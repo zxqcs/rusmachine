@@ -114,6 +114,7 @@ pub mod parser {
                 print!("{}", &x[1..x.len()]);
             }
             Exp::SchemeString(x) => print!("{}", x),
+            Exp::Index(x) => print!("{}", x),
             Exp::Bool(x) => print!("{}", x),
             Exp::List(Pair::Nil) => {
                 print!("()");
@@ -158,6 +159,10 @@ pub mod parser {
                 s.push_str(&x.to_string());
             }
             Exp::Symbol(x) => {
+                s.push(' ');
+                s.push_str(&x.to_string());
+            }
+            Exp::Index(x) => {
                 s.push(' ');
                 s.push_str(&x.to_string());
             }

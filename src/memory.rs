@@ -1,5 +1,9 @@
 pub mod memory {
-    use crate::representation::type_system::Object;
+    use crate::{
+        machine::basic_machine::BasicMachine,
+        parser::parser::{build_syntax_tree_into_memeory, tokenizer},
+        representation::type_system::Object,
+    };
     use std::{
         fmt::{self},
         usize,
@@ -50,6 +54,12 @@ pub mod memory {
                     panic!("Unknown Operations!");
                 }
             }
+        }
+
+        pub fn write(&mut self, item: String, machine: &mut BasicMachine) -> usize {
+            let mut tokens = tokenizer(item);
+            let index = build_syntax_tree_into_memeory(&mut tokens, self, machine);
+            index
         }
 
         pub fn flip(&mut self) {
