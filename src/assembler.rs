@@ -191,6 +191,7 @@ pub mod assembler {
         }
     }
 
+    // (perform (op set-variable-value) (reg unev) (reg val) (reg env))
     #[allow(dead_code)]
     fn perform_action(inst: &Exp) -> Exp {
         cdr(inst).unwrap()

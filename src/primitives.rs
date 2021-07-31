@@ -2,7 +2,7 @@ pub mod primitives {
     use crate::{
         parserfordev::parser::exp_to_str,
         scheme_list,
-        tpfordev::type_system::{append, car, cdr, scheme_cons, Exp, Pair},
+        tpfordev::type_system::{append, car, cdr, scheme_cons, set_car, set_cdr, Exp, Pair},
     };
     #[allow(dead_code)]
     pub fn cadr(exp: &Exp) -> Result<Exp, &'static str> {
@@ -141,6 +141,66 @@ pub mod primitives {
         let env = caddr(args).unwrap();
         let tag = Exp::Symbol("procedure".to_string());
         scheme_list!(tag, parameters.clone(), body.clone(), env.clone())
+    }
+
+    #[allow(dead_code)]
+    pub fn define_variable(args: &Exp) -> Exp {
+        let target_var = car(args).unwrap();
+        let target_val = cadr(args).unwrap();
+        let env = caddr(args).unwrap();
+
+        if env == Exp::List(Pair::Nil) {
+            let frame = scheme_list!(scheme_list!(target_var), target_val);
+            scheme_list!(frame)
+        } else {
+            let frame = first_frame(&env);
+            let temp_frame = scan_and_define(target_var, target_val, frame);
+            set_car(env, temp_frame).unwrap()
+        }
+    }
+
+    #[allow(dead_code)]
+    fn scan_and_define(target_var: Exp, target_val: Exp, frame: Exp) -> Exp {
+        let vars = frame_variables(&frame);
+        let vals = frame_values(&frame);
+        if vars == Exp::List(Pair::Nil) {
+            add_binding_to_frame(target_var, target_val, frame)
+        } else if target_var == car(&vars).unwrap() {
+            let temp_vals = set_car(vals, target_val).unwrap();
+            make_frame(vars, temp_vals)
+        } else {
+            let mut temp_frame = make_frame(cdr(&vars).unwrap(), cdr(&vals).unwrap());
+            temp_frame = scan_and_define(target_var, target_val, temp_frame);
+            let temp_vars = set_cdr(vars, frame_variables(&temp_frame)).unwrap();
+            let temp_vals = set_cdr(vals, frame_values(&temp_frame)).unwrap();
+            make_frame(temp_vars, temp_vals)
+        }
+    }
+
+    #[allow(dead_code)]
+    fn make_frame(variables: Exp, values: Exp) -> Exp {
+        scheme_cons(variables, values)
+    }
+
+    #[allow(dead_code)]
+    fn frame_variables(frame: &Exp) -> Exp {
+        car(frame).unwrap()
+    }
+
+    #[allow(dead_code)]
+    fn frame_values(frame: &Exp) -> Exp {
+        cdr(frame).unwrap()
+    }
+
+    #[allow(dead_code)]
+    fn first_frame(env: &Exp) -> Exp {
+        car(&env).unwrap()
+    }
+
+    #[allow(dead_code)]
+    fn add_binding_to_frame(var: Exp, val: Exp, frame: Exp) -> Exp {
+        let temp = set_car(frame.clone(), scheme_cons(var, frame_variables(&frame))).unwrap();
+        set_cdr(temp, scheme_cons(val, frame_values(&frame))).unwrap()
     }
 }
 
