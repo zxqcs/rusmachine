@@ -140,7 +140,7 @@ pub mod assembler {
         let reg_name = exp_to_str(stack_inst_reg_name(&inst));
         let lambda = |machine: &mut BasicMachine, memory: &mut Memory| {
             let data = reg_name;
-            let contents = machine.get_register_contents(data).unwrap();
+            let contents = machine.get_register_contents(&data).unwrap();
             machine.stack.push(contents);
             machine.advance_pc();
             Exp::Quote("ok".to_string())
@@ -164,7 +164,7 @@ pub mod assembler {
         let lambda = |machine: &mut BasicMachine, memory: &mut Memory| {
             let data = reg_name;
             let contents = machine.stack.pop().unwrap();
-            machine.set_register_contents(data, contents);
+            machine.set_register_contents(&data, contents);
             Exp::Quote("ok".to_string())
         };
         Box::new(lambda)
@@ -208,18 +208,33 @@ pub mod assembler {
             x if is_label_exp(&x) => {
                 let insts = lookup_label(labels, &label_exp_label(&x)).unwrap();
                 let lambda = |machine: &mut BasicMachine, memory: &mut Memory| {
-                    let data = insts;
-                    machine.set_register_contents("pc".to_string(), data.exp_to_object());
+                    let data = exp_to_str(insts);
+                    machine.set_register_contents_as_in_memory(&"pc".to_string(), data, memory);
                     Exp::Quote("ok".to_string())
                 };
                 Box::new(lambda)
             }
             x if is_register_exp(&x) => {
                 let reg_name = exp_to_str(register_exp_reg(&x));
-                let contents = machine.get_register_contents(reg_name).unwrap();
+                let contents = machine.get_register_contents(&reg_name).unwrap();
+                let exp;
+                let insts;
+                match contents {
+                    Object::Index(_i) => {
+                        exp = str_to_exp(machine.get_register_contents_as_in_memory(&reg_name, memory));
+                    },
+                    _ => {
+                        panic!("Error: Not a proper GOTO destination: {:?}", contents);
+                    }
+                }
+                if is_label_exp(&exp) {
+                    insts = lookup_label(labels, &label_exp_label(&x)).unwrap();
+                } else {
+                    panic!("Error: Value stored in Register {} is not a label value: {:?}", reg_name, exp);
+                }
                 let lambda = |machine: &mut BasicMachine, memory: &mut Memory| {
-                    let data = contents;
-                    machine.set_register_contents("pc".to_string(), data);
+                    let data = exp_to_str(insts);
+                    machine.set_register_contents_as_in_memory(&"pc".to_string(), data, memory);
                     Exp::Quote("ok".to_string())
                 };
                 Box::new(lambda)
@@ -249,9 +264,9 @@ pub mod assembler {
             let insts = exp_to_str(lookup_label(labels, &label_exp_label(&dest)).unwrap());
             let lambda = |machine: &mut BasicMachine, memory: &mut Memory| {
                 let data = insts;
-                let r = machine.get_register_contents("flag".to_string()).unwrap();
+                let r = machine.get_register_contents(&"flag".to_string()).unwrap();
                 if r == Object::Bool(true) {
-                    machine.set_register_contents_as_in_memory("pc".to_string(), data, memory);
+                    machine.set_register_contents_as_in_memory(&"pc".to_string(), data, memory);
                 } else {
                     machine.advance_pc();
                 }
@@ -283,7 +298,7 @@ pub mod assembler {
             let value = consume_box_closure(condition_proc, machine, memory);
             let lambda = |machine: &mut BasicMachine, memory: &mut Memory| {
                 let data = value;
-                machine.set_register_contents("flag".to_string(), data.exp_to_object());
+                machine.set_register_contents(&"flag".to_string(), data.exp_to_object());
                 Exp::Quote("ok".to_string())
             };
             Box::new(lambda)
@@ -308,7 +323,7 @@ pub mod assembler {
     ) -> Box<dyn FnOnce(&mut BasicMachine, &mut Memory) -> Exp> {
         let reg_name = assign_reg_name(&inst);
         let value_exp = assign_value_exp(&inst);
-        let mut lambda: Option<Box<dyn FnOnce(&mut BasicMachine, &mut Memory) -> Exp>> = None;
+        let lambda;
         if is_operation_exp(&value_exp) {
             lambda = Some(make_operation_exp(value_exp, machine, memory, labels));
         } else {
@@ -319,12 +334,12 @@ pub mod assembler {
             let name = exp_to_str(reg_name);
             let data = value;
             match data {
-                Exp::List(ref x) => {
-                    machine.set_register_contents_as_in_memory(name, exp_to_str(data), memory);
+                Exp::List(ref _x) => {
+                    machine.set_register_contents_as_in_memory(&name, exp_to_str(data), memory);
                     Exp::Quote("ok".to_string())
                 }
                 _ => {
-                    machine.set_register_contents(name, data.exp_to_object());
+                    machine.set_register_contents(&name, data.exp_to_object());
                     Exp::Quote("ok".to_string())
                 }
             }
@@ -373,11 +388,12 @@ pub mod assembler {
             x if is_register_exp(&x) => {
                 let name = exp_to_str(register_exp_reg(&x));
                 let lambda = |machine: &mut BasicMachine, memory: &mut Memory| {
-                    let content = machine.get_register_contents(name.clone()).unwrap();
+                    let data = name;
+                    let content = machine.get_register_contents(&data).unwrap();
                     let mem = &(*memory);
                     match content {
                         Object::Index(x) => {
-                            let result = machine.get_register_contents_as_in_memory(name, mem);
+                            let result = machine.get_register_contents_as_in_memory(&data, mem);
                             return str_to_exp(result);
                         }
                         _ => {
@@ -429,6 +445,7 @@ pub mod assembler {
         cadr(exp).unwrap()
     }
 
+    // (label fact-done)
     #[allow(dead_code)]
     fn is_label_exp(exp: &Exp) -> bool {
         let arg = scheme_list!((*exp).clone(), Exp::Symbol("label".to_string()));
@@ -557,7 +574,7 @@ mod test {
         let labels = Exp::List(Pair::Nil);
         machine.initilize_registers();
         let s = "(define x '(+ 1 2))";
-        machine.set_register_contents_as_in_memory("root".to_string(), s.to_string(), &mut memory);
+        machine.set_register_contents_as_in_memory(&"root".to_string(), s.to_string(), &mut memory);
         let mut exp = "(reg root)".to_string();
         let r1 = make_primitive_exp(str_to_exp(exp), &mut machine, &mut memory, &labels);
         let mut result = consume_box_closure(r1, &mut machine, &mut memory);
@@ -597,7 +614,7 @@ mod test {
         machine.initilize_registers();
         machine.add_op("is_self_evaluating".to_string(), is_self_evaluating);
         let s = "winter is coming!";
-        machine.set_register_contents("root".to_string(), Object::LispString(s.to_string()));
+        machine.set_register_contents(&"root".to_string(), Object::LispString(s.to_string()));
         let exp = str_to_exp("((op is_self_evaluating) (reg root))".to_string());
         let cb = make_operation_exp(exp, &mut machine, &mut memory, &labels);
         let result = consume_box_closure(cb, &mut machine, &mut memory);
@@ -629,12 +646,12 @@ mod test {
         let mut machine = BasicMachine::new();
         machine.initilize_registers();
         let labels = Exp::List(Pair::Nil);
-        machine.set_register_contents("val".to_string(), Object::Number(3.14));
-        machine.set_register_contents("exp".to_string(), Object::Integer(3));
+        machine.set_register_contents(&"val".to_string(), Object::Number(3.14));
+        machine.set_register_contents(&"exp".to_string(), Object::Integer(3));
         machine.add_op("*".to_string(), multiply);
         let cb = make_assign(str_to_exp(inst), &mut machine, &mut memory, &labels);
         let result = consume_box_closure(cb, &mut machine, &mut memory);
-        let value = machine.get_register_contents("root".to_string()).unwrap();
+        let value = machine.get_register_contents(&"root".to_string()).unwrap();
         assert_eq!(value, Object::Number(9.42));
     }
 
@@ -646,11 +663,11 @@ mod test {
         machine.add_op("=".to_string(), eq);
         machine.initilize_registers();
         let labels = Exp::List(Pair::Nil);
-        machine.set_register_contents("val".to_string(), Object::Integer(1));
+        machine.set_register_contents(&"val".to_string(), Object::Integer(1));
         let cb = make_test(inst, &mut machine, &mut memory, &labels);
         let mut result = consume_box_closure(cb, &mut machine, &mut memory);
         assert_eq!(
-            machine.get_register_contents("flag".to_string()).unwrap(),
+            machine.get_register_contents(&"flag".to_string()).unwrap(),
             Object::Bool(true)
         );
 
@@ -659,7 +676,7 @@ mod test {
         result = consume_box_closure(cb, &mut machine, &mut memory);
 
         assert_eq!(
-            machine.get_register_contents("flag".to_string()).unwrap(),
+            machine.get_register_contents(&"flag".to_string()).unwrap(),
             Object::Bool(false)
         );
     }
@@ -674,7 +691,7 @@ mod test {
         let insts = car(&result).unwrap();
         let labels = cdr(&result).unwrap();
         machine.initilize_registers();
-        machine.set_register_contents("flag".to_string(), Object::Bool(true));
+        machine.set_register_contents(&"flag".to_string(), Object::Bool(true));
         let checkout = str_to_exp(
             "(((assgin val (const 1))) 
                                        ((goto (reg continue))))"
@@ -683,7 +700,7 @@ mod test {
         let cb = make_branch(inst, &mut machine, &mut memory, &labels);
         let r = consume_box_closure(cb, &mut machine, &mut memory);
         let contents =
-            str_to_exp(machine.get_register_contents_as_in_memory("pc".to_string(), &memory));
+            str_to_exp(machine.get_register_contents_as_in_memory(&"pc".to_string(), &memory));
         assert_eq!(contents, checkout);
     }
 

@@ -99,8 +99,8 @@ pub mod parser {
             panic!("syntax wrong!");
         }
         let mut tokens = reverse(tokens);
-        machine.set_register_contents("free".to_string(), Object::Index(0));
-        let free = machine.get_register("free".to_string()).unwrap();
+        machine.set_register_contents(&"free".to_string(), Object::Index(0));
+        let free = machine.get_register(&"free".to_string()).unwrap();
         let mut stack = PairStack::new();
         let root = free.get_memory_index();
 
@@ -121,7 +121,7 @@ pub mod parser {
 
         while let Some(t) = tokens.pop() {
             let token = t;
-            let free = machine.get_register("free".to_string()).unwrap();
+            let free = machine.get_register(&"free".to_string()).unwrap();
             // free_index indicates the first index of memory space that is not used
             let free_index = free.get_memory_index();
             // pair_index indicates the current memory index that is being written
@@ -136,7 +136,7 @@ pub mod parser {
                             if flag {
                                 memory.update("car", item, i);
                                 stack.push(free_index);
-                                machine.register_increment_by_one("free".to_string());
+                                machine.register_increment_by_one(&"free".to_string());
                                 let next_token = tokens.last();
                                 let null = ")".to_string();
                                 match next_token {
@@ -149,9 +149,9 @@ pub mod parser {
                                 // push the new pair index into stack
                                 stack.push(free_index);
                                 let pair_index = free_index;
-                                machine.register_increment_by_one("free".to_string());
+                                machine.register_increment_by_one(&"free".to_string());
                                 let free_index = machine
-                                    .get_register("free".to_string())
+                                    .get_register(&"free".to_string())
                                     .unwrap()
                                     .get_memory_index();
                                 let item = Object::Pair(free_index);
@@ -165,11 +165,11 @@ pub mod parser {
                                         flag = true;
                                         stack.push(
                                             machine
-                                                .get_register("free".to_string())
+                                                .get_register(&"free".to_string())
                                                 .unwrap()
                                                 .get_memory_index(),
                                         );
-                                        machine.register_increment_by_one("free".to_string());
+                                        machine.register_increment_by_one(&"free".to_string());
                                     }
                                 }
                             }
@@ -177,7 +177,7 @@ pub mod parser {
                         None => {
                             stack.push(free_index);
                             // note that the free indicator is always ahead of pair_index
-                            machine.register_increment_by_one("free".to_string());
+                            machine.register_increment_by_one(&"free".to_string());
                         }
                     }
                 }
@@ -217,7 +217,7 @@ pub mod parser {
                                                 None => {}
                                             }
                                             stack.push(free_index);
-                                            machine.register_increment_by_one("free".to_string());
+                                            machine.register_increment_by_one(&"free".to_string());
                                             flag = true;
                                         }
                                     }
@@ -275,7 +275,7 @@ pub mod parser {
                                 stack.pop();
                                 stack.push(free_index);
                                 let pair_index = free_index;
-                                machine.register_increment_by_one("free".to_string());
+                                machine.register_increment_by_one(&"free".to_string());
                                 memory.update("car", item, pair_index);
                                 flag = false;
                             }

@@ -43,8 +43,8 @@ fn build_syntax_tree_into_memeory_works() {
                               5)))";
     let mut tokens = tokenizer(s.to_string());
     let root = build_syntax_tree_into_memeory(&mut tokens, &mut memory, &mut machine);
-    machine.set_register_contents("root".to_string(), Object::Index(root));
-    let reg = machine.get_register("root".to_string()).unwrap();
+    machine.set_register_contents(&"root".to_string(), Object::Index(root));
+    let reg = machine.get_register(&"root".to_string()).unwrap();
     reg.print_list(&memory);
     println!("{}", memory);
 }
@@ -58,9 +58,9 @@ fn set_register_contents_as_in_memory_works() {
                        (3 
                            (4  
                               5)))";
-    machine.set_register_contents_as_in_memory("root".to_string(), s.to_string(), &mut memory);
+    machine.set_register_contents_as_in_memory(&"root".to_string(), s.to_string(), &mut memory);
     machine
-        .get_register("root".to_string())
+        .get_register(&"root".to_string())
         .unwrap()
         .print_list(&memory);
 }
@@ -115,7 +115,7 @@ fn make_primitive_exp_works() {
     let labels = Exp::List(Pair::Nil);
     machine.initilize_registers();
     let s = "(define x '(+ 1 2))";
-    machine.set_register_contents_as_in_memory("root".to_string(), s.to_string(), &mut memory);
+    machine.set_register_contents_as_in_memory(&"root".to_string(), s.to_string(), &mut memory);
     let exp = "(reg root)".to_string();
     let r = make_primitive_exp(str_to_exp(exp), &mut machine, &mut memory, &labels);
     let result = consume_box_closure(r, &mut machine, &mut memory);
@@ -129,7 +129,7 @@ fn make_operation_exp_works() {
     machine.initilize_registers();
     machine.add_op("is_self_evaluating".to_string(), is_self_evaluating);
     let s = "winter is coming!";
-    machine.set_register_contents("root".to_string(), Object::LispString(s.to_string()));
+    machine.set_register_contents(&"root".to_string(), Object::LispString(s.to_string()));
     let exp = str_to_exp("((op is_self_evaluating) (reg root))".to_string());
     let cb = make_operation_exp(exp, &mut machine, &mut memory, &labels);
     let result = consume_box_closure(cb, &mut machine, &mut memory);
@@ -142,11 +142,11 @@ fn make_test_works() {
     let mut machine = BasicMachine::new();
     machine.initilize_registers();
     let labels = Exp::List(Pair::Nil);
-    machine.set_register_contents("val".to_string(), Object::Integer(1));
+    machine.set_register_contents(&"val".to_string(), Object::Integer(1));
     let cb = make_test(inst, &mut machine, &mut memory, &labels);
     let result = consume_box_closure(cb, &mut machine, &mut memory);
     assert_eq!(
-        machine.get_register_contents("flag".to_string()).unwrap(),
+        machine.get_register_contents(&"flag".to_string()).unwrap(),
         Object::Bool(true)
     );
 }
