@@ -192,6 +192,10 @@ pub mod stack {
         pub fn pop(&mut self) -> Option<Object> {
             self.container.pop()
         }
+
+        pub fn peek(&self) -> Option<&Object> {
+            self.container.last()
+        }
     }
 
     impl fmt::Display for Stack {

@@ -531,7 +531,7 @@ mod test {
 
     use super::assembler::{
         assign_reg_name, assign_value_exp, extract_labels, lookup_label, make_assign, make_branch,
-        make_operation_exp, make_primitive_exp, make_test,
+        make_operation_exp, make_primitive_exp, make_restore, make_save, make_test,
     };
 
     #[test]
@@ -713,10 +713,32 @@ mod test {
     }
 
     #[test]
-    fn make_save_works() {}
+    fn make_save_works() {
+        let inst = str_to_exp("(save val)".to_string());
+        let mut memory = Memory::new(20);
+        let mut machine = BasicMachine::new();
+        let labels = Exp::List(Pair::Nil);
+        machine.initilize_registers();
+        machine.set_register_contents(&"val".to_string(), Object::Number(3.14));
+        let cb = make_save(inst, &mut machine, &mut memory, &labels);
+        let r = consume_box_closure(cb, &mut machine, &mut memory);
+        let item = (*machine.stack.peek().unwrap()).clone();
+        assert_eq!(item, Object::Number(3.14));
+    }
 
     #[test]
-    fn make_restore_works() {}
+    fn make_restore_works() {
+        let inst = str_to_exp("(restore val)".to_string());
+        let mut memory = Memory::new(20);
+        let mut machine = BasicMachine::new();
+        let labels = Exp::List(Pair::Nil);
+        machine.initilize_registers();
+        machine.stack.push(Object::Integer(9));
+        let cb = make_restore(inst, &mut machine, &mut memory, &labels);
+        let r = consume_box_closure(cb, &mut machine, &mut memory);
+        let item = machine.get_register_contents(&"val".to_string()).unwrap();
+        assert_eq!(item, Object::Integer(9));
+    }
 
     #[test]
     fn make_perform_works() {}

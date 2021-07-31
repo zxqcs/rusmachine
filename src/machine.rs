@@ -173,8 +173,10 @@ pub mod basic_machine {
 
         #[allow(dead_code)]
         pub fn advance_pc(&mut self) {
+            /*
             let reg = "pc".to_string();
             self.register_increment_by_one(&reg);
+            */
         }
 
         #[allow(dead_code)]
