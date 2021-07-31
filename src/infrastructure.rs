@@ -255,7 +255,7 @@ mod test {
         let ss = "(( 7 8) 9)";
         let mut ttokens = tokenizer(ss.to_string());
         let another_root = build_syntax_tree_into_memeory(&mut ttokens, &mut memory, &mut machine);
-        machine.set_register_contents(&"root".to_string(), Object::Index(root));
+        machine.set_register_contents(&"root".to_string(), Object::Index(another_root));
         let s = String::from("(( 7 8) 9)");
         assert_eq!(
             ss,

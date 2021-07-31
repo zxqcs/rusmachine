@@ -99,7 +99,6 @@ pub mod parser {
             panic!("syntax wrong!");
         }
         let mut tokens = reverse(tokens);
-        machine.set_register_contents(&"free".to_string(), Object::Index(0));
         let free = machine.get_register(&"free".to_string()).unwrap();
         let mut stack = PairStack::new();
         let root = free.get_memory_index();

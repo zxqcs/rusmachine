@@ -60,6 +60,7 @@ pub mod basic_machine {
                 "relocate_continue".to_string(),
                 Register::new("RELOCATE_CONTINUE"),
             );
+            self.set_register_contents(&"free".to_string(), Object::Index(0));
         }
 
         pub fn add_op(&mut self, fn_name: String, func: CallbackExp) {
