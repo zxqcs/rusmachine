@@ -13,7 +13,8 @@ mod tpfordev;
 use crate::assembler::assembler::{consume_box_closure, make_primitive_exp, make_test};
 use crate::machine::basic_machine::BasicMachine;
 use crate::parser::parser::{build_syntax_tree_into_memeory, tokenizer};
-use crate::parserfordev::parser::{print, str_to_exp};
+use crate::parserfordev::parser::{exp_to_str, print, str_to_exp};
+use crate::primitives::primitives::define_variable;
 use crate::tpfordev::type_system::{append, scheme_cons, Exp, Pair};
 use assembler::assembler::{extract_labels, make_operation_exp};
 use machine_cases::MachineCase::MachineCase;
@@ -24,12 +25,7 @@ use representation::type_system::Object;
 use tpfordev::type_system::{car, cdr};
 
 fn main() {
-    let text = MachineCase::new().controller_text.to_string();
-    let result = extract_labels(text);
-    let insts = car(&result).unwrap();
-    let labels = cdr(&result).unwrap();
-    scheme_list_pretty_print(&insts);
-    scheme_list_pretty_print(&labels);
+    define_variable_works();
 }
 
 #[allow(dead_code)]
@@ -149,4 +145,15 @@ fn make_test_works() {
         machine.get_register_contents(&"flag".to_string()).unwrap(),
         Object::Bool(true)
     );
+}
+
+fn define_variable_works() {
+    let var = Exp::Symbol("x".to_string());
+    let val = Exp::FloatNumber(3.14);
+    let env = Exp::List(Pair::Nil);
+    let args = scheme_list!(var.clone(), val.clone(), env);
+    let r = define_variable(&args);
+    let checkout = scheme_list!(scheme_list!(var, val));
+    println!("{}", exp_to_str(r));
+    println!("{}", exp_to_str(checkout));
 }

@@ -206,11 +206,14 @@ pub mod primitives {
 
 #[cfg(test)]
 mod test {
+    use std::result;
+
     use crate::{
         append,
         parserfordev::parser::str_to_exp,
         primitives::primitives::{
-            caadr, caar, cadddr, caddr, cadr, cdadr, cdar, cdddr, cddr, is_tagged_list, multiply,
+            caadr, caar, cadddr, caddr, cadr, cdadr, cdar, cdddr, cddr, define_variable,
+            is_tagged_list, multiply,
         },
         scheme_cons, scheme_list,
         tpfordev::type_system::Exp,
@@ -296,5 +299,26 @@ mod test {
         let rhs = Exp::FloatNumber(2.14);
         let args = scheme_list!(lhs, rhs);
         assert_eq!(multiply(&args), Exp::FloatNumber(6.42));
+    }
+
+    #[test]
+    fn define_variable_works() {
+        let mut var = Exp::Symbol("x".to_string());
+        let mut val = Exp::FloatNumber(3.14);
+        let mut env = Exp::List(Pair::Nil);
+        let mut args = scheme_list!(var.clone(), val.clone(), env);
+        env = define_variable(&args);
+        let mut checkout = scheme_list!(scheme_list!(scheme_list!(var), val));
+        assert_eq!(env, checkout);
+        var = Exp::Symbol("y".to_string());
+        val = Exp::Integer(3);
+        args = scheme_list!(var, val, env);
+        env = define_variable(&args);
+        checkout = scheme_list!(scheme_list!(
+            scheme_list!(Exp::Symbol("x".to_string()), Exp::Symbol("y".to_string())),
+            Exp::FloatNumber(3.14),
+            Exp::Integer(3)
+        ));
+        assert_eq!(env, checkout);
     }
 }
