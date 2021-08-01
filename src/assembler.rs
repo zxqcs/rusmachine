@@ -178,10 +178,31 @@ pub mod assembler {
         labels: &Exp,
     ) -> Box<dyn FnOnce(&mut BasicMachine, &mut Memory) -> Exp> {
         let action = perform_action(&inst);
+        let op_name = operation_exp_op(&action);
+        println!("op_name=>{}", exp_to_str(op_name.clone()));
+        let set_varialbe_value = Exp::Symbol("set-variable-value".to_string());
+        let define_variable = Exp::Symbol("define-variable".to_string());
+        let flag;
+        match op_name {
+            x if x == set_varialbe_value => flag = true,
+            x if x == define_variable => flag = true,
+            _ => flag = false,
+        }
+        println!("flag=>{}", flag);
         if is_operation_exp(&action) {
             let action_proc = make_operation_exp(action, machine, memory, labels);
-            let lambda = |machine: &mut BasicMachine, memory: &mut Memory| {
+            let lambda = move |machine: &mut BasicMachine, memory: &mut Memory| {
+                let data = flag;
                 let r = consume_box_closure(action_proc, machine, memory);
+                println!("r=>{}", exp_to_str(r.clone()));
+                if data {
+                    println!("get into lambda!");
+                    machine.set_register_contents_as_in_memory(
+                        &"env".to_string(),
+                        exp_to_str(r),
+                        memory,
+                    );
+                }
                 machine.advance_pc();
                 Exp::Quote("ok".to_string())
             };
@@ -449,7 +470,7 @@ pub mod assembler {
         let op_name = exp_to_str(operation_exp_op(&exp));
         let operands = operation_exp_oprands(&exp);
         let evaluated_operands = eval_operands_iter(operands, machine, memory, labels);
-        println!("{:?}", evaluated_operands);
+        println!("operands=>{}", exp_to_str(evaluated_operands.clone()));
         let lambda = |machine: &mut BasicMachine, memory: &mut Memory| {
             let operands = evaluated_operands;
             let result = machine.call_op(op_name, &operands);
@@ -525,16 +546,17 @@ mod test {
         machine_cases::MachineCase::MachineCase,
         memory::memory::Memory,
         parserfordev::parser::{exp_to_str, str_to_exp},
-        primitives::primitives::{eq, is_self_evaluating, multiply},
+        primitives::primitives::{define_variable, eq, is_self_evaluating, multiply},
         representation::type_system::Object,
+        scheme_list,
         tpfordev::type_system::{car, cdr, Exp, Pair},
     };
 
     use super::assembler::{
         assign_reg_name, assign_value_exp, extract_labels, lookup_label, make_assign, make_branch,
-        make_operation_exp, make_primitive_exp, make_restore, make_save, make_test,
+        make_operation_exp, make_perform, make_primitive_exp, make_restore, make_save, make_test,
     };
-
+    use crate::tpfordev::type_system::{append, scheme_cons};
     #[test]
     fn lookup_label_works() {
         let factorial = MachineCase::new();
@@ -742,5 +764,29 @@ mod test {
     }
 
     #[test]
-    fn make_perform_works() {}
+    fn make_perform_works() {
+        let inst =
+            str_to_exp("(perform (op define-variable) (reg unev) (reg val) (reg env))".to_string());
+        let mut memory = Memory::new(20);
+        let mut machine = BasicMachine::new();
+        let labels = Exp::List(Pair::Nil);
+        machine.initilize_registers();
+        machine.add_op("define-variable".to_string(), define_variable);
+        machine.set_register_contents(&"unev".to_string(), Object::Symbol("x".to_string()));
+        machine.set_register_contents(&"val".to_string(), Object::Integer(3));
+        machine.set_register_contents_as_in_memory(
+            &"env".to_string(),
+            "(((y) 1))".to_string(),
+            &mut memory,
+        );
+        let cb = make_perform(inst, &mut machine, &mut memory, &labels);
+        let r = consume_box_closure(cb, &mut machine, &mut memory);
+        let content = machine.get_register_contents_as_in_memory(&"env".to_string(), &memory);
+        let checkout = scheme_list!(scheme_list!(
+            scheme_list!(Exp::Symbol("y".to_string()), Exp::Symbol("x".to_string())),
+            Exp::Integer(1),
+            Exp::Integer(3)
+        ));
+        assert_eq!(str_to_exp(content), checkout);
+    }
 }

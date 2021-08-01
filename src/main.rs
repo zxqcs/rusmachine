@@ -10,7 +10,9 @@ mod primitives;
 mod representation;
 mod tpfordev;
 
-use crate::assembler::assembler::{consume_box_closure, make_primitive_exp, make_test};
+use crate::assembler::assembler::{
+    consume_box_closure, make_perform, make_primitive_exp, make_test,
+};
 use crate::machine::basic_machine::BasicMachine;
 use crate::parser::parser::{build_syntax_tree_into_memeory, tokenizer};
 use crate::parserfordev::parser::{exp_to_str, print, str_to_exp};
@@ -25,7 +27,7 @@ use representation::type_system::Object;
 use tpfordev::type_system::{car, cdr};
 
 fn main() {
-    define_variable_works();
+    make_perform_works();
 }
 
 #[allow(dead_code)]
@@ -156,4 +158,30 @@ fn define_variable_works() {
     let checkout = scheme_list!(scheme_list!(var, val));
     println!("{}", exp_to_str(r));
     println!("{}", exp_to_str(checkout));
+}
+
+fn make_perform_works() {
+    let inst =
+        str_to_exp("(perform (op define-variable) (reg unev) (reg val) (reg env))".to_string());
+    let mut memory = Memory::new(20);
+    let mut machine = BasicMachine::new();
+    let labels = Exp::List(Pair::Nil);
+    machine.initilize_registers();
+    machine.add_op("define-variable".to_string(), define_variable);
+    machine.set_register_contents(&"unev".to_string(), Object::Symbol("x".to_string()));
+    machine.set_register_contents(&"val".to_string(), Object::Integer(3));
+    machine.set_register_contents_as_in_memory(
+        &"env".to_string(),
+        "(((y) 1))".to_string(),
+        &mut memory,
+    );
+    let cb = make_perform(inst, &mut machine, &mut memory, &labels);
+    let r = consume_box_closure(cb, &mut machine, &mut memory);
+    let content = machine.get_register_contents_as_in_memory(&"env".to_string(), &memory);
+    let checkout = scheme_list!(scheme_list!(
+        scheme_list!(Exp::Symbol("y".to_string()), Exp::Symbol("x".to_string())),
+        Exp::Integer(1),
+        Exp::Integer(3)
+    ));
+    assert_eq!(str_to_exp(content), checkout);
 }

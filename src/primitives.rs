@@ -148,6 +148,7 @@ pub mod primitives {
         let target_var = car(args).unwrap();
         let target_val = cadr(args).unwrap();
         let env = caddr(args).unwrap();
+        println!("env=>{}", exp_to_str(env.clone()));
 
         if env == Exp::List(Pair::Nil) {
             let frame = scheme_list!(scheme_list!(target_var), target_val);
