@@ -143,12 +143,15 @@ pub mod primitives {
         scheme_list!(tag, parameters.clone(), body.clone(), env.clone())
     }
 
+    // note that by define_variable, for example,
+    // a env (((a b c) 1 2 3))
+    // is transformed to (((a b c x) 1 2 3 4))
+    // by adding new binding (x 4) to the original env
     #[allow(dead_code)]
     pub fn define_variable(args: &Exp) -> Exp {
         let target_var = car(args).unwrap();
         let target_val = cadr(args).unwrap();
         let env = caddr(args).unwrap();
-        println!("env=>{}", exp_to_str(env.clone()));
 
         if env == Exp::List(Pair::Nil) {
             let frame = scheme_list!(scheme_list!(target_var), target_val);
@@ -178,6 +181,7 @@ pub mod primitives {
         }
     }
 
+    // ((x y z ) 1 2 3)
     #[allow(dead_code)]
     fn make_frame(variables: Exp, values: Exp) -> Exp {
         scheme_cons(variables, values)
@@ -199,19 +203,21 @@ pub mod primitives {
     }
 
     #[allow(dead_code)]
-    fn add_binding_to_frame(var: Exp, val: Exp, frame: Exp) -> Exp {
-        let temp = set_car(frame.clone(), scheme_cons(var, frame_variables(&frame))).unwrap();
-        set_cdr(temp, scheme_cons(val, frame_values(&frame))).unwrap()
+    pub fn add_binding_to_frame(var: Exp, val: Exp, frame: Exp) -> Exp {
+        if frame == Exp::List(Pair::Nil) {
+            scheme_list!(scheme_list!(var), val)
+        } else {
+            let temp = set_car(frame.clone(), scheme_cons(var, frame_variables(&frame))).unwrap();
+            set_cdr(temp, scheme_cons(val, frame_values(&frame))).unwrap()
+        }
     }
 }
 
 #[cfg(test)]
 mod test {
-    use std::result;
-
     use crate::{
         append,
-        parserfordev::parser::str_to_exp,
+        parserfordev::parser::{exp_to_str, str_to_exp},
         primitives::primitives::{
             caadr, caar, cadddr, caddr, cadr, cdadr, cdar, cdddr, cddr, define_variable,
             is_tagged_list, multiply,
@@ -220,6 +226,8 @@ mod test {
         tpfordev::type_system::Exp,
         Pair,
     };
+
+    use super::primitives::add_binding_to_frame;
 
     #[test]
     fn cadr_works() {
@@ -303,23 +311,43 @@ mod test {
     }
 
     #[test]
+    fn add_binding_to_frame_works() {
+        let mut frame = str_to_exp("((a b c) 1 2 3)".to_string());
+        let mut var = Exp::Symbol("x".to_string());
+        let mut val = Exp::Integer(4);
+        let new_frame = add_binding_to_frame(var, val, frame);
+        assert_eq!(new_frame, str_to_exp("((x a b c) 4 1 2 3)".to_string()));
+        frame = str_to_exp("".to_string());
+        var = Exp::Symbol("y".to_string());
+        val = Exp::Integer(5);
+        let new_frame = add_binding_to_frame(var, val, frame);
+        assert_eq!(new_frame, str_to_exp("((y) 5)".to_string()));
+    }
+
+    #[test]
     fn define_variable_works() {
         let mut var = Exp::Symbol("x".to_string());
-        let mut val = Exp::FloatNumber(3.14);
-        let mut env = Exp::List(Pair::Nil);
+        let mut val = Exp::Integer(4);
+        let mut env = str_to_exp("(((a b c) 1 2 3))".to_string());
         let mut args = scheme_list!(var.clone(), val.clone(), env);
         env = define_variable(&args);
-        let mut checkout = scheme_list!(scheme_list!(scheme_list!(var), val));
-        assert_eq!(env, checkout);
+        assert_eq!(env, str_to_exp("(((a b c x) 1 2 3 4))".to_string()));
         var = Exp::Symbol("y".to_string());
-        val = Exp::Integer(3);
+        val = Exp::Integer(5);
         args = scheme_list!(var, val, env);
         env = define_variable(&args);
-        checkout = scheme_list!(scheme_list!(
-            scheme_list!(Exp::Symbol("x".to_string()), Exp::Symbol("y".to_string())),
-            Exp::FloatNumber(3.14),
-            Exp::Integer(3)
-        ));
-        assert_eq!(env, checkout);
+        assert_eq!(env, str_to_exp("(((a b c x y) 1 2 3 4 5))".to_string()));
+        var = Exp::Symbol("z".to_string());
+        val = Exp::Integer(6);
+        env = Exp::List(Pair::Nil);
+        args = scheme_list!(var, val, env);
+        env = define_variable(&args);
+        assert_eq!(env, str_to_exp("(((z) 6))".to_string()));
+        var = Exp::Symbol("c".to_string());
+        val = Exp::Integer(4);
+        env = str_to_exp("(((a b c) 1 2 3))".to_string());
+        args = scheme_list!(var.clone(), val.clone(), env);
+        env = define_variable(&args);
+        assert_eq!(env, str_to_exp("(((a b c) 1 2 4))".to_string()));
     }
 }

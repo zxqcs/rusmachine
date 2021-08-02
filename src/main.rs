@@ -27,7 +27,7 @@ use representation::type_system::Object;
 use tpfordev::type_system::{car, cdr};
 
 fn main() {
-    make_perform_works();
+    define_variable_works();
 }
 
 #[allow(dead_code)]
@@ -149,21 +149,10 @@ fn make_test_works() {
     );
 }
 
-fn define_variable_works() {
-    let var = Exp::Symbol("x".to_string());
-    let val = Exp::FloatNumber(3.14);
-    let env = Exp::List(Pair::Nil);
-    let args = scheme_list!(var.clone(), val.clone(), env);
-    let r = define_variable(&args);
-    let checkout = scheme_list!(scheme_list!(var, val));
-    println!("{}", exp_to_str(r));
-    println!("{}", exp_to_str(checkout));
-}
-
 fn make_perform_works() {
     let inst =
         str_to_exp("(perform (op define-variable) (reg unev) (reg val) (reg env))".to_string());
-    let mut memory = Memory::new(20);
+    let mut memory = Memory::new(30);
     let mut machine = BasicMachine::new();
     let labels = Exp::List(Pair::Nil);
     machine.initilize_registers();
@@ -184,4 +173,18 @@ fn make_perform_works() {
         Exp::Integer(3)
     ));
     assert_eq!(str_to_exp(content), checkout);
+}
+
+fn define_variable_works() {
+    let mut var = Exp::Symbol("x".to_string());
+    let mut val = Exp::Integer(4);
+    let mut env = str_to_exp("(((a b c) 1 2 3))".to_string());
+    let mut args = scheme_list!(var, val, env);
+    env = define_variable(&args);
+    println!("env => {}", exp_to_str(env.clone()));
+    var = Exp::Symbol("y".to_string());
+    val = Exp::Integer(5);
+    args = scheme_list!(var, val, env);
+    env = define_variable(&args);
+    println!("env => {}", exp_to_str(env));
 }
