@@ -115,6 +115,13 @@ pub mod parser {
         memory: &mut Memory,
         machine: &mut BasicMachine,
     ) {
+        if tokens.len() == 0 {
+            let free = machine.get_register(&"free".to_string()).unwrap();
+            let free_index = free.get_memory_index();
+            memory.update("car", Object::Nil, free_index);
+            memory.update("cdr", Object::Nil, free_index);
+            machine.advance_free();
+        }
         // if flag is set to true, the item should be written into car, otherwise written to cdr
         let mut flag = true;
 
@@ -415,6 +422,10 @@ mod test {
             "n", "(", "fac", "(", "-", "n", "1", ")", ")", ")", ")", ")",
         ];
         assert_eq!(tokens, v);
+        let ss = "".to_string();
+        let tokens = tokenizer(ss);
+        let checkout: Vec<String> = Vec::new();
+        assert_eq!(tokens, checkout);
     }
 
     #[test]

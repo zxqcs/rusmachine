@@ -194,9 +194,7 @@ pub mod assembler {
             let lambda = move |machine: &mut BasicMachine, memory: &mut Memory| {
                 let data = flag;
                 let r = consume_box_closure(action_proc, machine, memory);
-                println!("r=>{}", exp_to_str(r.clone()));
                 if data {
-                    println!("get into lambda!");
                     machine.set_register_contents_as_in_memory(
                         &"env".to_string(),
                         exp_to_str(r),
@@ -408,8 +406,10 @@ pub mod assembler {
                 Box::new(lambda)
             }
             _ => {
-                print!("{}=>", exp_to_str(exp));
-                panic!("error: Unknow expression type: ASSEMBLE");
+                panic!(
+                    "error: Unknow expression type {}: ASSEMBLE",
+                    exp_to_str(exp)
+                );
             }
         }
     }

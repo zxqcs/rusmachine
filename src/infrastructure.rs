@@ -47,6 +47,9 @@ pub mod register {
         }
 
         pub fn get_list_frome_memory_as_str(&self, memory: &Memory) -> String {
+            if self.car(memory) == Object::Nil && self.cdr(memory) == Object::Nil {
+                return "".to_string();
+            }
             let mut s = "".to_string();
             s.push('(');
             let i = self.get_memory_index();

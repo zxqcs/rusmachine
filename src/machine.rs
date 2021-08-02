@@ -250,13 +250,17 @@ mod test {
 
     #[test]
     fn set_register_contents_as_in_memory_works() {
-        let mut memory = Memory::new(10);
+        let mut memory = Memory::new(20);
         let mut machine = BasicMachine::new();
         machine.initilize_registers();
-        let s = "(define x '(+ 1 2))";
-        machine.set_register_contents_as_in_memory(&"root".to_string(), s.to_string(), &mut memory);
-        let ss = machine.get_register_contents_as_in_memory(&"root".to_string(), &memory);
+        let mut s = "(define x '(+ 1 2))".to_string();
+        machine.set_register_contents_as_in_memory(&"root".to_string(), s, &mut memory);
+        let mut ss = machine.get_register_contents_as_in_memory(&"root".to_string(), &memory);
         assert_eq!(ss, String::from("( define x '( + 1 2))"));
+        s = "".to_string();
+        machine.set_register_contents_as_in_memory(&"root".to_string(), s, &mut memory);
+        ss = machine.get_register_contents_as_in_memory(&"root".to_string(), &memory);
+        assert_eq!(ss, "".to_string());
     }
 
     #[test]
