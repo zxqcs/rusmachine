@@ -11,7 +11,7 @@ pub mod basic_machine {
         pub registers: HashMap<String, Register>,
         pub stack: Stack,
         pub ops: HashMap<String, CallbackExp>,
-        pub instruction_sequence: Vec<Box<dyn FnOnce(&mut BasicMachine, &mut Memory)>>,
+        pub instruction_sequence: Vec<Box<dyn FnOnce(&mut BasicMachine, &mut Memory) -> Exp>>,
     }
 
     type CallbackExp = fn(&Exp) -> Exp;
@@ -61,6 +61,7 @@ pub mod basic_machine {
                 Register::new("RELOCATE_CONTINUE"),
             );
             self.set_register_contents(&"free".to_string(), Object::Index(0));
+            self.set_register_contents(&"pc".to_string(), Object::Index(0));
         }
 
         pub fn add_op(&mut self, fn_name: String, func: CallbackExp) {
@@ -173,10 +174,9 @@ pub mod basic_machine {
 
         #[allow(dead_code)]
         pub fn advance_pc(&mut self) {
-            /*
-            let reg = "pc".to_string();
-            self.register_increment_by_one(&reg);
-            */
+            let reg = self.get_register(&"pc".to_string()).unwrap();
+            let index = reg.get_memory_index();
+            self.set_register_contents(&"pc".to_string(), Object::Index(index + 1));
         }
 
         #[allow(dead_code)]

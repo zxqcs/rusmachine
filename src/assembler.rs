@@ -6,23 +6,21 @@ pub mod assembler {
     use crate::representation::type_system::Object;
     use crate::scheme_list;
     use crate::tpfordev::type_system::{
-        append, car, cdr, scheme_assoc, scheme_cons, scheme_map_clousre, set_cdr, Exp, Pair,
+        append, car, cdr, scheme_assoc, scheme_cons, scheme_for_each, scheme_map_clousre, set_cdr,
+        Exp, Pair,
     };
-    /*
-        #[allow(dead_code)]
-        fn assemble(controller_text: String, machine: &mut BasicMachine, memory: &mut Memory) -> Exp {
-            let result = extract_labels(controller_text);
-            let insts = car(&result).unwrap();
-            let labels = cdr(&result).unwrap();
-            let set_instruction_execution_proc = |inst| {
-                let proc = make_execution_procedure(instruction_text(&inst), &labels, machine, memory);
-                let new_inst = set_instruction_execution_proc(inst, proc);
-                new_inst
-            };
-            let insts = update_inst(&insts, set_instruction_execution_proc);
-            insts
-        }
-    */
+    #[allow(dead_code)]
+    fn assemble(controller_text: String, machine: &mut BasicMachine, memory: &mut Memory) {
+        let result = extract_labels(controller_text);
+        let insts = car(&result).unwrap();
+        let labels = cdr(&result).unwrap();
+        let set_instruction_execution_proc = |inst| {
+            let proc = make_execution_procedure(instruction_text(&inst), &labels, machine, memory);
+            machine.instruction_sequence.push(proc);
+        };
+        update_inst(&insts, set_instruction_execution_proc);
+    }
+
     #[allow(dead_code)]
     pub fn extract_labels(text: String) -> Exp {
         let text = str_to_exp(text);
@@ -51,11 +49,11 @@ pub mod assembler {
     }
 
     #[allow(dead_code)]
-    pub fn update_inst<F>(insts: &Exp, f: F) -> Exp
+    pub fn update_inst<F>(insts: &Exp, f: F)
     where
-        F: FnMut(Exp) -> Exp,
+        F: FnMut(Exp),
     {
-        scheme_map_clousre(f, insts)
+        scheme_for_each(f, insts)
     }
 
     #[allow(dead_code)]
@@ -130,6 +128,9 @@ pub mod assembler {
         }
     }
 
+    // note that for each of the following make_* procedures, operations that are done outside of
+    // lambda(closure) are done in assembly time while other operations that are done in lambda(closure)
+    // when consumed, are done in running time(simulated time)
     #[allow(dead_code)]
     pub fn make_save(
         inst: Exp,
