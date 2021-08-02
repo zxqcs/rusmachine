@@ -789,4 +789,7 @@ mod test {
         ));
         assert_eq!(str_to_exp(content), checkout);
     }
+
+    #[test]
+    fn assemble_works() {}
 }

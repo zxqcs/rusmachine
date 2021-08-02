@@ -27,7 +27,8 @@ use representation::type_system::Object;
 use tpfordev::type_system::{car, cdr};
 
 fn main() {
-    define_variable_works();
+    let machine = MachineCase::test_case();
+    scheme_list_pretty_print(&str_to_exp(machine.controller_text.to_string()));
 }
 
 #[allow(dead_code)]
