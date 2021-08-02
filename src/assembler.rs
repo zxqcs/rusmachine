@@ -1,4 +1,6 @@
 pub mod assembler {
+    use std::collections::HashMap;
+
     use crate::machine::basic_machine::BasicMachine;
     use crate::memory::memory::Memory;
     use crate::parserfordev::parser::{exp_to_str, str_to_exp};
@@ -6,8 +8,8 @@ pub mod assembler {
     use crate::representation::type_system::Object;
     use crate::scheme_list;
     use crate::tpfordev::type_system::{
-        append, car, cdr, scheme_assoc, scheme_cons, scheme_for_each, scheme_map_clousre, set_cdr,
-        Exp, Pair,
+        append, car, cdr, list_length, scheme_assoc, scheme_cons, scheme_for_each,
+        scheme_map_clousre, set_cdr, Exp, Pair,
     };
     #[allow(dead_code)]
     fn assemble(controller_text: String, machine: &mut BasicMachine, memory: &mut Memory) {
@@ -25,6 +27,48 @@ pub mod assembler {
     pub fn extract_labels(text: String) -> Exp {
         let text = str_to_exp(text);
         extract_labels_iter(text)
+    }
+
+    pub struct Labels {
+        pub pairs: HashMap<String, usize>,
+    }
+
+    impl Labels {
+        pub fn new() -> Self {
+            Labels {
+                pairs: HashMap::new(),
+            }
+        }
+    }
+
+    #[allow(dead_code)]
+    pub fn extract_labels_alternative(text: String, label: &mut Labels) -> Exp {
+        let text = str_to_exp(text);
+        let mut offset: usize = 0;
+        extract_labels_iter_alternative(text, label, &mut offset)
+    }
+
+    #[allow(dead_code)]
+    pub fn extract_labels_iter_alternative(
+        text: Exp,
+        label: &mut Labels,
+        offset: &mut usize,
+    ) -> Exp {
+        if text.is_null() {
+            Exp::List(Pair::Nil)
+        } else {
+            let next_inst = car(&text).unwrap();
+            if next_inst.is_symbol() {
+                label.pairs.insert(exp_to_str(next_inst), *offset);
+                extract_labels_iter_alternative(cdr(&text).unwrap(), label, offset)
+            } else {
+                *offset = (*offset + 1) as usize;
+                scheme_cons(
+                    next_inst,
+                    extract_labels_iter_alternative(cdr(&text).unwrap(), label, offset),
+                )
+            }
+        }
     }
 
     #[allow(dead_code)]
@@ -307,8 +351,7 @@ pub mod assembler {
             };
             Box::new(lambda)
         } else {
-            println!("{:?}", inst);
-            panic!("Error: BAD TEST instruction: ASSEMBLE");
+            panic!("Error: BAD TEST instruction {}: ASSEMBLE", exp_to_str(inst));
         }
     }
 
@@ -546,7 +589,7 @@ mod test {
         machine::basic_machine::BasicMachine,
         machine_cases::MachineCase::MachineCase,
         memory::memory::Memory,
-        parserfordev::parser::{exp_to_str, str_to_exp},
+        parserfordev::parser::{exp_to_str, scheme_list_pretty_print, str_to_exp},
         primitives::primitives::{define_variable, eq, is_self_evaluating, multiply},
         representation::type_system::Object,
         scheme_list,
@@ -554,8 +597,9 @@ mod test {
     };
 
     use super::assembler::{
-        assign_reg_name, assign_value_exp, extract_labels, lookup_label, make_assign, make_branch,
-        make_operation_exp, make_perform, make_primitive_exp, make_restore, make_save, make_test,
+        assign_reg_name, assign_value_exp, extract_labels, extract_labels_alternative,
+        lookup_label, make_assign, make_branch, make_operation_exp, make_perform,
+        make_primitive_exp, make_restore, make_save, make_test, Labels,
     };
     use crate::tpfordev::type_system::{append, scheme_cons};
     #[test]
@@ -793,4 +837,14 @@ mod test {
 
     #[test]
     fn assemble_works() {}
+
+    #[test]
+    fn extract_labels_alternative_works() {
+        let machine = MachineCase::test_case();
+        let text = machine.controller_text.to_string();
+        let mut label = Labels::new();
+        let insts = extract_labels_alternative(text, &mut label);
+        scheme_list_pretty_print(&insts);
+        println!("{:?}", label.pairs);
+    }
 }

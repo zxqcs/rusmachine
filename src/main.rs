@@ -11,7 +11,8 @@ mod representation;
 mod tpfordev;
 
 use crate::assembler::assembler::{
-    consume_box_closure, make_perform, make_primitive_exp, make_test,
+    consume_box_closure, extract_labels_alternative, make_perform, make_primitive_exp, make_test,
+    Labels,
 };
 use crate::machine::basic_machine::BasicMachine;
 use crate::parser::parser::{build_syntax_tree_into_memeory, tokenizer};
@@ -27,8 +28,7 @@ use representation::type_system::Object;
 use tpfordev::type_system::{car, cdr};
 
 fn main() {
-    let machine = MachineCase::test_case();
-    scheme_list_pretty_print(&str_to_exp(machine.controller_text.to_string()));
+    extract_labels_alternative_works();
 }
 
 #[allow(dead_code)]
@@ -188,4 +188,13 @@ fn define_variable_works() {
     args = scheme_list!(var, val, env);
     env = define_variable(&args);
     println!("env => {}", exp_to_str(env));
+}
+
+fn extract_labels_alternative_works() {
+    let machine = MachineCase::test_case();
+    let text = machine.controller_text.to_string();
+    let mut label = Labels::new();
+    let insts = extract_labels_alternative(text, &mut label);
+    scheme_list_pretty_print(&insts);
+    println!("{:?}", label.pairs);
 }
