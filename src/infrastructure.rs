@@ -179,7 +179,7 @@ pub mod stack {
     impl Stack {
         pub fn new() -> Self {
             Stack {
-                capacity: 1000,
+                capacity: 100,
                 container: Vec::new(),
             }
         }

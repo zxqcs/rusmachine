@@ -10,11 +10,11 @@ pub mod assembler {
         scheme_map_clousre, set_cdr, Exp, Pair,
     };
     #[allow(dead_code)]
-    fn assemble(controller_text: String, machine: &mut BasicMachine, memory: &mut Memory) {
+    pub fn assemble(controller_text: String, machine: &mut BasicMachine, memory: &mut Memory) {
         let insts = extract_labels_alternative(controller_text, machine);
         machine.install_raw_instructions(&insts);
         let set_instruction_execution_proc = |inst| {
-            let proc = make_execution_procedure(instruction_text(&inst), machine, memory);
+            let proc = make_execution_procedure(inst, machine, memory);
             machine.instruction_sequence.push(Some(proc));
         };
         update_inst(&insts, set_instruction_execution_proc);
@@ -92,11 +92,6 @@ pub mod assembler {
     }
 
     #[allow(dead_code)]
-    fn instruction_text(inst: &Exp) -> Exp {
-        car(inst).unwrap()
-    }
-
-    #[allow(dead_code)]
     fn instruction_execution_proc(inst: &Exp) -> Exp {
         cdr(inst).unwrap()
     }
@@ -119,7 +114,7 @@ pub mod assembler {
     pub fn lookup_label(machine: &mut BasicMachine, label_name: &String) -> Option<usize> {
         let index = machine.labels.get(label_name);
         match index {
-            Some(x) => Some((*x)),
+            Some(x) => Some(*x),
             None => None,
         }
     }
@@ -130,6 +125,7 @@ pub mod assembler {
         machine: &mut BasicMachine,
         memory: &mut Memory,
     ) -> Box<dyn FnOnce(&mut BasicMachine, &mut Memory) -> Exp> {
+        println!("inst to be assembled => {}", exp_to_str(inst.clone()));
         let symbol = car(&inst).unwrap();
         let assign = Exp::Symbol("assign".to_string());
         let test = Exp::Symbol("test".to_string());
@@ -147,8 +143,7 @@ pub mod assembler {
             x if x == restore => make_restore(inst, machine, memory),
             x if x == perform => make_perform(inst, machine, memory),
             _ => {
-                println!("inst=> {:?}", inst);
-                panic!("Unknown instruction type: ASSEMBLE")
+                panic!("Unknown instruction type => {}: ASSEMBLE", exp_to_str(inst));
             }
         }
     }
@@ -189,6 +184,7 @@ pub mod assembler {
             let data = reg_name;
             let contents = machine.stack.pop().unwrap();
             machine.set_register_contents(&data, contents);
+            machine.advance_pc();
             Exp::Quote("ok".to_string())
         };
         Box::new(lambda)
@@ -321,10 +317,11 @@ pub mod assembler {
         let condition = test_condition(&inst);
         if is_operation_exp(&condition) {
             let condition_proc = make_operation_exp(condition, machine, memory);
-            let value = consume_box_closure(condition_proc, machine, memory);
             let lambda = |machine: &mut BasicMachine, memory: &mut Memory| {
-                let data = value;
-                machine.set_register_contents(&"flag".to_string(), data.exp_to_object());
+                let data = condition_proc;
+                let value = consume_box_closure(data, machine, memory);
+                machine.set_register_contents(&"flag".to_string(), value.exp_to_object());
+                machine.advance_pc();
                 Exp::Quote("ok".to_string())
             };
             Box::new(lambda)
@@ -339,6 +336,7 @@ pub mod assembler {
         cdr(test_instruction).unwrap()
     }
 
+    // ( assign continue ( label fact-done))
     #[allow(dead_code)]
     pub fn make_assign(
         inst: Exp,
@@ -351,22 +349,26 @@ pub mod assembler {
         if is_operation_exp(&value_exp) {
             lambda = Some(make_operation_exp(value_exp, machine, memory));
         } else {
-            lambda = Some(make_primitive_exp(value_exp, machine, memory));
+            lambda = Some(make_primitive_exp(
+                car(&value_exp).unwrap(),
+                machine,
+                memory,
+            ));
         }
-        let value = consume_box_closure(lambda.unwrap(), machine, memory);
         let assign_lambda = |machine: &mut BasicMachine, memory: &mut Memory| {
             let name = exp_to_str(reg_name);
-            let data = value;
-            match data {
+            let data = lambda;
+            let value = consume_box_closure(data.unwrap(), machine, memory);
+            match value {
                 Exp::List(ref _x) => {
-                    machine.set_register_contents_as_in_memory(&name, exp_to_str(data), memory);
-                    Exp::Quote("ok".to_string())
+                    machine.set_register_contents_as_in_memory(&name, exp_to_str(value), memory);
                 }
                 _ => {
-                    machine.set_register_contents(&name, data.exp_to_object());
-                    Exp::Quote("ok".to_string())
+                    machine.set_register_contents(&name, value.exp_to_object());
                 }
             }
+            machine.advance_pc();
+            Exp::Quote("ok".to_string())
         };
         Box::new(assign_lambda)
     }
@@ -487,11 +489,10 @@ pub mod assembler {
     ) -> Box<dyn FnOnce(&mut BasicMachine, &mut Memory) -> Exp> {
         let op_name = exp_to_str(operation_exp_op(&exp));
         let operands = operation_exp_oprands(&exp);
-        let evaluated_operands = eval_operands_iter(operands, machine, memory);
-        println!("operands=>{}", exp_to_str(evaluated_operands.clone()));
         let lambda = |machine: &mut BasicMachine, memory: &mut Memory| {
-            let operands = evaluated_operands;
-            let result = machine.call_op(op_name, &operands);
+            let data = operands;
+            let evaluated_operands = eval_operands_iter(data, machine, memory);
+            let result = machine.call_op(op_name, &evaluated_operands);
             result
         };
         Box::new(lambda)

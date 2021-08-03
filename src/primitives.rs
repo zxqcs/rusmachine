@@ -65,11 +65,63 @@ pub mod primitives {
     // This primitive procedure shall be implemented in another way, it is too slow!
     #[allow(dead_code)]
     pub fn multiply(exp: &Exp) -> Exp {
-        let lhs = exp_to_str(car(exp).unwrap());
-        let rhs = exp_to_str(cadr(exp).unwrap());
-        let operand_x = lhs.parse::<f32>().unwrap();
-        let operand_y = rhs.parse::<f32>().unwrap();
-        Exp::FloatNumber(operand_x * operand_y)
+        let lhs = car(exp).unwrap();
+        let rhs = cadr(exp).unwrap();
+        match lhs {
+            Exp::Integer(x) => match rhs {
+                Exp::Integer(y) => return Exp::Integer(x * y),
+                Exp::FloatNumber(y) => return Exp::FloatNumber(x as f32 * y),
+                _ => {
+                    panic!("Error: Invalid operation for MULTIPLY!");
+                }
+            },
+            Exp::FloatNumber(x) => match rhs {
+                Exp::Integer(y) => return Exp::FloatNumber(x * y as f32),
+                Exp::FloatNumber(y) => return Exp::FloatNumber(x * y),
+                _ => {
+                    panic!("Error: Invalid operation for MULTIPLY!");
+                }
+            },
+            _ => {
+                panic!("Error: Invalid operation for MULTIPLY!");
+            }
+        }
+    }
+
+    #[allow(dead_code)]
+    pub fn substract(exp: &Exp) -> Exp {
+        let lhs = car(exp).unwrap();
+        let rhs = cadr(exp).unwrap();
+        match lhs {
+            Exp::Integer(x) => match rhs {
+                Exp::Integer(y) => return Exp::Integer(x - y),
+                Exp::FloatNumber(y) => return Exp::FloatNumber(x as f32 - y),
+                _ => {
+                    panic!("Error: Invalid operation for MULTIPLY!");
+                }
+            },
+            Exp::FloatNumber(x) => match rhs {
+                Exp::Integer(y) => return Exp::FloatNumber(x - y as f32),
+                Exp::FloatNumber(y) => return Exp::FloatNumber(x - y),
+                _ => {
+                    panic!("Error: Invalid operation for MULTIPLY!");
+                }
+            },
+            _ => {
+                panic!("Error: Invalid operation for MULTIPLY!");
+            }
+        }
+    }
+
+    #[allow(dead_code)]
+    pub fn is_eq(exp: &Exp) -> Exp {
+        let lhs = car(exp).unwrap();
+        let rhs = cadr(exp).unwrap();
+        if lhs == rhs {
+            Exp::Bool(true)
+        } else {
+            Exp::Bool(false)
+        }
     }
 
     #[allow(dead_code)]

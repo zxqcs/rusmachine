@@ -49,7 +49,7 @@ pub mod MachineCase {
                 (assign val (op *) (reg exp) (reg val))
                 (goto (reg continue))
             base-case
-                (assgin val (const 1))
+                (assign val (const 1))
                 (goto (reg continue))
             fact-done)",
             }

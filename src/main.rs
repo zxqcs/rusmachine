@@ -14,16 +14,29 @@ use crate::assembler::assembler::extract_labels_alternative;
 use crate::machine::basic_machine::BasicMachine;
 use crate::parser::parser::{build_syntax_tree_into_memeory, tokenizer};
 use crate::parserfordev::parser::{exp_to_str, print, str_to_exp};
-use crate::primitives::primitives::define_variable;
+use crate::primitives::primitives::{define_variable, is_eq, multiply, substract};
 use crate::tpfordev::type_system::{append, scheme_cons, Exp, Pair};
+use assembler::assembler::assemble;
 use machine_cases::MachineCase::MachineCase;
 use memory::memory::Memory;
 use parserfordev::parser::scheme_list_pretty_print;
 use representation::type_system::Object;
 
 fn main() {
-    extract_labels_alternative_works();
-    println!("Stay Strong!");
+    let test_case = MachineCase::test_case().controller_text.to_string();
+    let mut machine = BasicMachine::new();
+    let mut memory = Memory::new(20);
+    machine.initilize_registers();
+    machine.add_op("=".to_string(), is_eq);
+    machine.add_op("-".to_string(), substract);
+    machine.add_op("*".to_string(), multiply);
+    assemble(test_case, &mut machine, &mut memory);
+    machine.set_register_contents(&"exp".to_string(), Object::Integer(5));
+    machine.execute(&mut memory);
+    println!(
+        "Result => {:?}",
+        machine.get_register_contents(&"val".to_string())
+    );
 }
 
 #[allow(dead_code)]
