@@ -1,6 +1,4 @@
 pub mod assembler {
-    use std::collections::HashMap;
-
     use crate::machine::basic_machine::BasicMachine;
     use crate::memory::memory::Memory;
     use crate::parserfordev::parser::{exp_to_str, str_to_exp};

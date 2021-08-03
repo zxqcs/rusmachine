@@ -1,4 +1,5 @@
 pub mod basic_machine {
+    use crate::assembler::assembler::{consume_box_closure, make_execution_procedure};
     use crate::infrastructure::register::Register;
     use crate::infrastructure::stack::Stack;
     use crate::memory::memory::Memory;
@@ -6,6 +7,7 @@ pub mod basic_machine {
     use crate::representation::type_system::Object;
     use crate::tpfordev::type_system::{car, cdr, Exp};
     use std::collections::HashMap;
+    use std::mem;
 
     pub struct BasicMachine {
         pub registers: HashMap<String, Register>,
@@ -76,6 +78,29 @@ pub mod basic_machine {
                 let inst = car(insts).unwrap();
                 self.raw_instructions.push(inst);
                 self.install_raw_instructions(&cdr(insts).unwrap());
+            }
+        }
+
+        pub fn execute(&mut self, memory: &mut Memory) {
+            let reg = self.get_register(&"pc".to_string()).unwrap();
+            let index = reg.get_memory_index();
+            let max_offset = self.instruction_sequence.len();
+            if index == max_offset {
+                println!("Done!");
+                return;
+            } else {
+                let cb = mem::replace(&mut self.instruction_sequence[index], None);
+                match cb {
+                    Some(x) => {
+                        let _r = consume_box_closure(x, self, memory);
+                    }
+                    None => {
+                        let inst = self.raw_instructions[index].clone();
+                        let x = make_execution_procedure(inst, self, memory);
+                        let _r = consume_box_closure(x, self, memory);
+                    }
+                }
+                self.execute(memory);
             }
         }
 
