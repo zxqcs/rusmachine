@@ -10,25 +10,20 @@ mod primitives;
 mod representation;
 mod tpfordev;
 
-use crate::assembler::assembler::{
-    consume_box_closure, extract_labels_alternative, make_perform, make_primitive_exp, make_test,
-    Labels,
-};
+use crate::assembler::assembler::extract_labels_alternative;
 use crate::machine::basic_machine::BasicMachine;
 use crate::parser::parser::{build_syntax_tree_into_memeory, tokenizer};
 use crate::parserfordev::parser::{exp_to_str, print, str_to_exp};
 use crate::primitives::primitives::define_variable;
 use crate::tpfordev::type_system::{append, scheme_cons, Exp, Pair};
-use assembler::assembler::{extract_labels, make_operation_exp};
 use machine_cases::MachineCase::MachineCase;
 use memory::memory::Memory;
 use parserfordev::parser::scheme_list_pretty_print;
-use primitives::primitives::is_self_evaluating;
 use representation::type_system::Object;
-use tpfordev::type_system::{car, cdr};
 
 fn main() {
     extract_labels_alternative_works();
+    println!("Stay Strong!");
 }
 
 #[allow(dead_code)]
@@ -107,75 +102,6 @@ fn str_to_exp_works() {
     print(exp5);
 }
 
-#[allow(dead_code)]
-fn make_primitive_exp_works() {
-    let mut memory = Memory::new(10);
-    let mut machine = BasicMachine::new();
-    let labels = Exp::List(Pair::Nil);
-    machine.initilize_registers();
-    let s = "(define x '(+ 1 2))";
-    machine.set_register_contents_as_in_memory(&"root".to_string(), s.to_string(), &mut memory);
-    let exp = "(reg root)".to_string();
-    let r = make_primitive_exp(str_to_exp(exp), &mut machine, &mut memory, &labels);
-    let result = consume_box_closure(r, &mut machine, &mut memory);
-    assert_eq!(result, str_to_exp(s.to_string()));
-}
-
-fn make_operation_exp_works() {
-    let mut memory = Memory::new(10);
-    let mut machine = BasicMachine::new();
-    let labels = Exp::List(Pair::Nil);
-    machine.initilize_registers();
-    machine.add_op("is_self_evaluating".to_string(), is_self_evaluating);
-    let s = "winter is coming!";
-    machine.set_register_contents(&"root".to_string(), Object::LispString(s.to_string()));
-    let exp = str_to_exp("((op is_self_evaluating) (reg root))".to_string());
-    let cb = make_operation_exp(exp, &mut machine, &mut memory, &labels);
-    let result = consume_box_closure(cb, &mut machine, &mut memory);
-    assert_eq!(result, Exp::Bool(true));
-}
-
-fn make_test_works() {
-    let mut inst = str_to_exp("(test  (op =) (reg val) (const 1))".to_string());
-    let mut memory = Memory::new(10);
-    let mut machine = BasicMachine::new();
-    machine.initilize_registers();
-    let labels = Exp::List(Pair::Nil);
-    machine.set_register_contents(&"val".to_string(), Object::Integer(1));
-    let cb = make_test(inst, &mut machine, &mut memory, &labels);
-    let result = consume_box_closure(cb, &mut machine, &mut memory);
-    assert_eq!(
-        machine.get_register_contents(&"flag".to_string()).unwrap(),
-        Object::Bool(true)
-    );
-}
-
-fn make_perform_works() {
-    let inst =
-        str_to_exp("(perform (op define-variable) (reg unev) (reg val) (reg env))".to_string());
-    let mut memory = Memory::new(30);
-    let mut machine = BasicMachine::new();
-    let labels = Exp::List(Pair::Nil);
-    machine.initilize_registers();
-    machine.add_op("define-variable".to_string(), define_variable);
-    machine.set_register_contents(&"unev".to_string(), Object::Symbol("x".to_string()));
-    machine.set_register_contents(&"val".to_string(), Object::Integer(3));
-    machine.set_register_contents_as_in_memory(
-        &"env".to_string(),
-        "(((y) 1))".to_string(),
-        &mut memory,
-    );
-    let cb = make_perform(inst, &mut machine, &mut memory, &labels);
-    let r = consume_box_closure(cb, &mut machine, &mut memory);
-    let content = machine.get_register_contents_as_in_memory(&"env".to_string(), &memory);
-    let checkout = scheme_list!(scheme_list!(
-        scheme_list!(Exp::Symbol("y".to_string()), Exp::Symbol("x".to_string())),
-        Exp::Integer(1),
-        Exp::Integer(3)
-    ));
-    assert_eq!(str_to_exp(content), checkout);
-}
-
 fn define_variable_works() {
     let mut var = Exp::Symbol("x".to_string());
     let mut val = Exp::Integer(4);
@@ -191,10 +117,10 @@ fn define_variable_works() {
 }
 
 fn extract_labels_alternative_works() {
-    let machine = MachineCase::test_case();
-    let text = machine.controller_text.to_string();
-    let mut label = Labels::new();
-    let insts = extract_labels_alternative(text, &mut label);
+    let factorial = MachineCase::test_case();
+    let text = factorial.controller_text.to_string();
+    let mut machine = BasicMachine::new();
+    let insts = extract_labels_alternative(text, &mut machine);
     scheme_list_pretty_print(&insts);
-    println!("{:?}", label.pairs);
+    println!("{:?}", machine.labels);
 }
