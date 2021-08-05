@@ -173,6 +173,9 @@ pub mod stack {
     use std::fmt;
     pub struct Stack {
         capacity: usize,
+        push_count: i32,
+        current_depth: i32,
+        max_depth: i32,
         container: Vec<Object>,
     }
 
@@ -180,6 +183,9 @@ pub mod stack {
         pub fn new() -> Self {
             Stack {
                 capacity: 100,
+                push_count: 0,
+                current_depth: 0,
+                max_depth: 0,
                 container: Vec::new(),
             }
         }
@@ -187,17 +193,29 @@ pub mod stack {
         pub fn push(&mut self, item: Object) {
             if self.container.len() < self.capacity {
                 self.container.push(item);
+                self.push_count += 1;
+                self.current_depth += 1;
+                if self.current_depth > self.max_depth {
+                    self.max_depth = self.current_depth;
+                }
             } else {
                 panic!("Maximum depth violated!");
             }
         }
 
         pub fn pop(&mut self) -> Option<Object> {
+            self.current_depth -= 1;
             self.container.pop()
         }
 
         pub fn peek(&self) -> Option<&Object> {
             self.container.last()
+        }
+
+        pub fn statistics(&self) {
+            println!("Stack statistics => ");
+            println!("total-pushes = {}", self.push_count);
+            println!("maximum-depth = {}", self.max_depth);
         }
     }
 

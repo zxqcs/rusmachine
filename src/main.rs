@@ -31,7 +31,7 @@ fn main() {
     machine.add_op("-".to_string(), substract);
     machine.add_op("*".to_string(), multiply);
     assemble(test_case, &mut machine, &mut memory);
-    machine.set_register_contents(&"exp".to_string(), Object::Integer(5));
+    machine.set_register_contents(&"exp".to_string(), Object::Integer(8));
     machine.execute(&mut memory);
     println!(
         "Result => {:?}",

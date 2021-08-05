@@ -113,6 +113,10 @@ pub mod basic_machine {
             self.ops[&fn_name](argv)
         }
 
+        pub fn is_op(&self, fn_name: String) -> bool {
+            self.ops.contains_key(&fn_name)
+        }
+
         pub fn new() -> Self {
             let machine = BasicMachine {
                 registers: HashMap::new(),
