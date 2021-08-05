@@ -492,14 +492,14 @@ pub mod assembler {
         let lambda = |machine: &mut BasicMachine, memory: &mut Memory| {
             let data = operands;
             let evaluated_operands = eval_operands_iter(data, machine, memory);
-            let result = machine.call_op(op_name, &evaluated_operands);
+            let result = machine.call_semantic_op(op_name, &evaluated_operands);
             result
         };
         Box::new(lambda)
     }
 
     // note that here the operands is organized as (arg1, arg2 ....)
-    // such that the operands can be sent to machine.call_op directly
+    // such that the operands can be sent to machine.call_semantic_op directly
     fn eval_operands_iter(operands: Exp, machine: &mut BasicMachine, memory: &mut Memory) -> Exp {
         if operands.is_null() {
             Exp::List(Pair::Nil)
@@ -625,7 +625,7 @@ mod test {
         let mut memory = Memory::new(10);
         let mut machine = BasicMachine::new();
         machine.initilize_registers();
-        machine.add_op("is_self_evaluating".to_string(), is_self_evaluating);
+        machine.add_semantic_op("is_self_evaluating".to_string(), is_self_evaluating);
         let s = "winter is coming!";
         machine.set_register_contents(&"root".to_string(), Object::LispString(s.to_string()));
         let exp = str_to_exp("((op is_self_evaluating) (reg root))".to_string());
@@ -660,7 +660,7 @@ mod test {
         machine.initilize_registers();
         machine.set_register_contents(&"val".to_string(), Object::Number(3.14));
         machine.set_register_contents(&"exp".to_string(), Object::Integer(3));
-        machine.add_op("*".to_string(), multiply);
+        machine.add_semantic_op("*".to_string(), multiply);
         let cb = make_assign(str_to_exp(inst), &mut machine, &mut memory);
         let result = consume_box_closure(cb, &mut machine, &mut memory);
         let value = machine.get_register_contents(&"root".to_string()).unwrap();
@@ -672,7 +672,7 @@ mod test {
         let mut inst = str_to_exp("(test  (op =) (reg val) (const 1))".to_string());
         let mut memory = Memory::new(10);
         let mut machine = BasicMachine::new();
-        machine.add_op("=".to_string(), eq);
+        machine.add_semantic_op("=".to_string(), eq);
         machine.initilize_registers();
         machine.set_register_contents(&"val".to_string(), Object::Integer(1));
         let cb = make_test(inst, &mut machine, &mut memory);
@@ -756,7 +756,7 @@ mod test {
         let mut memory = Memory::new(20);
         let mut machine = BasicMachine::new();
         machine.initilize_registers();
-        machine.add_op("define-variable".to_string(), define_variable);
+        machine.add_semantic_op("define-variable".to_string(), define_variable);
         machine.set_register_contents(&"unev".to_string(), Object::Symbol("x".to_string()));
         machine.set_register_contents(&"val".to_string(), Object::Integer(3));
         machine.set_register_contents_as_in_memory(

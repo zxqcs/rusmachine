@@ -14,7 +14,9 @@ use crate::assembler::assembler::extract_labels_alternative;
 use crate::machine::basic_machine::BasicMachine;
 use crate::parser::parser::{build_syntax_tree_into_memeory, tokenizer};
 use crate::parserfordev::parser::{exp_to_str, print, str_to_exp};
-use crate::primitives::primitives::{define_variable, is_eq, multiply, substract};
+use crate::primitives::primitives::{
+    define_variable, is_eq, machine_statistics, multiply, substract,
+};
 use crate::tpfordev::type_system::{append, scheme_cons, Exp, Pair};
 use assembler::assembler::assemble;
 use machine_cases::MachineCase::MachineCase;
@@ -27,16 +29,18 @@ fn main() {
     let mut machine = BasicMachine::new();
     let mut memory = Memory::new(20);
     machine.initilize_registers();
-    machine.add_op("=".to_string(), is_eq);
-    machine.add_op("-".to_string(), substract);
-    machine.add_op("*".to_string(), multiply);
+    machine.add_semantic_op("=".to_string(), is_eq);
+    machine.add_semantic_op("-".to_string(), substract);
+    machine.add_semantic_op("*".to_string(), multiply);
     assemble(test_case, &mut machine, &mut memory);
-    machine.set_register_contents(&"exp".to_string(), Object::Integer(8));
+    machine.set_register_contents(&"exp".to_string(), Object::Integer(4));
     machine.execute(&mut memory);
     println!(
         "Result => {:?}",
         machine.get_register_contents(&"val".to_string())
     );
+    machine.add_machine_op("machine_statistics".to_string(), machine_statistics);
+    machine.call_machine_op("machine_statistics".to_string(), &mut memory);
 }
 
 #[allow(dead_code)]
@@ -136,4 +140,15 @@ fn extract_labels_alternative_works() {
     let insts = extract_labels_alternative(text, &mut machine);
     scheme_list_pretty_print(&insts);
     println!("{:?}", machine.labels);
+}
+
+fn machine_ops_works() {
+    let mut machine = BasicMachine::new();
+    machine.add_machine_op("machine_statistics".to_string(), machine_statistics);
+    let mut memory = Memory::new(10);
+    assert_eq!(
+        machine.is_machine_op("machine_statistics".to_string()),
+        true
+    );
+    machine.call_machine_op("machine_statistics".to_string(), &mut memory);
 }

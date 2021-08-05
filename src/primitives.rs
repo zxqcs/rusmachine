@@ -1,5 +1,7 @@
 pub mod primitives {
     use crate::{
+        machine::basic_machine::BasicMachine,
+        memory::memory::Memory,
         parserfordev::parser::exp_to_str,
         scheme_list,
         tpfordev::type_system::{append, car, cdr, scheme_cons, set_car, set_cdr, Exp, Pair},
@@ -61,8 +63,13 @@ pub mod primitives {
         let s2 = cdr(&s1);
         s2
     }
+    /* The procedurs belwo are machine ops */
+    #[allow(dead_code)]
+    pub fn machine_statistics(machine: &mut BasicMachine, memory: &mut Memory) {
+        machine.stack.statistics();
+    }
 
-    // This primitive procedure shall be implemented in another way, it is too slow!
+    /* The procedures below are semantic ops for machine */
     #[allow(dead_code)]
     pub fn multiply(exp: &Exp) -> Exp {
         let lhs = car(exp).unwrap();
