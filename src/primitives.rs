@@ -1,5 +1,12 @@
 pub mod primitives {
-    use crate::{infrastructure::stack::Stack, machine::basic_machine::BasicMachine, memory::memory::Memory, parserfordev::parser::exp_to_str, scheme_list, tpfordev::type_system::{append, car, cdr, scheme_cons, set_car, set_cdr, Exp, Pair}};
+    use crate::{
+        infrastructure::stack::Stack,
+        machine::basic_machine::BasicMachine,
+        memory::memory::Memory,
+        parserfordev::parser::exp_to_str,
+        scheme_list,
+        tpfordev::type_system::{append, car, cdr, scheme_cons, set_car, set_cdr, Exp, Pair},
+    };
     #[allow(dead_code)]
     pub fn cadr(exp: &Exp) -> Result<Exp, &'static str> {
         let s = cdr(exp).unwrap();

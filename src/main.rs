@@ -21,10 +21,16 @@ use crate::tpfordev::type_system::{append, scheme_cons, Exp, Pair};
 use assembler::assembler::assemble;
 use machine_cases::MachineCase::MachineCase;
 use memory::memory::Memory;
+use parser::parser::read_scheme_programs_from_stdin;
 use parserfordev::parser::scheme_list_pretty_print;
 use representation::type_system::Object;
 
 fn main() {
+    let mut input = "".to_string();
+    read_scheme_programs_from_stdin(&mut input);
+    let output = str_to_exp(input);
+    println!("{}", exp_to_str(output));
+    /*
     let test_case = MachineCase::test_case().controller_text.to_string();
     let mut machine = BasicMachine::new();
     let mut memory = Memory::new(20);
@@ -41,6 +47,7 @@ fn main() {
     );
     machine.add_machine_op("machine_statistics".to_string(), machine_statistics);
     machine.call_machine_op("machine_statistics".to_string(), &mut memory);
+    */
 }
 
 #[allow(dead_code)]

@@ -1,4 +1,7 @@
 pub mod parser {
+    use std::io;
+    use std::io::prelude::*;
+    use std::io::BufReader;
     use std::usize;
 
     use crate::{
@@ -40,7 +43,42 @@ pub mod parser {
         }
     }
 
+    #[allow(dead_code)]
+    pub fn read_scheme_programs_from_stdin(p: &mut String) -> io::Result<()> {
+        let stdin = io::stdin();
+
+        for line in stdin.lock().lines() {
+            match line {
+                Ok(line) => {
+                    if !line.trim().is_empty() {
+                        p.push(' ');
+                        p.push_str(&line);
+                        let tokens = tokenizer_alternative(p);
+                        if syntax_checker(&tokens) {
+                            break;
+                        }
+                    } else {
+                        continue;
+                    }
+                }
+                Err(_e) => break,
+            }
+        }
+        Ok(())
+    }
+
     pub fn tokenizer(s: String) -> Vec<String> {
+        let mut tokens: Vec<String> = vec![];
+        let ss = s.replace("(", " ( ");
+        let ss = ss.replace(")", " ) ");
+        let v: Vec<&str> = ss.trim().split_whitespace().collect();
+        for item in v {
+            tokens.push(item.to_string());
+        }
+        tokens
+    }
+
+    pub fn tokenizer_alternative(s: &mut String) -> Vec<String> {
         let mut tokens: Vec<String> = vec![];
         let ss = s.replace("(", " ( ");
         let ss = ss.replace(")", " ) ");
