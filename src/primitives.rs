@@ -3,7 +3,9 @@ pub mod primitives {
         infrastructure::stack::Stack,
         machine::basic_machine::BasicMachine,
         memory::memory::Memory,
-        parserfordev::parser::exp_to_str,
+        parser::parser::{read_scheme_programs_from_stdin, tokenizer},
+        parserfordev::parser::{exp_to_str, str_to_exp},
+        representation::type_system::Object,
         scheme_list,
         tpfordev::type_system::{append, car, cdr, scheme_cons, set_car, set_cdr, Exp, Pair},
     };
@@ -84,7 +86,25 @@ pub mod primitives {
 
     #[allow(dead_code)]
     pub fn read(machine: &mut BasicMachine, memory: &mut Memory) {
-        println!("=> ");
+        let mut s = "".to_string();
+        let r = read_scheme_programs_from_stdin(&mut s);
+        match r {
+            Ok(()) => {
+                let exp = str_to_exp(s.clone());
+                match exp {
+                    Exp::List(x) => {
+                        let index = memory.write(s, machine);
+                        machine.set_register_contents(&"exp".to_string(), Object::Index(index));
+                    }
+                    _ => {
+                        machine.set_register_contents(&"exp".to_string(), exp.exp_to_object());
+                    }
+                }
+            }
+            Err(x) => {
+                panic!("Error when reading input {}", x);
+            }
+        }
     }
 
     /* The procedures below are semantic ops for machine */
@@ -294,6 +314,8 @@ pub mod primitives {
 mod test {
     use crate::{
         append,
+        machine::basic_machine::BasicMachine,
+        memory::memory::Memory,
         parserfordev::parser::{exp_to_str, str_to_exp},
         primitives::primitives::{
             caadr, caar, cadddr, caddr, cadr, cdadr, cdar, cdddr, cddr, define_variable,
@@ -304,7 +326,7 @@ mod test {
         Pair,
     };
 
-    use super::primitives::add_binding_to_frame;
+    use super::primitives::{add_binding_to_frame, read};
 
     #[test]
     fn cadr_works() {
@@ -426,5 +448,17 @@ mod test {
         args = scheme_list!(var.clone(), val.clone(), env);
         env = define_variable(&args);
         assert_eq!(env, str_to_exp("(((a b c) 1 2 4))".to_string()));
+    }
+
+    #[test]
+    fn read_works() {
+        let mut machine = BasicMachine::new();
+        machine.initilize_registers();
+        machine.add_machine_op("read".to_string(), read);
+        let mut memory = Memory::new(20);
+        machine.call_machine_op("read".to_string(), &mut memory);
+        let content = machine.get_register_contents_as_in_memory(&"exp".to_string(), &memory);
+        let checkout = str_to_exp("(define (square x) (* x x))".to_string());
+        assert_eq!(checkout, str_to_exp(content));
     }
 }

@@ -29,7 +29,7 @@ fn main() {
     let mut input = "".to_string();
     read_scheme_programs_from_stdin(&mut input);
     let output = str_to_exp(input);
-    println!("{}", exp_to_str(output));
+    println!("{:?}", output);
     /*
     let test_case = MachineCase::test_case().controller_text.to_string();
     let mut machine = BasicMachine::new();
