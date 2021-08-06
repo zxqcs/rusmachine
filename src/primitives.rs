@@ -1,11 +1,5 @@
 pub mod primitives {
-    use crate::{
-        machine::basic_machine::BasicMachine,
-        memory::memory::Memory,
-        parserfordev::parser::exp_to_str,
-        scheme_list,
-        tpfordev::type_system::{append, car, cdr, scheme_cons, set_car, set_cdr, Exp, Pair},
-    };
+    use crate::{infrastructure::stack::Stack, machine::basic_machine::BasicMachine, memory::memory::Memory, parserfordev::parser::exp_to_str, scheme_list, tpfordev::type_system::{append, car, cdr, scheme_cons, set_car, set_cdr, Exp, Pair}};
     #[allow(dead_code)]
     pub fn cadr(exp: &Exp) -> Result<Exp, &'static str> {
         let s = cdr(exp).unwrap();
@@ -67,6 +61,23 @@ pub mod primitives {
     #[allow(dead_code)]
     pub fn machine_statistics(machine: &mut BasicMachine, memory: &mut Memory) {
         machine.stack.statistics();
+    }
+
+    // this procedure is called each time we enter the driver loop since that
+    // error may happen in last round.
+    #[allow(dead_code)]
+    pub fn initialize_stack(machine: &mut BasicMachine, memory: &mut Memory) {
+        machine.stack = Stack::new();
+    }
+
+    #[allow(dead_code)]
+    pub fn prompt_for_input(machine: &mut BasicMachine, memory: &mut Memory) {
+        println!("=> ");
+    }
+
+    #[allow(dead_code)]
+    pub fn read(machine: &mut BasicMachine, memory: &mut Memory) {
+        println!("=> ");
     }
 
     /* The procedures below are semantic ops for machine */

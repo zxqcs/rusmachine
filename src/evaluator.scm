@@ -12,8 +12,7 @@
 '(
 read-eval-print-loop
   (perform (op initialize-stack))
-  (perform (op prompt-for-input)
-           (const ";;; EC-Eval input:"))
+  (perform (op prompt-for-input))
   (assign exp (op read))
   (assign env (op get-global-environment))
   (assign continue (label print-result))
