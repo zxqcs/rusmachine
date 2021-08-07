@@ -6,8 +6,7 @@ pub mod assembler {
     use crate::representation::type_system::Object;
     use crate::scheme_list;
     use crate::tpfordev::type_system::{
-        append, car, cdr, scheme_cons, scheme_for_each,
-         set_cdr, Exp, Pair,
+        append, car, cdr, scheme_cons, scheme_for_each, set_cdr, Exp, Pair,
     };
     #[allow(dead_code)]
     pub fn assemble(controller_text: String, machine: &mut BasicMachine, memory: &mut Memory) {
@@ -559,7 +558,7 @@ mod test {
         machine::basic_machine::BasicMachine,
         machine_cases::machine_case::MachineCase,
         memory::memory::Memory,
-        parserfordev::parser::{str_to_exp},
+        parserfordev::parser::str_to_exp,
         primitives::primitives::{define_variable, eq, is_self_evaluating, multiply},
         representation::type_system::Object,
         scheme_list,
@@ -567,9 +566,9 @@ mod test {
     };
 
     use super::assembler::{
-        assign_reg_name, assign_value_exp,  extract_labels_alternative,
-        lookup_label, make_assign, make_branch, make_operation_exp, make_perform,
-        make_primitive_exp, make_restore, make_save, make_test,
+        assign_reg_name, assign_value_exp, extract_labels_alternative, lookup_label, make_assign,
+        make_branch, make_operation_exp, make_perform, make_primitive_exp, make_restore, make_save,
+        make_test,
     };
     use crate::tpfordev::type_system::{append, scheme_cons};
     #[test]

@@ -234,9 +234,12 @@ pub mod type_system {
 
 #[cfg(test)]
 mod test {
-    use super::type_system::{car, cdr, scheme_assoc, scheme_map, scheme_map_clousre};
+    use super::type_system::{
+        append, car, cdr, scheme_assoc, scheme_cons, scheme_map, scheme_map_clousre,
+    };
     use crate::parserfordev::parser::str_to_exp;
-    use crate::tpfordev::type_system::Exp;
+    use crate::scheme_list;
+    use crate::tpfordev::type_system::{Exp, Pair};
     #[test]
     fn car_works() {
         let exp = str_to_exp("((1 2) (3 (4 5)))".to_string());
@@ -304,5 +307,18 @@ mod test {
         let result_c = scheme_assoc(&list, &key).unwrap();
         let checkout_c = str_to_exp("((egg))".to_string());
         assert_eq!(result_c, checkout_c);
+    }
+
+    #[test]
+    fn scheme_list_works() {
+        let exp = scheme_list!(
+            Exp::Integer(1),
+            scheme_list!(
+                Exp::Integer(2),
+                scheme_list!(Exp::Integer(3), Exp::List(Pair::Nil))
+            )
+        );
+        let checkout = str_to_exp("(1 (2 (3 ())))".to_string());
+        assert_eq!(exp, checkout);
     }
 }

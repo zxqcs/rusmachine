@@ -271,34 +271,34 @@ pub mod basic_machine {
             }
         }
 
-        /* 
-        // assign the car part of list of register y to register x
-        #[allow(dead_code)]
-        pub fn assign_car(&mut self, x: &'static str, y: &'static str, memory: &mut Memory) {}
+        /*
+            // assign the car part of list of register y to register x
+            #[allow(dead_code)]
+            pub fn assign_car(&mut self, x: &'static str, y: &'static str, memory: &mut Memory) {}
 
-        // assign the cdr part of list of register y to register x
-        #[allow(dead_code)]
-        pub fn assign_cdr(&mut self, x: &'static str, y: &'static str, memory: &mut Memory) {}
+            // assign the cdr part of list of register y to register x
+            #[allow(dead_code)]
+            pub fn assign_cdr(&mut self, x: &'static str, y: &'static str, memory: &mut Memory) {}
 
-        // change the car part of list of register x to register y
-        #[allow(dead_code)]
-        pub fn set_car(&mut self, x: &'static str, y: &'static str, memory: &mut Memory) {}
+            // change the car part of list of register x to register y
+            #[allow(dead_code)]
+            pub fn set_car(&mut self, x: &'static str, y: &'static str, memory: &mut Memory) {}
 
-        // change the cdr part of list of register x to register y
-        #[allow(dead_code)]
-        pub fn set_cdr(&mut self, x: &'static str, y: &'static str, memory: &mut Memory) {}
+            // change the cdr part of list of register x to register y
+            #[allow(dead_code)]
+            pub fn set_cdr(&mut self, x: &'static str, y: &'static str, memory: &mut Memory) {}
 
-        // build a new list from register y and register z, then assign this new list to register x
-        #[allow(dead_code)]
-        pub fn cons(
-            &mut self,
-            x: &'static str,
-            y: &'static str,
-            z: &'static str,
-            memory: &mut Memory,
-        ) {
-        }
-    */
+            // build a new list from register y and register z, then assign this new list to register x
+            #[allow(dead_code)]
+            pub fn cons(
+                &mut self,
+                x: &'static str,
+                y: &'static str,
+                z: &'static str,
+                memory: &mut Memory,
+            ) {
+            }
+        */
     }
 }
 
@@ -323,14 +323,10 @@ mod test {
         let mut memory = Memory::new(20);
         let mut machine = BasicMachine::new();
         machine.initilize_registers();
-        let mut s = "(define x '(+ 1 2))".to_string();
+        let s = "(define x '(+ 1 2))".to_string();
         machine.set_register_contents_as_in_memory(&"root".to_string(), s, &mut memory);
-        let mut ss = machine.get_register_contents_as_in_memory(&"root".to_string(), &memory);
+        let ss = machine.get_register_contents_as_in_memory(&"root".to_string(), &memory);
         assert_eq!(ss, String::from("( define x '( + 1 2))"));
-        s = "".to_string();
-        machine.set_register_contents_as_in_memory(&"root".to_string(), s, &mut memory);
-        ss = machine.get_register_contents_as_in_memory(&"root".to_string(), &memory);
-        assert_eq!(ss, "".to_string());
     }
 
     #[test]

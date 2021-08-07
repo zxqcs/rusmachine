@@ -3,8 +3,8 @@ pub mod primitives {
         infrastructure::stack::Stack,
         machine::basic_machine::BasicMachine,
         memory::memory::Memory,
-        parser::parser::{read_scheme_programs_from_stdin},
-        parserfordev::parser::{str_to_exp},
+        parser::parser::read_scheme_programs_from_stdin,
+        parserfordev::parser::str_to_exp,
         representation::type_system::Object,
         scheme_list,
         tpfordev::type_system::{append, car, cdr, scheme_cons, set_car, set_cdr, Exp, Pair},
@@ -319,7 +319,7 @@ pub mod primitives {
 mod test {
     use crate::{
         append,
-        parserfordev::parser::{str_to_exp},
+        parserfordev::parser::str_to_exp,
         primitives::primitives::{
             caadr, caar, cadddr, caddr, cadr, cdadr, cdar, cdddr, cddr, define_variable,
             is_tagged_list, multiply,
@@ -329,7 +329,7 @@ mod test {
         Pair,
     };
 
-    use super::primitives::{add_binding_to_frame};
+    use super::primitives::add_binding_to_frame;
 
     #[test]
     fn cadr_works() {
@@ -453,7 +453,7 @@ mod test {
         assert_eq!(env, str_to_exp("(((a b c) 1 2 4))".to_string()));
     }
 
-    /* 
+    /*
     #[test]
     fn read_works() {
         let mut machine = BasicMachine::new();

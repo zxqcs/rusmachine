@@ -132,6 +132,9 @@ pub mod parser {
         memory: &mut Memory,
         machine: &mut BasicMachine,
     ) -> usize {
+        if tokens.len() == 0 {
+            panic!("Error empty tokens in BUILD_SYNTAX_TREE_INTO_MEMORY");
+        }
         if !syntax_checker(&tokens) {
             panic!("syntax wrong!");
         }
@@ -152,13 +155,6 @@ pub mod parser {
         memory: &mut Memory,
         machine: &mut BasicMachine,
     ) {
-        if tokens.len() == 0 {
-            let free = machine.get_register(&"free".to_string()).unwrap();
-            let free_index = free.get_memory_index();
-            memory.update("car", Object::Nil, free_index);
-            memory.update("cdr", Object::Nil, free_index);
-            machine.advance_free();
-        }
         // if flag is set to true, the item should be written into car, otherwise written to cdr
         let mut flag = true;
 

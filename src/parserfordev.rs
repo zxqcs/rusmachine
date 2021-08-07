@@ -139,6 +139,7 @@ pub mod parser {
         }
     }
 
+    // map exp to string
     #[allow(dead_code)]
     pub fn exp_to_str(exp: Exp) -> String {
         let mut s = "".to_string();
@@ -206,6 +207,7 @@ pub mod parser {
         }
     }
 
+    // map string to exp
     #[allow(dead_code)]
     pub fn str_to_exp(s: String) -> Exp {
         let mut tokens = tokenizer(s);
@@ -248,12 +250,15 @@ mod test {
         let s4 = "(define x \"winter is coming\")";
         let s5 = "'( 1 ( 2 3))";
         let s6 = "()";
+        let s7 = "(1 2 (3 ()))";
         let exp1 = str_to_exp(s1.to_string());
         let exp2 = str_to_exp(s2.to_string());
         let exp3 = str_to_exp(s3.to_string());
         let exp4 = str_to_exp(s4.to_string());
         let exp5 = str_to_exp(s5.to_string());
         let exp6 = str_to_exp(s6.to_string());
+        let exp7 = str_to_exp(s7.to_string());
+
         assert_eq!(exp1, Exp::Bool(true));
         assert_eq!(exp2, Exp::FloatNumber(3.14));
         assert_eq!(
@@ -276,6 +281,14 @@ mod test {
         );
         assert_eq!(exp5, Exp::Quote("( 1 ( 2 3))".to_string()));
         assert_eq!(exp6, Exp::List(Pair::Nil));
+        assert_eq!(
+            exp7,
+            scheme_list!(
+                Exp::Integer(1),
+                Exp::Integer(2),
+                scheme_list!(Exp::Integer(3), Exp::List(Pair::Nil))
+            )
+        );
     }
 
     #[test]
@@ -288,13 +301,19 @@ mod test {
                5)))";
         let s4 = "(define x \"winter is coming\")";
         let s5 = "'( 1 ( 2 3))";
-        let s6 = "";
+        let s7 = "(() 1  2 ( 3 4))";
         let exp1 = str_to_exp(s1.to_string());
         let exp2 = str_to_exp(s2.to_string());
         let exp3 = str_to_exp(s3.to_string());
         let exp4 = str_to_exp(s4.to_string());
         let exp5 = str_to_exp(s5.to_string());
-        let exp6 = str_to_exp(s6.to_string());
+        let exp6 = Exp::List(Pair::Nil);
+        let exp7 = scheme_list!(
+            Exp::List(Pair::Nil),
+            Exp::Integer(1),
+            Exp::Integer(2),
+            scheme_list!(Exp::Integer(3), Exp::Integer(4))
+        );
         let ss1 = exp_to_str(exp1);
         let ss2 = exp_to_str(exp2);
         let ss3 = exp_to_str(exp3);
@@ -306,6 +325,7 @@ mod test {
         assert_eq!(ss3, "(( 1 2)( 3( 4 5)))".to_string());
         assert_eq!(ss4, "( define x  \"winter is coming\")".to_string());
         assert_eq!(ss5, "'( 1 ( 2 3))".to_string());
-        assert_eq!(ss6, "".to_string());
+        assert_eq!(ss6, "()".to_string());
+        assert_eq!(s7.to_string(), exp_to_str(exp7));
     }
 }

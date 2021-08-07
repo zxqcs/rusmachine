@@ -93,7 +93,7 @@ pub mod garbage_collector {
         from: String,
     ) {
         let index = give_a_location(machine, from);
-        let x ;
+        let x;
         match block {
             "car" => {
                 let item = memory.car(index);

@@ -14,9 +14,7 @@ use crate::assembler::assembler::extract_labels_alternative;
 use crate::machine::basic_machine::BasicMachine;
 use crate::parser::parser::{build_syntax_tree_into_memeory, tokenizer};
 use crate::parserfordev::parser::{exp_to_str, print, str_to_exp};
-use crate::primitives::primitives::{
-    define_variable, machine_statistics
-};
+use crate::primitives::primitives::{define_variable, machine_statistics};
 use crate::tpfordev::type_system::{append, scheme_cons, Exp, Pair};
 use machine_cases::machine_case::MachineCase;
 use memory::memory::Memory;
