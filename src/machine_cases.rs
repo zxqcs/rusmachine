@@ -1,10 +1,11 @@
-pub mod MachineCase {
+pub mod machine_case {
     pub struct MachineCase {
         pub name: &'static str,
         pub controller_text: &'static str,
     }
 
     impl MachineCase {
+        #[allow(dead_code)]
         pub fn new() -> Self {
             MachineCase {
                 name: "factorial_machine",

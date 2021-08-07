@@ -121,7 +121,7 @@ pub mod type_system {
 
     #[allow(dead_code)]
     pub fn set_car(x: Exp, y: Exp) -> Result<Exp, &'static str> {
-        if let Exp::List(Pair::Cons(lhs, rhs)) = x {
+        if let Exp::List(Pair::Cons(_lhs, rhs)) = x {
             Ok(Exp::List(Pair::Cons(Box::new(y), rhs)))
         } else {
             Err("error happens!")
@@ -130,7 +130,7 @@ pub mod type_system {
 
     #[allow(dead_code)]
     pub fn set_cdr(x: Exp, y: Exp) -> Result<Exp, &'static str> {
-        if let Exp::List(Pair::Cons(lhs, rhs)) = x {
+        if let Exp::List(Pair::Cons(lhs, _rhs)) = x {
             Ok(scheme_cons(*lhs, y))
         } else {
             Err("error happens!")

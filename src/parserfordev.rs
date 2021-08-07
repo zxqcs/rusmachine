@@ -247,11 +247,13 @@ mod test {
                5)))";
         let s4 = "(define x \"winter is coming\")";
         let s5 = "'( 1 ( 2 3))";
+        let s6 = "()";
         let exp1 = str_to_exp(s1.to_string());
         let exp2 = str_to_exp(s2.to_string());
         let exp3 = str_to_exp(s3.to_string());
         let exp4 = str_to_exp(s4.to_string());
         let exp5 = str_to_exp(s5.to_string());
+        let exp6 = str_to_exp(s6.to_string());
         assert_eq!(exp1, Exp::Bool(true));
         assert_eq!(exp2, Exp::FloatNumber(3.14));
         assert_eq!(
@@ -273,6 +275,7 @@ mod test {
             )
         );
         assert_eq!(exp5, Exp::Quote("( 1 ( 2 3))".to_string()));
+        assert_eq!(exp6, Exp::List(Pair::Nil));
     }
 
     #[test]
@@ -285,20 +288,24 @@ mod test {
                5)))";
         let s4 = "(define x \"winter is coming\")";
         let s5 = "'( 1 ( 2 3))";
+        let s6 = "";
         let exp1 = str_to_exp(s1.to_string());
         let exp2 = str_to_exp(s2.to_string());
         let exp3 = str_to_exp(s3.to_string());
         let exp4 = str_to_exp(s4.to_string());
         let exp5 = str_to_exp(s5.to_string());
+        let exp6 = str_to_exp(s6.to_string());
         let ss1 = exp_to_str(exp1);
         let ss2 = exp_to_str(exp2);
         let ss3 = exp_to_str(exp3);
         let ss4 = exp_to_str(exp4);
         let ss5 = exp_to_str(exp5);
+        let ss6 = exp_to_str(exp6);
         assert_eq!(ss1, "true".to_string());
         assert_eq!(ss2, "3.14".to_string());
         assert_eq!(ss3, "(( 1 2)( 3( 4 5)))".to_string());
         assert_eq!(ss4, "( define x  \"winter is coming\")".to_string());
         assert_eq!(ss5, "'( 1 ( 2 3))".to_string());
+        assert_eq!(ss6, "".to_string());
     }
 }

@@ -1,7 +1,6 @@
 pub mod parser {
     use std::io;
     use std::io::prelude::*;
-    use std::io::BufReader;
     use std::usize;
 
     use crate::{

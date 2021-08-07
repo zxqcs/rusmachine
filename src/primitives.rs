@@ -3,8 +3,8 @@ pub mod primitives {
         infrastructure::stack::Stack,
         machine::basic_machine::BasicMachine,
         memory::memory::Memory,
-        parser::parser::{read_scheme_programs_from_stdin, tokenizer},
-        parserfordev::parser::{exp_to_str, str_to_exp},
+        parser::parser::{read_scheme_programs_from_stdin},
+        parserfordev::parser::{str_to_exp},
         representation::type_system::Object,
         scheme_list,
         tpfordev::type_system::{append, car, cdr, scheme_cons, set_car, set_cdr, Exp, Pair},
@@ -68,19 +68,24 @@ pub mod primitives {
     }
     /* The procedurs belwo are machine ops */
     #[allow(dead_code)]
-    pub fn machine_statistics(machine: &mut BasicMachine, memory: &mut Memory) {
+    pub fn machine_statistics(machine: &mut BasicMachine, _memory: &mut Memory) {
         machine.stack.statistics();
     }
 
     // this procedure is called each time we enter the driver loop since that
     // error may happen in last round.
     #[allow(dead_code)]
-    pub fn initialize_stack(machine: &mut BasicMachine, memory: &mut Memory) {
+    pub fn initialize_stack(machine: &mut BasicMachine, _memory: &mut Memory) {
         machine.stack = Stack::new();
     }
 
     #[allow(dead_code)]
-    pub fn prompt_for_input(machine: &mut BasicMachine, memory: &mut Memory) {
+    pub fn initialize_env(machine: &mut BasicMachine, memory: &mut Memory) {
+        machine.set_register_contents_as_in_memory(&"evn".to_string(), "".to_string(), memory);
+    }
+
+    #[allow(dead_code)]
+    pub fn prompt_for_input(_machine: &mut BasicMachine, _memory: &mut Memory) {
         println!("=> ");
     }
 
@@ -92,7 +97,7 @@ pub mod primitives {
             Ok(()) => {
                 let exp = str_to_exp(s.clone());
                 match exp {
-                    Exp::List(x) => {
+                    Exp::List(_x) => {
                         let index = memory.write(s, machine);
                         machine.set_register_contents(&"exp".to_string(), Object::Index(index));
                     }
@@ -314,9 +319,7 @@ pub mod primitives {
 mod test {
     use crate::{
         append,
-        machine::basic_machine::BasicMachine,
-        memory::memory::Memory,
-        parserfordev::parser::{exp_to_str, str_to_exp},
+        parserfordev::parser::{str_to_exp},
         primitives::primitives::{
             caadr, caar, cadddr, caddr, cadr, cdadr, cdar, cdddr, cddr, define_variable,
             is_tagged_list, multiply,
@@ -326,7 +329,7 @@ mod test {
         Pair,
     };
 
-    use super::primitives::{add_binding_to_frame, read};
+    use super::primitives::{add_binding_to_frame};
 
     #[test]
     fn cadr_works() {
@@ -450,6 +453,7 @@ mod test {
         assert_eq!(env, str_to_exp("(((a b c) 1 2 4))".to_string()));
     }
 
+    /* 
     #[test]
     fn read_works() {
         let mut machine = BasicMachine::new();
@@ -461,4 +465,5 @@ mod test {
         let checkout = str_to_exp("(define (square x) (* x x))".to_string());
         assert_eq!(checkout, str_to_exp(content));
     }
+    */
 }

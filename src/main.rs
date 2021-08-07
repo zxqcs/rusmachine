@@ -15,11 +15,10 @@ use crate::machine::basic_machine::BasicMachine;
 use crate::parser::parser::{build_syntax_tree_into_memeory, tokenizer};
 use crate::parserfordev::parser::{exp_to_str, print, str_to_exp};
 use crate::primitives::primitives::{
-    define_variable, is_eq, machine_statistics, multiply, substract,
+    define_variable, machine_statistics
 };
 use crate::tpfordev::type_system::{append, scheme_cons, Exp, Pair};
-use assembler::assembler::assemble;
-use machine_cases::MachineCase::MachineCase;
+use machine_cases::machine_case::MachineCase;
 use memory::memory::Memory;
 use parser::parser::read_scheme_programs_from_stdin;
 use parserfordev::parser::scheme_list_pretty_print;
@@ -27,11 +26,11 @@ use representation::type_system::Object;
 
 fn main() {
     let mut input = "".to_string();
-    read_scheme_programs_from_stdin(&mut input);
+    let _r = read_scheme_programs_from_stdin(&mut input);
     let output = str_to_exp(input);
     println!("{:?}", output);
     /*
-    let test_case = MachineCase::test_case().controller_text.to_string();
+    let test_case = machine_case::test_case().controller_text.to_string();
     let mut machine = BasicMachine::new();
     let mut memory = Memory::new(20);
     machine.initilize_registers();
@@ -126,6 +125,7 @@ fn str_to_exp_works() {
     print(exp5);
 }
 
+#[allow(dead_code)]
 fn define_variable_works() {
     let mut var = Exp::Symbol("x".to_string());
     let mut val = Exp::Integer(4);
@@ -140,6 +140,7 @@ fn define_variable_works() {
     println!("env => {}", exp_to_str(env));
 }
 
+#[allow(dead_code)]
 fn extract_labels_alternative_works() {
     let factorial = MachineCase::test_case();
     let text = factorial.controller_text.to_string();
@@ -149,6 +150,7 @@ fn extract_labels_alternative_works() {
     println!("{:?}", machine.labels);
 }
 
+#[allow(dead_code)]
 fn machine_ops_works() {
     let mut machine = BasicMachine::new();
     machine.add_machine_op("machine_statistics".to_string(), machine_statistics);

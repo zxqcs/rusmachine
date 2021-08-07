@@ -19,7 +19,7 @@ pub mod memory {
         pub fn new(size: usize) -> Self {
             let mut v = Vec::with_capacity(size);
 
-            for i in 0..size {
+            for _i in 0..size {
                 v.push(Box::new(Object::Empty));
             }
 
@@ -31,6 +31,7 @@ pub mod memory {
             }
         }
 
+        #[allow(dead_code)]
         pub fn capacity(&self) -> usize {
             self.the_cars.capacity()
         }

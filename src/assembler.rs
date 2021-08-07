@@ -6,8 +6,8 @@ pub mod assembler {
     use crate::representation::type_system::Object;
     use crate::scheme_list;
     use crate::tpfordev::type_system::{
-        append, car, cdr, list_length, scheme_assoc, scheme_cons, scheme_for_each,
-        scheme_map_clousre, set_cdr, Exp, Pair,
+        append, car, cdr, scheme_cons, scheme_for_each,
+         set_cdr, Exp, Pair,
     };
     #[allow(dead_code)]
     pub fn assemble(controller_text: String, machine: &mut BasicMachine, memory: &mut Memory) {
@@ -154,11 +154,11 @@ pub mod assembler {
     #[allow(dead_code)]
     pub fn make_save(
         inst: Exp,
-        machine: &mut BasicMachine,
-        memory: &mut Memory,
+        _machine: &mut BasicMachine,
+        _memory: &mut Memory,
     ) -> Box<dyn FnOnce(&mut BasicMachine, &mut Memory) -> Exp> {
         let reg_name = exp_to_str(stack_inst_reg_name(&inst));
-        let lambda = |machine: &mut BasicMachine, memory: &mut Memory| {
+        let lambda = |machine: &mut BasicMachine, _memory: &mut Memory| {
             let data = reg_name;
             let contents = machine.get_register_contents(&data).unwrap();
             machine.stack.push(contents);
@@ -176,11 +176,11 @@ pub mod assembler {
     #[allow(dead_code)]
     pub fn make_restore(
         inst: Exp,
-        machine: &mut BasicMachine,
-        memory: &mut Memory,
+        _machine: &mut BasicMachine,
+        _memory: &mut Memory,
     ) -> Box<dyn FnOnce(&mut BasicMachine, &mut Memory) -> Exp> {
         let reg_name = exp_to_str(stack_inst_reg_name(&inst));
-        let lambda = |machine: &mut BasicMachine, memory: &mut Memory| {
+        let lambda = |machine: &mut BasicMachine, _memory: &mut Memory| {
             let data = reg_name;
             let contents = machine.stack.pop().unwrap();
             machine.set_register_contents(&data, contents);
@@ -239,22 +239,22 @@ pub mod assembler {
     pub fn make_goto(
         inst: Exp,
         machine: &mut BasicMachine,
-        memory: &mut Memory,
+        _memory: &mut Memory,
     ) -> Box<dyn FnOnce(&mut BasicMachine, &mut Memory) -> Exp> {
         let dest = goto_dest(&inst);
         match dest {
             x if is_label_exp(&x) => {
                 let index = lookup_label(machine, &exp_to_str(label_exp_label(&x))).unwrap();
-                let lambda = move |machine: &mut BasicMachine, memory: &mut Memory| {
+                let lambda = move |machine: &mut BasicMachine, _memory: &mut Memory| {
                     let data = index;
-                    machine.set_register_contents(&"pc".to_string(), Object::Index(index));
+                    machine.set_register_contents(&"pc".to_string(), Object::Index(data));
                     Exp::Quote("ok".to_string())
                 };
                 Box::new(lambda)
             }
             x if is_register_exp(&x) => {
                 let reg_name = exp_to_str(register_exp_reg(&x));
-                let lambda = |machine: &mut BasicMachine, memory: &mut Memory| {
+                let lambda = |machine: &mut BasicMachine, _memory: &mut Memory| {
                     let data = reg_name;
                     machine.assign_from_one_register_to_another(&"pc".to_string(), &data);
                     Exp::Quote("ok".to_string())
@@ -280,16 +280,16 @@ pub mod assembler {
     pub fn make_branch(
         inst: Exp,
         machine: &mut BasicMachine,
-        memory: &mut Memory,
+        _memory: &mut Memory,
     ) -> Box<dyn FnOnce(&mut BasicMachine, &mut Memory) -> Exp> {
         let dest = branch_dest(&inst);
         if is_label_exp(&dest) {
             let index = lookup_label(machine, &exp_to_str(label_exp_label(&dest))).unwrap();
-            let lambda = move |machine: &mut BasicMachine, memory: &mut Memory| {
+            let lambda = move |machine: &mut BasicMachine, _memory: &mut Memory| {
                 let data = index;
                 let r = machine.get_register_contents(&"flag".to_string()).unwrap();
                 if r == Object::Bool(true) {
-                    machine.set_register_contents(&"pc".to_string(), Object::Index(index));
+                    machine.set_register_contents(&"pc".to_string(), Object::Index(data));
                 } else {
                     machine.advance_pc();
                 }
@@ -391,12 +391,12 @@ pub mod assembler {
     pub fn make_primitive_exp(
         exp: Exp,
         machine: &mut BasicMachine,
-        memory: &mut Memory,
+        _memory: &mut Memory,
     ) -> Box<dyn FnOnce(&mut BasicMachine, &mut Memory) -> Exp> {
         match exp {
             x if is_constant_exp(&x) => {
                 let c = constant_exp_value(&x);
-                let lambda = |machine: &mut BasicMachine, memory: &mut Memory| {
+                let lambda = |_machine: &mut BasicMachine, _memory: &mut Memory| {
                     let data = c;
                     data
                 };
@@ -405,7 +405,7 @@ pub mod assembler {
             x if is_label_exp(&x) => {
                 let index = lookup_label(machine, &exp_to_str(label_exp_label(&x))).unwrap();
                 let lambda =
-                    move |machine: &mut BasicMachine, memory: &mut Memory| Exp::Index(index);
+                    move |_machine: &mut BasicMachine, _memory: &mut Memory| Exp::Index(index);
                 Box::new(lambda)
             }
             x if is_register_exp(&x) => {
@@ -415,7 +415,7 @@ pub mod assembler {
                     let content = machine.get_register_contents(&data).unwrap();
                     let mem = &(*memory);
                     match content {
-                        Object::Index(x) => {
+                        Object::Index(_x) => {
                             let result = machine.get_register_contents_as_in_memory(&data, mem);
                             return str_to_exp(result);
                         }
@@ -484,8 +484,8 @@ pub mod assembler {
     #[allow(dead_code)]
     pub fn make_operation_exp(
         exp: Exp,
-        machine: &mut BasicMachine,
-        memory: &mut Memory,
+        _machine: &mut BasicMachine,
+        _memory: &mut Memory,
     ) -> Box<dyn FnOnce(&mut BasicMachine, &mut Memory) -> Exp> {
         let op_name = exp_to_str(operation_exp_op(&exp));
         let operands = operation_exp_oprands(&exp);
@@ -557,17 +557,17 @@ mod test {
             operation_exp_oprands,
         },
         machine::basic_machine::BasicMachine,
-        machine_cases::MachineCase::MachineCase,
+        machine_cases::machine_case::MachineCase,
         memory::memory::Memory,
-        parserfordev::parser::{exp_to_str, scheme_list_pretty_print, str_to_exp},
+        parserfordev::parser::{str_to_exp},
         primitives::primitives::{define_variable, eq, is_self_evaluating, multiply},
         representation::type_system::Object,
         scheme_list,
-        tpfordev::type_system::{car, cdr, Exp, Pair},
+        tpfordev::type_system::{Exp, Pair},
     };
 
     use super::assembler::{
-        assign_reg_name, assign_value_exp, extract_labels, extract_labels_alternative,
+        assign_reg_name, assign_value_exp,  extract_labels_alternative,
         lookup_label, make_assign, make_branch, make_operation_exp, make_perform,
         make_primitive_exp, make_restore, make_save, make_test,
     };
@@ -577,7 +577,7 @@ mod test {
         let mut machine = BasicMachine::new();
         let factorial = MachineCase::test_case();
         let text = factorial.controller_text;
-        let result = extract_labels_alternative(text.to_string(), &mut machine);
+        let _result = extract_labels_alternative(text.to_string(), &mut machine);
         let index = lookup_label(&mut machine, &"base-case".to_string()).unwrap();
         assert_eq!(index, 12 as usize);
     }
@@ -654,7 +654,7 @@ mod test {
 
     #[test]
     fn make_assign_works() {
-        let mut inst = "(assgin root (op *) (reg val) (reg exp))".to_string();
+        let inst = "(assgin root (op *) (reg val) (reg exp))".to_string();
         let mut memory = Memory::new(10);
         let mut machine = BasicMachine::new();
         machine.initilize_registers();
@@ -662,7 +662,7 @@ mod test {
         machine.set_register_contents(&"exp".to_string(), Object::Integer(3));
         machine.add_semantic_op("*".to_string(), multiply);
         let cb = make_assign(str_to_exp(inst), &mut machine, &mut memory);
-        let result = consume_box_closure(cb, &mut machine, &mut memory);
+        let _result = consume_box_closure(cb, &mut machine, &mut memory);
         let value = machine.get_register_contents(&"root".to_string()).unwrap();
         assert_eq!(value, Object::Number(9.42));
     }
@@ -676,7 +676,7 @@ mod test {
         machine.initilize_registers();
         machine.set_register_contents(&"val".to_string(), Object::Integer(1));
         let cb = make_test(inst, &mut machine, &mut memory);
-        let mut result = consume_box_closure(cb, &mut machine, &mut memory);
+        let mut _result = consume_box_closure(cb, &mut machine, &mut memory);
         assert_eq!(
             machine.get_register_contents(&"flag".to_string()).unwrap(),
             Object::Bool(true)
@@ -684,7 +684,7 @@ mod test {
 
         inst = str_to_exp("(test  (op =) (reg val) (const 3.14))".to_string());
         let cb = make_test(inst, &mut machine, &mut memory);
-        result = consume_box_closure(cb, &mut machine, &mut memory);
+        _result = consume_box_closure(cb, &mut machine, &mut memory);
 
         assert_eq!(
             machine.get_register_contents(&"flag".to_string()).unwrap(),
@@ -694,15 +694,15 @@ mod test {
 
     #[test]
     fn make_branch_works() {
-        let mut inst = str_to_exp("(branch (label base-case))".to_string());
+        let inst = str_to_exp("(branch (label base-case))".to_string());
         let mut memory = Memory::new(100);
         let mut machine = BasicMachine::new();
         let text = MachineCase::new().controller_text.to_string();
-        let result = extract_labels_alternative(text, &mut machine);
+        let _result = extract_labels_alternative(text, &mut machine);
         machine.initilize_registers();
         machine.set_register_contents(&"flag".to_string(), Object::Bool(true));
         let cb = make_branch(inst, &mut machine, &mut memory);
-        let r = consume_box_closure(cb, &mut machine, &mut memory);
+        let _r = consume_box_closure(cb, &mut machine, &mut memory);
         let contents = machine.get_register_contents(&"pc".to_string()).unwrap();
         assert_eq!(contents, Object::Index(12));
     }
@@ -713,12 +713,12 @@ mod test {
         let mut memory = Memory::new(50);
         let mut machine = BasicMachine::new();
         let text = MachineCase::new().controller_text.to_string();
-        let insts = extract_labels_alternative(text, &mut machine);
+        let _insts = extract_labels_alternative(text, &mut machine);
         let base_case = lookup_label(&mut machine, &"base-case".to_string()).unwrap();
         machine.initilize_registers();
         machine.set_register_contents(&"continue".to_string(), Object::Index(base_case));
         let cb = make_goto(inst, &mut machine, &mut memory);
-        let r = consume_box_closure(cb, &mut machine, &mut memory);
+        let _r = consume_box_closure(cb, &mut machine, &mut memory);
         let result = machine.get_register_contents(&"pc".to_string()).unwrap();
         assert_eq!(result, Object::Index(12 as usize));
     }
@@ -731,7 +731,7 @@ mod test {
         machine.initilize_registers();
         machine.set_register_contents(&"val".to_string(), Object::Number(3.14));
         let cb = make_save(inst, &mut machine, &mut memory);
-        let r = consume_box_closure(cb, &mut machine, &mut memory);
+        let _r = consume_box_closure(cb, &mut machine, &mut memory);
         let item = (*machine.stack.peek().unwrap()).clone();
         assert_eq!(item, Object::Number(3.14));
     }
@@ -744,7 +744,7 @@ mod test {
         machine.initilize_registers();
         machine.stack.push(Object::Integer(9));
         let cb = make_restore(inst, &mut machine, &mut memory);
-        let r = consume_box_closure(cb, &mut machine, &mut memory);
+        let _r = consume_box_closure(cb, &mut machine, &mut memory);
         let item = machine.get_register_contents(&"val".to_string()).unwrap();
         assert_eq!(item, Object::Integer(9));
     }
@@ -765,7 +765,7 @@ mod test {
             &mut memory,
         );
         let cb = make_perform(inst, &mut machine, &mut memory);
-        let r = consume_box_closure(cb, &mut machine, &mut memory);
+        let _r = consume_box_closure(cb, &mut machine, &mut memory);
         let content = machine.get_register_contents_as_in_memory(&"env".to_string(), &memory);
         let checkout = scheme_list!(scheme_list!(
             scheme_list!(Exp::Symbol("y".to_string()), Exp::Symbol("x".to_string())),

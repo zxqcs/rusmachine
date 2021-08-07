@@ -34,7 +34,7 @@ pub mod garbage_collector {
     }
 
     fn relocate_pair(machine: &mut BasicMachine, memory: &mut Memory) {
-        let BROKEN_HEART = Object::Symbol("broken_heart".to_string());
+        let broken_heart = Object::Symbol("broken_heart".to_string());
 
         let old = machine
             .get_register_contents_ref("old".to_string())
@@ -48,7 +48,7 @@ pub mod garbage_collector {
                 .unwrap();
 
             match oldcr {
-                x if *x == BROKEN_HEART => {
+                x if *x == broken_heart => {
                     already_moved(machine, memory);
                 }
                 _ => {
@@ -70,10 +70,10 @@ pub mod garbage_collector {
                     let item = machine.get_register_contents(&"oldcr".to_string()).unwrap();
                     perform_memeory_set(machine, memory, "new_cdr", "new".to_string(), item);
                     // construct the broken heart
-                    perform_memeory_set(machine, memory, "car", "old".to_string(), BROKEN_HEART);
+                    perform_memeory_set(machine, memory, "car", "old".to_string(), broken_heart);
                     let item = machine.get_register_contents(&"new".to_string()).unwrap();
                     perform_memeory_set(machine, memory, "cdr", "old".to_string(), item);
-                    let label = machine
+                    let _label = machine
                         .get_register_contents(&"relocate_continue".to_string())
                         .unwrap();
 
@@ -93,7 +93,7 @@ pub mod garbage_collector {
         from: String,
     ) {
         let index = give_a_location(machine, from);
-        let mut x = Object::Nil;
+        let x ;
         match block {
             "car" => {
                 let item = memory.car(index);
@@ -149,7 +149,7 @@ pub mod garbage_collector {
                 Object::Index(i) => {
                     let item = Object::Index(i);
                     machine.set_register_contents(&"new".to_string(), item);
-                    let label = machine
+                    let _label = machine
                         .get_register_contents(&"relocate_continue".to_string())
                         .unwrap();
                     where_to_go(machine, memory);
@@ -170,7 +170,7 @@ pub mod garbage_collector {
         if let &Object::Index(i) = old {
             let s = memory.car(i);
             match s {
-                Object::Pair(x) => true,
+                Object::Pair(_x) => true,
                 _ => false,
             }
         } else {
@@ -246,10 +246,4 @@ pub mod garbage_collector {
 }
 
 #[cfg(test)]
-mod test {
-
-    #[test]
-    fn is_pair_works() {}
-
-    fn relocate_old_result_in_new_works() {}
-}
+mod test {}

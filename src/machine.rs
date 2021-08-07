@@ -3,7 +3,6 @@ pub mod basic_machine {
     use crate::infrastructure::register::Register;
     use crate::infrastructure::stack::Stack;
     use crate::memory::memory::Memory;
-    use crate::parser::parser::{build_syntax_tree_into_memeory, tokenizer};
     use crate::representation::type_system::Object;
     use crate::tpfordev::type_system::{car, cdr, Exp};
     use std::collections::HashMap;
@@ -83,6 +82,7 @@ pub mod basic_machine {
             }
         }
 
+        #[allow(dead_code)]
         pub fn execute(&mut self, memory: &mut Memory) {
             let reg = self.get_register(&"pc".to_string()).unwrap();
             let index = reg.get_memory_index();
@@ -107,10 +107,12 @@ pub mod basic_machine {
             }
         }
 
+        #[allow(dead_code)]
         pub fn add_semantic_op(&mut self, fn_name: String, func: CallbackExp) {
             self.semantic_ops.insert(fn_name, func);
         }
 
+        #[allow(dead_code)]
         pub fn add_machine_op(&mut self, fn_name: String, func: Callbackmachine) {
             self.machine_ops.insert(fn_name, func);
         }
@@ -119,14 +121,17 @@ pub mod basic_machine {
             self.semantic_ops[&fn_name](argv)
         }
 
+        #[allow(dead_code)]
         pub fn call_machine_op(&mut self, fn_name: String, memory: &mut Memory) {
             self.machine_ops[&fn_name](self, memory)
         }
 
+        #[allow(dead_code)]
         pub fn is_semantic_op(&self, fn_name: String) -> bool {
             self.semantic_ops.contains_key(&fn_name)
         }
 
+        #[allow(dead_code)]
         pub fn is_machine_op(&self, fn_name: String) -> bool {
             self.machine_ops.contains_key(&fn_name)
         }
@@ -266,6 +271,7 @@ pub mod basic_machine {
             }
         }
 
+        /* 
         // assign the car part of list of register y to register x
         #[allow(dead_code)]
         pub fn assign_car(&mut self, x: &'static str, y: &'static str, memory: &mut Memory) {}
@@ -292,6 +298,7 @@ pub mod basic_machine {
             memory: &mut Memory,
         ) {
         }
+    */
     }
 }
 
