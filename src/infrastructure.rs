@@ -47,9 +47,6 @@ pub mod register {
         }
 
         pub fn get_list_frome_memory_as_str(&self, memory: &Memory) -> String {
-            if self.car(memory) == Object::Nil && self.cdr(memory) == Object::Nil {
-                return "".to_string();
-            }
             let mut s = "".to_string();
             s.push('(');
             let i = self.get_memory_index();
@@ -62,11 +59,13 @@ pub mod register {
 
         // thest two API may possibly be cancelled later, since the meaning of
         // car and cdr is vague.
+        #[allow(dead_code)]
         pub fn car(&self, memory: &Memory) -> Object {
             let i = self.get_memory_index();
             memory.car(i)
         }
 
+        #[allow(dead_code)]
         pub fn cdr(&self, memory: &Memory) -> Object {
             let i = self.get_memory_index();
             memory.cdr(i)
@@ -107,6 +106,7 @@ pub mod register {
                 s.push(' ');
                 s.push_str(&x);
             }
+            Object::Nil => {}
             Object::Pair(x) => {
                 s.push('(');
                 let car_item = &memory.car(*x);
@@ -268,21 +268,21 @@ mod test {
         let mut memory = Memory::new(20);
         let mut machine = BasicMachine::new();
         machine.initilize_registers();
-        let s = "(( 1  2 )
-                           (3 
-                               (4  
-                                  5)))";
+        let s = "( 1  2 
+                           (() 
+                               3  
+                                  ))";
         let mut tokens = tokenizer(s.to_string());
         let root = build_syntax_tree_into_memeory(&mut tokens, &mut memory, &mut machine);
         machine.set_register_contents(&"root".to_string(), Object::Index(root));
         let reg = machine.get_register(&"root".to_string()).unwrap();
-        let s = String::from("(( 1 2)( 3( 4 5)))");
+        let s = String::from("( 1 2(() 3))");
         assert_eq!(s, reg.get_list_frome_memory_as_str(&memory));
-        let ss = "(( 7 8) 9)";
+        let ss = "(()( 7 8) 9)";
         let mut ttokens = tokenizer(ss.to_string());
         let another_root = build_syntax_tree_into_memeory(&mut ttokens, &mut memory, &mut machine);
         machine.set_register_contents(&"root".to_string(), Object::Index(another_root));
-        let _s = String::from("(( 7 8) 9)");
+        let _s = String::from("(()( 7 8) 9)");
         assert_eq!(
             ss,
             machine

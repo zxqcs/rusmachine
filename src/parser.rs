@@ -133,7 +133,7 @@ pub mod parser {
         machine: &mut BasicMachine,
     ) -> usize {
         if tokens.len() == 0 {
-            panic!("Error empty tokens in BUILD_SYNTAX_TREE_INTO_MEMORY");
+            panic!("Error: empty tokens in BUILD_SYNTAX_TREE_INTO_MEMORY");
         }
         if !syntax_checker(&tokens) {
             panic!("syntax wrong!");
@@ -179,7 +179,11 @@ pub mod parser {
                                 let next_token = tokens.last();
                                 let null = ")".to_string();
                                 match next_token {
-                                    t if t == Some(&null) => flag = false,
+                                    t if t == Some(&null) => {
+                                        let index = stack.peek().unwrap();
+                                        memory.update("car", Object::Nil, index);
+                                        flag = false;
+                                    }
                                     _ => flag = true,
                                 }
                             } else {
@@ -466,11 +470,11 @@ mod test {
         let mut memory = Memory::new(10);
         let mut machine = BasicMachine::new();
         machine.initilize_registers();
-        let s = "(( 1  2 )
-                           (3 
-                               (4  
-                                  5)))"
-            .to_string();
+        let s = "( 1  2 
+                           (() 
+                               3  
+                                  ))"
+        .to_string();
         let mut tokens = tokenizer(s);
         build_syntax_tree_into_memeory(&mut tokens, &mut memory, &mut machine);
         let car_0 = memory.car(0);
@@ -491,28 +495,18 @@ mod test {
         let car_5 = memory.car(5);
         let cdr_5 = memory.cdr(5);
 
-        let car_6 = memory.car(6);
-        let cdr_6 = memory.cdr(6);
-
-        let car_7 = memory.car(7);
-        let cdr_7 = memory.cdr(7);
-
-        let car_0_checkout = Object::Pair(1);
-        let cdr_0_checkout = Object::Pair(3);
-        let car_1_checkout = Object::Integer(1);
+        let car_0_checkout = Object::Integer(1);
+        let cdr_0_checkout = Object::Pair(1);
+        let car_1_checkout = Object::Integer(2);
         let cdr_1_checkout = Object::Pair(2);
-        let car_2_checkout = Object::Integer(2);
+        let car_2_checkout = Object::Pair(3);
         let cdr_2_checkout = Object::Nil;
         let car_3_checkout = Object::Pair(4);
-        let cdr_3_checkout = Object::Nil;
-        let car_4_checkout = Object::Integer(3);
-        let cdr_4_checkout = Object::Pair(5);
-        let car_5_checkout = Object::Pair(6);
+        let cdr_3_checkout = Object::Pair(5);
+        let car_4_checkout = Object::Nil;
+        let cdr_4_checkout = Object::Nil;
+        let car_5_checkout = Object::Integer(3);
         let cdr_5_checkout = Object::Nil;
-        let car_6_checkout = Object::Integer(4);
-        let cdr_6_checkout = Object::Pair(7);
-        let car_7_checkout = Object::Integer(5);
-        let cdr_7_checkout = Object::Nil;
 
         assert_eq!(car_0, car_0_checkout);
         assert_eq!(cdr_0, cdr_0_checkout);
@@ -526,10 +520,6 @@ mod test {
         assert_eq!(cdr_4, cdr_4_checkout);
         assert_eq!(car_5, car_5_checkout);
         assert_eq!(cdr_5, cdr_5_checkout);
-        assert_eq!(car_6, car_6_checkout);
-        assert_eq!(cdr_6, cdr_6_checkout);
-        assert_eq!(car_7, car_7_checkout);
-        assert_eq!(cdr_7, cdr_7_checkout);
     }
 
     #[test]
