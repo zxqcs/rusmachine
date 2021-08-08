@@ -9,7 +9,7 @@
 ; continue- to implement recursion
 ; proc, argl, unev- used in evaluating combinations
 (define EC-EVALUATOR-CONTROLLER	
-'(
+(
 read-eval-print-loop
   (perform (op initialize-stack))
   (perform (op prompt-for-input))
@@ -17,8 +17,7 @@ read-eval-print-loop
   (assign continue (label print-result))
   (goto (label eval-dispatch))
 print-result
-  (perform (op announce-output)
-           (const ";;; EC-Eval value:"))
+  (perform (op announce-output))
   (perform (op user-print) (reg val))
   (goto (label read-eval-print-loop))
 eval-dispatch

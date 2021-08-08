@@ -26,49 +26,49 @@ pub mod parser {
                 x if x == "(".to_string() => {
                     let subtree = build_syntax_tree_helper(tokens);
                     tree_buffer = append(tree_buffer, scheme_list!(subtree));
-                }
+                },
                 // tail of a Exp::List
                 x if x == ")".to_string() => {
                     break;
-                }
+                },
                 x if x == "Nil".to_string() => {
                     tree_buffer = append(tree_buffer, Exp::List(Pair::Nil));
-                }
+                },
                 // bool value
                 x if x == "true".to_string() => {
                     tree_buffer = append(tree_buffer, scheme_list!(Exp::Bool(true)));
-                }
+                },
                 x if x == "false".to_string() => {
                     tree_buffer = append(tree_buffer, scheme_list!(Exp::Bool(false)));
-                }
+                },
                 // symbol value
                 x if is_symbol(&x) => {
                     tree_buffer = append(tree_buffer, scheme_list!(Exp::Symbol(x)));
-                }
+                },
                 // scheme string, for example, "winter is coming!"
                 x if x.chars().nth(0) == Some('"') => {
                     let s = read_scheme_string(x, tokens);
                     tree_buffer = append(tree_buffer, scheme_list!(Exp::SchemeString(s)));
-                }
+                },
                 // scheme quote, for example, 'winter
                 x if x.chars().nth(0) == Some('\'') => {
                     let s = read_scheme_quote(x, tokens);
                     tree_buffer = append(tree_buffer, scheme_list!(Exp::Quote(s)));
-                }
+                },
                 // i32
                 x if is_i32(x.clone()) => {
                     tree_buffer = append(
                         tree_buffer,
                         scheme_list!(Exp::Integer(x.parse::<i32>().unwrap())),
                     );
-                }
+                },
                 // f32
                 x if is_f32(x.clone()) => {
                     tree_buffer = append(
                         tree_buffer,
                         scheme_list!(Exp::FloatNumber(x.parse::<f32>().unwrap())),
                     );
-                }
+                },
                 _ => {
                     panic!("unknow token!");
                 }

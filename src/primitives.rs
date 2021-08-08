@@ -1,14 +1,5 @@
 pub mod primitives {
-    use crate::{
-        infrastructure::stack::Stack,
-        machine::basic_machine::BasicMachine,
-        memory::memory::Memory,
-        parser::parser::read_scheme_programs_from_stdin,
-        parserfordev::parser::str_to_exp,
-        representation::type_system::Object,
-        scheme_list,
-        tpfordev::type_system::{append, car, cdr, scheme_cons, set_car, set_cdr, Exp, Pair},
-    };
+    use crate::{infrastructure::stack::Stack, machine::basic_machine::BasicMachine, memory::memory::Memory, parser::parser::read_scheme_programs_from_stdin, parserfordev::parser::{exp_to_str, str_to_exp}, representation::type_system::Object, scheme_list, tpfordev::type_system::{append, car, cdr, scheme_cons, set_car, set_cdr, Exp, Pair}};
     #[allow(dead_code)]
     pub fn cadr(exp: &Exp) -> Result<Exp, &'static str> {
         let s = cdr(exp).unwrap();
@@ -113,6 +104,33 @@ pub mod primitives {
     }
 
     /* The procedures below are semantic ops for machine */
+    // semantic primitives for IO 
+    #[allow(dead_code)]
+    pub fn announce_output(_exp: &Exp) -> Exp {
+        println!("=> ");
+        Exp::Quote("ok".to_string())
+    }
+
+    #[allow(dead_code)]
+    pub fn user_print(exp: &Exp) -> Exp {
+        let arg = car(exp).unwrap();
+        let r = is_compound_procedure(&arg);
+        match r {
+            Exp::Bool(true) => {
+                let val = scheme_list!(Exp::Quote("compound-procedure".to_string()),
+                                           procedure_parameters(&arg),
+                                           procedure_body(&arg));
+                println!("{}", exp_to_str(val));
+            }
+            Exp::Bool(false) => {
+                println!("{}", exp_to_str(arg));
+            }
+            _ => panic!("Error: USER-PRINT {}", exp_to_str(r)),
+        }
+        Exp::Quote("ok".to_string())
+    }
+
+    // semantic primitives that return a Scheme Object(Exp)
     #[allow(dead_code)]
     pub fn multiply(exp: &Exp) -> Exp {
         let lhs = car(exp).unwrap();
@@ -163,6 +181,19 @@ pub mod primitives {
         }
     }
 
+    #[allow(dead_code)]
+    pub fn procedure_parameters(exp: &Exp) -> Exp {
+        let p = car(exp).unwrap();
+        cadr(&p).unwrap()
+    }
+
+    #[allow(dead_code)]
+    pub fn procedure_body(exp: &Exp) -> Exp {
+        let p = car(exp).unwrap();
+        caddr(&p).unwrap()
+    }
+
+    // semantic operations that return a Scheme bool value
     #[allow(dead_code)]
     pub fn is_eq(exp: &Exp) -> Exp {
         let lhs = car(exp).unwrap();
@@ -231,6 +262,15 @@ pub mod primitives {
         }
     }
 
+    #[allow(dead_code)]
+    pub fn is_compound_procedure(exp: &Exp) -> Exp {
+        let p = car(exp).unwrap();
+        let tag = Exp::Symbol("procedure".to_string());
+        let args = scheme_list!(p, tag);
+        is_tagged_list(&args)
+    }
+
+    // semantic primitives and helper procedures that has a effect on environment
     #[allow(dead_code)]
     pub fn assignment_variable(args: &Exp) -> Exp {
         cadr(args).unwrap()
