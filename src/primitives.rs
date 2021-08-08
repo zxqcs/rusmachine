@@ -254,6 +254,35 @@ pub mod primitives {
         let args = scheme_list!(exp, Exp::Symbol("set!".to_string()));
         is_tagged_list(&args)
     }
+
+    #[allow(dead_code)]
+    pub fn is_definition(args: &Exp) -> Exp {
+        let exp = car(args).unwrap();
+        let args = scheme_list!(exp, Exp::Symbol("define".to_string()));
+        is_tagged_list(&args)
+    }
+
+    #[allow(dead_code)]
+    pub fn is_if(args: &Exp) -> Exp {
+        let exp = car(args).unwrap();
+        let args = scheme_list!(exp, Exp::Symbol("if".to_string()));
+        is_tagged_list(&args)
+    }
+
+    #[allow(dead_code)]
+    pub fn is_lambda(args: &Exp) -> Exp {
+        let exp = car(args).unwrap();
+        let args = scheme_list!(exp, Exp::Symbol("lambda".to_string()));
+        is_tagged_list(&args)
+    }
+
+    #[allow(dead_code)]
+    pub fn is_begin(args: &Exp) -> Exp {
+        let exp = car(args).unwrap();
+        let args = scheme_list!(exp, Exp::Symbol("begin".to_string()));
+        is_tagged_list(&args)
+    }
+
     // It should be noted that a Exp::Bool is returned instead of a real Rust bool
     // Because this procedure is used as a primitive op for our machine, hence, a Scheme bool is
     // returned here!
@@ -372,7 +401,7 @@ mod test {
         parserfordev::parser::str_to_exp,
         primitives::primitives::{
             caadr, caar, cadddr, caddr, cadr, cdadr, cdar, cdddr, cddr, define_variable,
-            is_assignment, is_self_evaluating, is_tagged_list, multiply,
+            is_assignment, is_definition, is_self_evaluating, is_tagged_list, multiply,
         },
         scheme_cons, scheme_list,
         tpfordev::type_system::Exp,
@@ -458,6 +487,12 @@ mod test {
     fn is_assignment_works() {
         let args = str_to_exp("((set! x 4))".to_string());
         assert_eq!(is_assignment(&args), Exp::Bool(true));
+    }
+
+    #[test]
+    fn is_definition_works() {
+        let args = str_to_exp("((define x 1))".to_string());
+        assert_eq!(is_definition(&args), Exp::Bool(true));
     }
 
     #[test]
