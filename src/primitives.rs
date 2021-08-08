@@ -283,6 +283,16 @@ pub mod primitives {
         is_tagged_list(&args)
     }
 
+    #[allow(dead_code)]
+    pub fn is_application(args: &Exp) -> Exp {
+        let exp = car(args).unwrap();
+        let r = exp.is_pair();
+        match r {
+            true => Exp::Bool(true),
+            false => Exp::Bool(false),
+        }
+    }
+
     // It should be noted that a Exp::Bool is returned instead of a real Rust bool
     // Because this procedure is used as a primitive op for our machine, hence, a Scheme bool is
     // returned here!
@@ -310,6 +320,45 @@ pub mod primitives {
     }
 
     // semantic primitives and helper procedures that has a effect on environment
+    // or lookup var-val pair in environment
+    #[allow(dead_code)]
+    pub fn lookup_variable_value(args: &Exp) -> Exp {
+        let var = car(args).unwrap();
+        let env = cadr(args).unwrap();
+        let empty_env = Exp::List(Pair::Nil);
+        if env == empty_env {
+            panic!("Error: unbound variable {}", exp_to_str(var));
+        } else {
+            let frame = first_frame(&env);
+            let s = scan(&frame_variables(&frame), &frame_values(&frame), var.clone());
+            match s {
+                Some(x) => x,
+                None => {
+                    let enclosing_environment = enclosing_environment(&env);
+                    let args = scheme_list!(var, enclosing_environment);
+                    lookup_variable_value(&args)
+                }
+            }
+        }
+    }
+
+    #[allow(dead_code)]
+    pub fn enclosing_environment(env: &Exp) -> Exp {
+        cdr(env).unwrap()
+    }
+
+    #[allow(dead_code)]
+    fn scan(vars: &Exp, vals: &Exp, target: Exp) -> Option<Exp> {
+        let null = Exp::List(Pair::Nil);
+        if *vars == null {
+            None
+        } else if target == car(vars).unwrap() {
+            Some(car(vals).unwrap())
+        } else {
+            scan(&cdr(vars).unwrap(), &cdr(vals).unwrap(), target)
+        }
+    }
+
     #[allow(dead_code)]
     pub fn assignment_variable(args: &Exp) -> Exp {
         cadr(args).unwrap()
@@ -543,6 +592,9 @@ mod test {
         env = define_variable(&args);
         assert_eq!(env, str_to_exp("(((a b c) 1 2 4))".to_string()));
     }
+
+    #[test]
+    fn lookup_variable_value_works() {}
 
     #[test]
     fn is_self_evaluating_works() {
