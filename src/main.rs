@@ -10,42 +10,20 @@ mod primitives;
 mod representation;
 mod tpfordev;
 
-use crate::assembler::assembler::extract_labels_alternative;
+use crate::assembler::assembler::{assemble, extract_labels_alternative};
 use crate::machine::basic_machine::BasicMachine;
 use crate::parser::parser::{build_syntax_tree_into_memeory, tokenizer};
 use crate::parserfordev::parser::{exp_to_str, print, str_to_exp};
-use crate::primitives::primitives::{define_variable, machine_statistics};
+use crate::primitives::primitives::{
+    define_variable, is_eq, machine_statistics, multiply, read, substract,
+};
 use crate::tpfordev::type_system::{append, scheme_cons, Exp, Pair};
 use machine_cases::machine_case::MachineCase;
 use memory::memory::Memory;
-use parser::parser::read_scheme_programs_from_stdin;
 use parserfordev::parser::scheme_list_pretty_print;
 use representation::type_system::Object;
 
-fn main() {
-    let mut input = "".to_string();
-    let _r = read_scheme_programs_from_stdin(&mut input);
-    let output = str_to_exp(input);
-    println!("{:?}", output);
-    /*
-    let test_case = machine_case::test_case().controller_text.to_string();
-    let mut machine = BasicMachine::new();
-    let mut memory = Memory::new(20);
-    machine.initilize_registers();
-    machine.add_semantic_op("=".to_string(), is_eq);
-    machine.add_semantic_op("-".to_string(), substract);
-    machine.add_semantic_op("*".to_string(), multiply);
-    assemble(test_case, &mut machine, &mut memory);
-    machine.set_register_contents(&"exp".to_string(), Object::Integer(4));
-    machine.execute(&mut memory);
-    println!(
-        "Result => {:?}",
-        machine.get_register_contents(&"val".to_string())
-    );
-    machine.add_machine_op("machine_statistics".to_string(), machine_statistics);
-    machine.call_machine_op("machine_statistics".to_string(), &mut memory);
-    */
-}
+fn main() {}
 
 #[allow(dead_code)]
 fn build_syntax_tree_into_memeory_works() {
@@ -157,5 +135,37 @@ fn machine_ops_works() {
         machine.is_machine_op("machine_statistics".to_string()),
         true
     );
+    machine.call_machine_op("machine_statistics".to_string(), &mut memory);
+}
+
+#[allow(dead_code)]
+fn read_works() {
+    let mut machine = BasicMachine::new();
+    machine.initilize_registers();
+    machine.add_machine_op("read".to_string(), read);
+    let mut memory = Memory::new(20);
+    machine.call_machine_op("read".to_string(), &mut memory);
+    let content = machine.get_register_contents_as_in_memory(&"exp".to_string(), &memory);
+    let checkout = str_to_exp("(define (square x) (* x x))".to_string());
+    assert_eq!(checkout, str_to_exp(content));
+}
+
+#[allow(dead_code)]
+fn assemble_works() {
+    let test_case = MachineCase::test_case().controller_text.to_string();
+    let mut machine = BasicMachine::new();
+    let mut memory = Memory::new(20);
+    machine.initilize_registers();
+    machine.add_semantic_op("=".to_string(), is_eq);
+    machine.add_semantic_op("-".to_string(), substract);
+    machine.add_semantic_op("*".to_string(), multiply);
+    assemble(test_case, &mut machine, &mut memory);
+    machine.set_register_contents(&"exp".to_string(), Object::Integer(4));
+    machine.execute(&mut memory);
+    println!(
+        "Result => {:?}",
+        machine.get_register_contents(&"val".to_string())
+    );
+    machine.add_machine_op("machine_statistics".to_string(), machine_statistics);
     machine.call_machine_op("machine_statistics".to_string(), &mut memory);
 }

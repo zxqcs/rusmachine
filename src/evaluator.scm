@@ -25,8 +25,6 @@ eval-dispatch
   (branch (label ev-self-eval))
   (test (op variable?) (reg exp))
   (branch (label ev-variable))
-  (test (op quoted?) (reg exp))
-  (branch (label ev-quoted))
   (test (op assignment?) (reg exp))
   (branch (label ev-assignment))
   (test (op definition?) (reg exp))
@@ -48,11 +46,6 @@ ev-variable
           (op lookup-variable-value)
           (reg exp)
           (reg env))
-  (goto (reg continue))
-ev-quoted
-  (assign val
-          (op text-of-quotation)
-          (reg exp))
   (goto (reg continue))
 ev-lambda
   (assign unev

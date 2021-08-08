@@ -248,6 +248,12 @@ pub mod primitives {
         }
     }
 
+    #[allow(dead_code)]
+    pub fn is_assignment(args: &Exp) -> Exp {
+        let exp = car(args).unwrap();
+        let args = scheme_list!(exp, Exp::Symbol("set!".to_string()));
+        is_tagged_list(&args)
+    }
     // It should be noted that a Exp::Bool is returned instead of a real Rust bool
     // Because this procedure is used as a primitive op for our machine, hence, a Scheme bool is
     // returned here!
@@ -366,7 +372,7 @@ mod test {
         parserfordev::parser::str_to_exp,
         primitives::primitives::{
             caadr, caar, cadddr, caddr, cadr, cdadr, cdar, cdddr, cddr, define_variable,
-            is_self_evaluating, is_tagged_list, multiply,
+            is_assignment, is_self_evaluating, is_tagged_list, multiply,
         },
         scheme_cons, scheme_list,
         tpfordev::type_system::Exp,
@@ -449,6 +455,12 @@ mod test {
     }
 
     #[test]
+    fn is_assignment_works() {
+        let args = str_to_exp("((set! x 4))".to_string());
+        assert_eq!(is_assignment(&args), Exp::Bool(true));
+    }
+
+    #[test]
     fn multiply_works() {
         let lhs = Exp::Integer(3);
         let rhs = Exp::FloatNumber(2.14);
@@ -506,17 +518,4 @@ mod test {
         exp = str_to_exp("((1 2 'summer (3 ()) (\"winter is coming\"  5)))".to_string());
         assert_eq!(is_self_evaluating(&exp), Exp::Bool(true));
     }
-    /*
-    #[test]
-    fn read_works() {
-        let mut machine = BasicMachine::new();
-        machine.initilize_registers();
-        machine.add_machine_op("read".to_string(), read);
-        let mut memory = Memory::new(20);
-        machine.call_machine_op("read".to_string(), &mut memory);
-        let content = machine.get_register_contents_as_in_memory(&"exp".to_string(), &memory);
-        let checkout = str_to_exp("(define (square x) (* x x))".to_string());
-        assert_eq!(checkout, str_to_exp(content));
-    }
-    */
 }
