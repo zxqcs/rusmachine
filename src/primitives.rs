@@ -450,7 +450,8 @@ mod test {
         parserfordev::parser::str_to_exp,
         primitives::primitives::{
             caadr, caar, cadddr, caddr, cadr, cdadr, cdar, cdddr, cddr, define_variable,
-            is_assignment, is_definition, is_self_evaluating, is_tagged_list, multiply,
+            is_assignment, is_definition, is_self_evaluating, is_tagged_list,
+            lookup_variable_value, multiply,
         },
         scheme_cons, scheme_list,
         tpfordev::type_system::Exp,
@@ -594,7 +595,13 @@ mod test {
     }
 
     #[test]
-    fn lookup_variable_value_works() {}
+    fn lookup_variable_value_works() {
+        let env = str_to_exp("(((a b c) 1 2 3) ((x y z) 4 5 6))".to_string());
+        let mut args = scheme_list!(Exp::Symbol("a".to_string()), env.clone());
+        assert_eq!(lookup_variable_value(&args), Exp::Integer(1));
+        args = scheme_list!(Exp::Symbol("y".to_string()), env);
+        assert_eq!(lookup_variable_value(&args), Exp::Integer(5));
+    }
 
     #[test]
     fn is_self_evaluating_works() {
