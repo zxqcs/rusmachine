@@ -559,7 +559,7 @@ mod test {
         machine_cases::machine_case::MachineCase,
         memory::memory::Memory,
         parserfordev::parser::str_to_exp,
-        primitives::primitives::{define_variable, eq, is_self_evaluating, multiply},
+        primitives::primitives::{define_variable, is_eq, is_self_evaluating, multiply},
         representation::type_system::Object,
         scheme_list,
         tpfordev::type_system::{Exp, Pair},
@@ -671,7 +671,7 @@ mod test {
         let mut inst = str_to_exp("(test  (op =) (reg val) (const 1))".to_string());
         let mut memory = Memory::new(10);
         let mut machine = BasicMachine::new();
-        machine.add_semantic_op("=".to_string(), eq);
+        machine.add_semantic_op("=".to_string(), is_eq);
         machine.initilize_registers();
         machine.set_register_contents(&"val".to_string(), Object::Integer(1));
         let cb = make_test(inst, &mut machine, &mut memory);

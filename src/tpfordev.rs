@@ -47,6 +47,39 @@ pub mod type_system {
             }
         }
 
+        #[allow(dead_code)]
+        pub fn is_number(&self) -> bool {
+            match self {
+                Exp::FloatNumber(_x) => true,
+                Exp::Integer(_x) => true,
+                _ => false,
+            }
+        }
+
+        #[allow(dead_code)]
+        pub fn is_string(&self) -> bool {
+            match self {
+                Exp::SchemeString(_x) => true,
+                _ => false,
+            }
+        }
+
+        #[allow(dead_code)]
+        pub fn is_quote(&self) -> bool {
+            match self {
+                Exp::Quote(_x) => true,
+                _ => false,
+            }
+        }
+
+        #[allow(dead_code)]
+        pub fn is_bool(&self) -> bool {
+            match self {
+                Exp::Bool(_x) => true,
+                _ => false,
+            }
+        }
+
         pub fn is_null(&self) -> bool {
             match self {
                 Exp::List(Pair::Nil) => true,
@@ -57,6 +90,39 @@ pub mod type_system {
         pub fn is_symbol(&self) -> bool {
             match self {
                 Exp::Symbol(_x) => true,
+                _ => false,
+            }
+        }
+
+        #[allow(dead_code)]
+        pub fn is_self_evuluating_list(&self) -> bool {
+            match self {
+                x if x.is_null() => true,
+                x if x.is_number() => true,
+                x if x.is_string() => true,
+                x if x.is_quote() => true,
+                Exp::List(Pair::Nil) => true,
+                Exp::List(Pair::Cons(x, y)) => {
+                    let r = (*x).is_self_evuluating_list();
+                    if r {
+                        let mut temp = (**y).clone();
+                        while let Pair::Cons(lhs, rhs) = temp {
+                            let r1 = (*lhs).is_self_evuluating_list();
+                            if r1 {
+                                if *rhs == Pair::Nil {
+                                    break;
+                                } else {
+                                    temp = (*rhs).clone();
+                                }
+                            } else {
+                                return false;
+                            }
+                        }
+                        return true;
+                    } else {
+                        return false;
+                    }
+                }
                 _ => false,
             }
         }
@@ -320,5 +386,13 @@ mod test {
         );
         let checkout = str_to_exp("(1 (2 (3 ())))".to_string());
         assert_eq!(exp, checkout);
+    }
+
+    #[test]
+    fn is_self_evaluating_list_works() {
+        let mut exp = str_to_exp("(1 (2 3) ('winter 4) () (\"winter is coming\"))".to_string());
+        assert_eq!(exp.is_self_evuluating_list(), true);
+        exp = str_to_exp("(1 ( 2 3) (x 4))".to_string());
+        assert_eq!(exp.is_self_evuluating_list(), false);
     }
 }

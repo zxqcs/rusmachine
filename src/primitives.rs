@@ -1,5 +1,14 @@
 pub mod primitives {
-    use crate::{infrastructure::stack::Stack, machine::basic_machine::BasicMachine, memory::memory::Memory, parser::parser::read_scheme_programs_from_stdin, parserfordev::parser::{exp_to_str, str_to_exp}, representation::type_system::Object, scheme_list, tpfordev::type_system::{append, car, cdr, scheme_cons, set_car, set_cdr, Exp, Pair}};
+    use crate::{
+        infrastructure::stack::Stack,
+        machine::basic_machine::BasicMachine,
+        memory::memory::Memory,
+        parser::parser::read_scheme_programs_from_stdin,
+        parserfordev::parser::{exp_to_str, str_to_exp},
+        representation::type_system::Object,
+        scheme_list,
+        tpfordev::type_system::{append, car, cdr, scheme_cons, set_car, set_cdr, Exp, Pair},
+    };
     #[allow(dead_code)]
     pub fn cadr(exp: &Exp) -> Result<Exp, &'static str> {
         let s = cdr(exp).unwrap();
@@ -104,7 +113,7 @@ pub mod primitives {
     }
 
     /* The procedures below are semantic ops for machine */
-    // semantic primitives for IO 
+    // semantic primitives for IO
     #[allow(dead_code)]
     pub fn announce_output(_exp: &Exp) -> Exp {
         println!("=> ");
@@ -117,9 +126,11 @@ pub mod primitives {
         let r = is_compound_procedure(&arg);
         match r {
             Exp::Bool(true) => {
-                let val = scheme_list!(Exp::Quote("compound-procedure".to_string()),
-                                           procedure_parameters(&arg),
-                                           procedure_body(&arg));
+                let val = scheme_list!(
+                    Exp::Quote("compound-procedure".to_string()),
+                    procedure_parameters(&arg),
+                    procedure_body(&arg)
+                );
                 println!("{}", exp_to_str(val));
             }
             Exp::Bool(false) => {
@@ -196,17 +207,6 @@ pub mod primitives {
     // semantic operations that return a Scheme bool value
     #[allow(dead_code)]
     pub fn is_eq(exp: &Exp) -> Exp {
-        let lhs = car(exp).unwrap();
-        let rhs = cadr(exp).unwrap();
-        if lhs == rhs {
-            Exp::Bool(true)
-        } else {
-            Exp::Bool(false)
-        }
-    }
-
-    #[allow(dead_code)]
-    pub fn eq(exp: &Exp) -> Exp {
         let lhs = car(exp).unwrap();
         let rhs = cadr(exp).unwrap();
         if lhs == rhs {
