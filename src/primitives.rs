@@ -254,11 +254,15 @@ pub mod primitives {
     #[allow(dead_code)]
     pub fn is_self_evaluating(args: &Exp) -> Exp {
         let exp = car(args).unwrap();
-        match exp {
-            Exp::SchemeString(_x) => Exp::Bool(true),
-            Exp::Integer(_x) => Exp::Bool(true),
-            Exp::FloatNumber(_x) => Exp::Bool(true),
-            _ => Exp::Bool(false),
+        let r = exp.is_bool()
+            || exp.is_null()
+            || exp.is_number()
+            || exp.is_quote()
+            || exp.is_string()
+            || exp.is_self_evuluating_list();
+        match r {
+            true => Exp::Bool(true),
+            false => Exp::Bool(false),
         }
     }
 
@@ -362,7 +366,7 @@ mod test {
         parserfordev::parser::str_to_exp,
         primitives::primitives::{
             caadr, caar, cadddr, caddr, cadr, cdadr, cdar, cdddr, cddr, define_variable,
-            is_tagged_list, multiply,
+            is_self_evaluating, is_tagged_list, multiply,
         },
         scheme_cons, scheme_list,
         tpfordev::type_system::Exp,
@@ -493,6 +497,15 @@ mod test {
         assert_eq!(env, str_to_exp("(((a b c) 1 2 4))".to_string()));
     }
 
+    #[test]
+    fn is_self_evaluating_works() {
+        let mut exp = str_to_exp("(())".to_string());
+        assert_eq!(is_self_evaluating(&exp), Exp::Bool(true));
+        exp = str_to_exp("((1 2 (3 4 ()) 5))".to_string());
+        assert_eq!(is_self_evaluating(&exp), Exp::Bool(true));
+        exp = str_to_exp("((1 2 'summer (3 ()) (\"winter is coming\"  5)))".to_string());
+        assert_eq!(is_self_evaluating(&exp), Exp::Bool(true));
+    }
     /*
     #[test]
     fn read_works() {
