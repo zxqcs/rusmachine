@@ -23,7 +23,9 @@ use memory::memory::Memory;
 use parserfordev::parser::scheme_list_pretty_print;
 use representation::type_system::Object;
 
-fn main() {}
+fn main() {
+    initialize_env_works();
+}
 
 #[allow(dead_code)]
 fn build_syntax_tree_into_memeory_works() {
@@ -168,4 +170,14 @@ fn assemble_works() {
     );
     machine.add_machine_op("machine_statistics".to_string(), machine_statistics);
     machine.call_machine_op("machine_statistics".to_string(), &mut memory);
+}
+
+#[allow(dead_code)]
+fn initialize_env_works() {
+    let mut machine = BasicMachine::new();
+    let mut memory = Memory::new(30);
+    machine.initilize_registers();
+    machine.initialize_env(&mut memory);
+    let env = machine.get_register_contents_as_in_memory(&"env".to_string(), &memory);
+    println!("{}", env);
 }

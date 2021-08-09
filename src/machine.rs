@@ -3,8 +3,11 @@ pub mod basic_machine {
     use crate::infrastructure::register::Register;
     use crate::infrastructure::stack::Stack;
     use crate::memory::memory::Memory;
+    use crate::parserfordev::parser::{exp_to_str, str_to_exp};
+    use crate::primitives::primitives::define_variable;
     use crate::representation::type_system::Object;
-    use crate::tpfordev::type_system::{car, cdr, Exp};
+    use crate::scheme_list;
+    use crate::tpfordev::type_system::{append, car, cdr, scheme_cons, Exp, Pair};
     use std::collections::HashMap;
     use std::mem;
 
@@ -71,6 +74,22 @@ pub mod basic_machine {
             );
             self.set_register_contents(&"free".to_string(), Object::Index(0));
             self.set_register_contents(&"pc".to_string(), Object::Index(0));
+        }
+
+        // after initialization of env, the environment has the form of
+        // (((car cdr cons + - *  /) (primitive car) ... (primitive /)))
+        #[allow(dead_code)]
+        pub fn initialize_env(&mut self, memory: &mut Memory) {
+            let mut env = Exp::List(Pair::Nil);
+            let primitives = ["car", "cdr", "cons", "+", "-", "*", "/"];
+            for item in primitives.iter() {
+                let mut p = str_to_exp("(primitive )".to_string());
+                let token = Exp::Symbol((**item).to_string());
+                p = append(p, token);
+                let args = scheme_list!(Exp::Symbol((**item).to_string()), p, env);
+                env = define_variable(&args);
+            }
+            self.set_register_contents_as_in_memory(&"env".to_string(), exp_to_str(env), memory);
         }
 
         pub fn install_raw_instructions(&mut self, insts: &Exp) {

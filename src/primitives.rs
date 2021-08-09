@@ -10,7 +10,9 @@ pub mod primitives {
         tpfordev::type_system::{append, car, cdr, scheme_cons, set_car, set_cdr, Exp, Pair},
     };
 
-    /* primitives that is used in basic Scheme list operations */
+    /* primitives that are used as basic Scheme list operations
+    note that these procedurs are not used as machine and semantic primitives
+    directly, but machine promitives are built upon these list operations */
     #[allow(dead_code)]
     pub fn cadr(exp: &Exp) -> Result<Exp, &'static str> {
         let s = cdr(exp).unwrap();
@@ -68,6 +70,7 @@ pub mod primitives {
         let s2 = cdr(&s1);
         s2
     }
+
     /* The procedurs below are primitives of machine ops
     which is, has machine and memory as args */
     #[allow(dead_code)]
@@ -80,11 +83,6 @@ pub mod primitives {
     #[allow(dead_code)]
     pub fn initialize_stack(machine: &mut BasicMachine, _memory: &mut Memory) {
         machine.stack = Stack::new();
-    }
-
-    #[allow(dead_code)]
-    pub fn initialize_env(machine: &mut BasicMachine, memory: &mut Memory) {
-        machine.set_register_contents_as_in_memory(&"evn".to_string(), "".to_string(), memory);
     }
 
     #[allow(dead_code)]
@@ -117,7 +115,6 @@ pub mod primitives {
 
     /* The procedures below are semantic ops for machine
     such as self_evaluating in eval dispatch */
-
     // semantic primitives for IO
     #[allow(dead_code)]
     pub fn announce_output(_exp: &Exp) -> Exp {
@@ -147,7 +144,7 @@ pub mod primitives {
     }
 
     // semantic primitives that return a Scheme Object(Exp)
-    // although these primitives are more like machine ops,
+    // although these primitives below are more like machine ops,
     // but they are independent of machine and memory state,
     // such that these primitives are classified as semantic primitives
     #[allow(dead_code)]
@@ -222,6 +219,56 @@ pub mod primitives {
         scheme_list!(tag, parameters.clone(), body.clone(), env.clone())
     }
 
+    #[allow(dead_code)]
+    pub fn operands(args: &Exp) -> Exp {
+        let exp = car(args).unwrap();
+        cdr(&exp).unwrap()
+    }
+
+    #[allow(dead_code)]
+    pub fn operator(args: &Exp) -> Exp {
+        let exp = car(args).unwrap();
+        car(&exp).unwrap()
+    }
+
+    #[allow(dead_code)]
+    pub fn empty_arglist(_args: &Exp) -> Exp {
+        Exp::List(Pair::Nil)
+    }
+
+    #[allow(dead_code)]
+    pub fn is_no_operands(args: &Exp) -> Exp {
+        let exp = car(args).unwrap();
+        if exp.is_null() {
+            Exp::Bool(true)
+        } else {
+            Exp::Bool(false)
+        }
+    }
+
+    #[allow(dead_code)]
+    pub fn is_last_operand(args: &Exp) -> Exp {
+        let exp = car(args).unwrap();
+        let ops = cdr(&exp).unwrap();
+        if ops.is_null() {
+            Exp::Bool(true)
+        } else {
+            Exp::Bool(false)
+        }
+    }
+
+    #[allow(dead_code)]
+    pub fn first_operand(args: &Exp) -> Exp {
+        let exp = car(args).unwrap();
+        car(&exp).unwrap()
+    }
+
+    #[allow(dead_code)]
+    pub fn rest_operands(args: &Exp) -> Exp {
+        let exp = car(args).unwrap();
+        cdr(&exp).unwrap()
+    }
+
     // semantic primitives that are related to lambda dispatch
     #[allow(dead_code)]
     pub fn lambda_parameters(args: &Exp) -> Exp {
@@ -235,7 +282,22 @@ pub mod primitives {
         cddr(&exp).unwrap()
     }
 
+    #[allow(dead_code)]
+    pub fn adjoin_arg(args: &Exp) -> Exp {
+        let arg = car(args).unwrap();
+        let arglist = cadr(args).unwrap();
+        append(arglist, scheme_list!(arg))
+    }
+
     // semantic operations that return a Scheme bool value
+    #[allow(dead_code)]
+    pub fn is_primitive_procedure(args: &Exp) -> Exp {
+        let exp = car(args).unwrap();
+        let tag = Exp::Symbol("primitive".to_string());
+        let args = scheme_list!(exp, tag);
+        is_tagged_list(&args)
+    }
+
     #[allow(dead_code)]
     pub fn is_eq(exp: &Exp) -> Exp {
         let lhs = car(exp).unwrap();
@@ -469,13 +531,12 @@ pub mod primitives {
 mod test {
     use crate::{
         append,
-        parserfordev::parser::str_to_exp,
         primitives::primitives::{
             caadr, caar, cadddr, caddr, cadr, cdadr, cdar, cdddr, cddr, define_variable,
-            is_assignment, is_definition, is_self_evaluating, is_tagged_list, lambda_body,
-            lambda_parameters, lookup_variable_value, multiply,
+            is_assignment, is_definition, is_primitive_procedure, is_self_evaluating,
+            is_tagged_list, lambda_body, lambda_parameters, lookup_variable_value, multiply,
         },
-        scheme_cons, scheme_list,
+        scheme_cons, scheme_list, str_to_exp,
         tpfordev::type_system::Exp,
         Pair,
     };
@@ -565,6 +626,12 @@ mod test {
     fn is_definition_works() {
         let args = str_to_exp("((define x 1))".to_string());
         assert_eq!(is_definition(&args), Exp::Bool(true));
+    }
+
+    #[test]
+    fn is_primitive_procedure_works() {
+        let args = str_to_exp("((primitive cons))".to_string());
+        assert_eq!(is_primitive_procedure(&args), Exp::Bool(true));
     }
 
     #[test]
