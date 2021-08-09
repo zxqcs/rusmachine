@@ -9,6 +9,8 @@ pub mod primitives {
         scheme_list,
         tpfordev::type_system::{append, car, cdr, scheme_cons, set_car, set_cdr, Exp, Pair},
     };
+
+    /* primitives that is used in basic Scheme list operations */
     #[allow(dead_code)]
     pub fn cadr(exp: &Exp) -> Result<Exp, &'static str> {
         let s = cdr(exp).unwrap();
@@ -66,7 +68,8 @@ pub mod primitives {
         let s2 = cdr(&s1);
         s2
     }
-    /* The procedurs belwo are machine ops */
+    /* The procedurs below are primitives of machine ops
+    which is, has machine and memory as args */
     #[allow(dead_code)]
     pub fn machine_statistics(machine: &mut BasicMachine, _memory: &mut Memory) {
         machine.stack.statistics();
@@ -112,7 +115,9 @@ pub mod primitives {
         }
     }
 
-    /* The procedures below are semantic ops for machine */
+    /* The procedures below are semantic ops for machine
+    such as self_evaluating in eval dispatch */
+
     // semantic primitives for IO
     #[allow(dead_code)]
     pub fn announce_output(_exp: &Exp) -> Exp {
@@ -142,6 +147,9 @@ pub mod primitives {
     }
 
     // semantic primitives that return a Scheme Object(Exp)
+    // although these primitives are more like machine ops,
+    // but they are independent of machine and memory state,
+    // such that these primitives are classified as semantic primitives
     #[allow(dead_code)]
     pub fn multiply(exp: &Exp) -> Exp {
         let lhs = car(exp).unwrap();
@@ -192,6 +200,7 @@ pub mod primitives {
         }
     }
 
+    // semantic primitives that are related to apply dispatch
     #[allow(dead_code)]
     pub fn procedure_parameters(exp: &Exp) -> Exp {
         let p = car(exp).unwrap();
@@ -202,6 +211,28 @@ pub mod primitives {
     pub fn procedure_body(exp: &Exp) -> Exp {
         let p = car(exp).unwrap();
         caddr(&p).unwrap()
+    }
+
+    #[allow(dead_code)]
+    pub fn make_procedure(args: &Exp) -> Exp {
+        let parameters = car(args).unwrap();
+        let body = cadr(args).unwrap();
+        let env = caddr(args).unwrap();
+        let tag = Exp::Symbol("procedure".to_string());
+        scheme_list!(tag, parameters.clone(), body.clone(), env.clone())
+    }
+
+    // semantic primitives that are related to lambda dispatch
+    #[allow(dead_code)]
+    pub fn lambda_parameters(args: &Exp) -> Exp {
+        let exp = car(args).unwrap();
+        cadr(&exp).unwrap()
+    }
+
+    #[allow(dead_code)]
+    pub fn lambda_body(args: &Exp) -> Exp {
+        let exp = car(args).unwrap();
+        cddr(&exp).unwrap()
     }
 
     // semantic operations that return a Scheme bool value
@@ -364,15 +395,6 @@ pub mod primitives {
         cadr(args).unwrap()
     }
 
-    #[allow(dead_code)]
-    pub fn make_procedure(args: &Exp) -> Exp {
-        let parameters = car(args).unwrap();
-        let body = cadr(args).unwrap();
-        let env = caddr(args).unwrap();
-        let tag = Exp::Symbol("procedure".to_string());
-        scheme_list!(tag, parameters.clone(), body.clone(), env.clone())
-    }
-
     // note that by define_variable, for example,
     // a env (((a b c) 1 2 3))
     // is transformed to (((a b c x) 1 2 3 4))
@@ -450,8 +472,8 @@ mod test {
         parserfordev::parser::str_to_exp,
         primitives::primitives::{
             caadr, caar, cadddr, caddr, cadr, cdadr, cdar, cdddr, cddr, define_variable,
-            is_assignment, is_definition, is_self_evaluating, is_tagged_list,
-            lookup_variable_value, multiply,
+            is_assignment, is_definition, is_self_evaluating, is_tagged_list, lambda_body,
+            lambda_parameters, lookup_variable_value, multiply,
         },
         scheme_cons, scheme_list,
         tpfordev::type_system::Exp,
@@ -611,5 +633,20 @@ mod test {
         assert_eq!(is_self_evaluating(&exp), Exp::Bool(true));
         exp = str_to_exp("((1 2 'summer (3 ()) (\"winter is coming\"  5)))".to_string());
         assert_eq!(is_self_evaluating(&exp), Exp::Bool(true));
+    }
+
+    #[test]
+    fn lambda_parameters_works() {
+        let args = str_to_exp("((lambad (x) (* x x)))".to_string());
+        assert_eq!(
+            lambda_parameters(&args),
+            scheme_list!(Exp::Symbol("x".to_string()))
+        );
+    }
+
+    #[test]
+    fn lambda_body_works() {
+        let args = str_to_exp("((lambad (x) (* x x)))".to_string());
+        assert_eq!(lambda_body(&args), str_to_exp("((* x x))".to_string()));
     }
 }
