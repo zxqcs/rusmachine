@@ -81,7 +81,7 @@ pub mod basic_machine {
         #[allow(dead_code)]
         pub fn initialize_env(&mut self, memory: &mut Memory) {
             let mut env = Exp::List(Pair::Nil);
-            let primitives = ["car", "cdr", "cons", "+", "-", "*", "/"];
+            let primitives = ["car", "cdr", "cons", "null?", "+", "-", "*", "/"];
             for item in primitives.iter() {
                 let mut p = str_to_exp("(primitive )".to_string());
                 let token = Exp::Symbol((**item).to_string());
@@ -323,7 +323,7 @@ pub mod basic_machine {
 
 #[cfg(test)]
 mod test {
-    use crate::primitives::primitives::machine_statistics;
+    use crate::primitives::primitives::{lookup_variable_value, machine_statistics};
     use crate::tpfordev::type_system::{append, scheme_cons};
     use crate::{
         memory::memory::Memory,
@@ -403,5 +403,17 @@ mod test {
             true
         );
         machine.call_machine_op("machine_statistics".to_string(), &mut memory);
+    }
+
+    #[test]
+    fn initialize_env_works() {
+        let mut machine = BasicMachine::new();
+        let mut memory = Memory::new(40);
+        machine.initilize_registers();
+        machine.initialize_env(&mut memory);
+        let env = machine.get_register_contents_as_in_memory(&"env".to_string(), &memory);
+        let args = scheme_list!(Exp::Symbol("cons".to_string()), str_to_exp(env));
+        let r = lookup_variable_value(&args);
+        assert_eq!(r, str_to_exp("(primitive cons)".to_string()));
     }
 }
