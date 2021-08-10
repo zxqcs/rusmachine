@@ -156,18 +156,46 @@ pub mod primitives {
                 Exp::Integer(y) => return Exp::Integer(x * y),
                 Exp::FloatNumber(y) => return Exp::FloatNumber(x as f32 * y),
                 _ => {
-                    panic!("Error: Invalid operation for MULTIPLY!");
+                    panic!("Error: Invalid operand for MULTIPLY!");
                 }
             },
             Exp::FloatNumber(x) => match rhs {
                 Exp::Integer(y) => return Exp::FloatNumber(x * y as f32),
                 Exp::FloatNumber(y) => return Exp::FloatNumber(x * y),
                 _ => {
-                    panic!("Error: Invalid operation for MULTIPLY!");
+                    panic!("Error: Invalid operand for MULTIPLY!");
                 }
             },
             _ => {
-                panic!("Error: Invalid operation for MULTIPLY!");
+                panic!("Error: Invalid operand for MULTIPLY!");
+            }
+        }
+    }
+
+    #[allow(dead_code)]
+    pub fn division(exp: &Exp) -> Exp {
+        let lhs = car(exp).unwrap();
+        let rhs = cadr(exp).unwrap();
+        if rhs == Exp::Integer(0) || rhs == Exp::FloatNumber(0.0) {
+            panic!("Error: denominator can't be ZERO!");
+        }
+        match lhs {
+            Exp::Integer(x) => match rhs {
+                Exp::Integer(y) => return Exp::FloatNumber(x as f32 / y as f32),
+                Exp::FloatNumber(y) => return Exp::FloatNumber(x as f32 / y),
+                _ => {
+                    panic!("Error: Invalid operand for DIVISION!");
+                }
+            },
+            Exp::FloatNumber(x) => match rhs {
+                Exp::Integer(y) => return Exp::FloatNumber(x / y as f32),
+                Exp::FloatNumber(y) => return Exp::FloatNumber(x / y),
+                _ => {
+                    panic!("Error: Invalid operand for DIVISION!");
+                }
+            },
+            _ => {
+                panic!("Error: Invalid operation for DIVISION!");
             }
         }
     }
@@ -181,18 +209,43 @@ pub mod primitives {
                 Exp::Integer(y) => return Exp::Integer(x - y),
                 Exp::FloatNumber(y) => return Exp::FloatNumber(x as f32 - y),
                 _ => {
-                    panic!("Error: Invalid operation for MULTIPLY!");
+                    panic!("Error: Invalid operand for SUBSTRACT!");
                 }
             },
             Exp::FloatNumber(x) => match rhs {
                 Exp::Integer(y) => return Exp::FloatNumber(x - y as f32),
                 Exp::FloatNumber(y) => return Exp::FloatNumber(x - y),
                 _ => {
-                    panic!("Error: Invalid operation for MULTIPLY!");
+                    panic!("Error: Invalid operation for SBUSTRACT!");
                 }
             },
             _ => {
-                panic!("Error: Invalid operation for MULTIPLY!");
+                panic!("Error: Invalid operation for SUBSTRACT!");
+            }
+        }
+    }
+
+    #[allow(dead_code)]
+    pub fn add(exp: &Exp) -> Exp {
+        let lhs = car(exp).unwrap();
+        let rhs = cadr(exp).unwrap();
+        match lhs {
+            Exp::Integer(x) => match rhs {
+                Exp::Integer(y) => return Exp::Integer(x + y),
+                Exp::FloatNumber(y) => return Exp::FloatNumber(x as f32 + y),
+                _ => {
+                    panic!("Error: Invalid operand for ADD!");
+                }
+            },
+            Exp::FloatNumber(x) => match rhs {
+                Exp::Integer(y) => return Exp::FloatNumber(x + y as f32),
+                Exp::FloatNumber(y) => return Exp::FloatNumber(x + y),
+                _ => {
+                    panic!("Error: Invalid operand for ADD!");
+                }
+            },
+            _ => {
+                panic!("Error: Invalid operand for ADD!");
             }
         }
     }
@@ -269,12 +322,41 @@ pub mod primitives {
         cdr(&exp).unwrap()
     }
 
+    // args: ((primitive car) (1 2 3))
+    // proc: (primitive car)
+    // argl: (1 2 3)
     #[allow(dead_code)]
     pub fn meta_apply_primitive_procedure(args: &Exp) -> Exp {
         let proc = car(args).unwrap();
-        let _argl = cadr(args).unwrap();
-        let _symbol = cadr(&proc).unwrap();
-        Exp::Bool(true)
+        let argl = cadr(args).unwrap();
+        let symbol = cadr(&proc).unwrap();
+        match symbol {
+            x if x == Exp::Symbol("car".to_string()) => car(&argl).unwrap(),
+            x if x == Exp::Symbol("cdr".to_string()) => cdr(&argl).unwrap(),
+            x if x == Exp::Symbol("cons".to_string()) => {
+                let lhs = car(&argl).unwrap();
+                let rhs = cadr(&argl).unwrap();
+                scheme_cons(lhs, rhs)
+            }
+            x if x == Exp::Symbol("null?".to_string()) => {
+                let exp = car(&argl).unwrap();
+                let r = exp.is_null();
+                match r {
+                    true => Exp::Bool(true),
+                    false => Exp::Bool(false),
+                }
+            }
+            x if x == Exp::Symbol("+".to_string()) => add(&argl),
+            x if x == Exp::Symbol("-".to_string()) => substract(&argl),
+            x if x == Exp::Symbol("*".to_string()) => multiply(&argl),
+            x if x == Exp::Symbol("/".to_string()) => division(&argl),
+            _ => {
+                panic!(
+                    "Error: primitives not implemented yet: {}",
+                    exp_to_str(symbol)
+                );
+            }
+        }
     }
 
     // semantic primitives that are related to lambda dispatch
@@ -542,7 +624,8 @@ mod test {
         primitives::primitives::{
             caadr, caar, cadddr, caddr, cadr, cdadr, cdar, cdddr, cddr, define_variable,
             is_assignment, is_definition, is_primitive_procedure, is_self_evaluating,
-            is_tagged_list, lambda_body, lambda_parameters, lookup_variable_value, multiply,
+            is_tagged_list, lambda_body, lambda_parameters, lookup_variable_value,
+            meta_apply_primitive_procedure, multiply,
         },
         scheme_cons, scheme_list, str_to_exp,
         tpfordev::type_system::Exp,
@@ -723,5 +806,44 @@ mod test {
     fn lambda_body_works() {
         let args = str_to_exp("((lambad (x) (* x x)))".to_string());
         assert_eq!(lambda_body(&args), str_to_exp("((* x x))".to_string()));
+    }
+
+    #[test]
+    fn meta_apply_primitive_procedure_works() {
+        let mut args = str_to_exp("((primitive +) (1  2.1))".to_string());
+        assert_eq!(meta_apply_primitive_procedure(&args), Exp::FloatNumber(3.1));
+        args = str_to_exp("((primitive +) (1  2))".to_string());
+        assert_eq!(meta_apply_primitive_procedure(&args), Exp::Integer(3));
+        args = str_to_exp("((primitive -) (3.14  2))".to_string());
+        assert_eq!(
+            meta_apply_primitive_procedure(&args),
+            Exp::FloatNumber(1.1400001)
+        );
+        args = str_to_exp("((primitive - ) (3  2))".to_string());
+        assert_eq!(meta_apply_primitive_procedure(&args), Exp::Integer(1));
+        args = str_to_exp("((primitive *) (3  2))".to_string());
+        assert_eq!(meta_apply_primitive_procedure(&args), Exp::Integer(6));
+        args = str_to_exp("((primitive *) (3  2.1))".to_string());
+        assert_eq!(
+            meta_apply_primitive_procedure(&args),
+            Exp::FloatNumber(6.2999997)
+        );
+        args = str_to_exp("((primitive /) (3  2))".to_string());
+        assert_eq!(meta_apply_primitive_procedure(&args), Exp::FloatNumber(1.5));
+        args = str_to_exp("((primitive cons) (1  ()))".to_string());
+        assert_eq!(
+            meta_apply_primitive_procedure(&args),
+            str_to_exp("(1)".to_string())
+        );
+        args = str_to_exp("((primitive car) (1 2 3))".to_string());
+        assert_eq!(
+            meta_apply_primitive_procedure(&args),
+            str_to_exp("1".to_string())
+        );
+        args = str_to_exp("((primitive cdr) (1 2 3))".to_string());
+        assert_eq!(
+            meta_apply_primitive_procedure(&args),
+            str_to_exp("(2 3)".to_string())
+        );
     }
 }
