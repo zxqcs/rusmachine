@@ -269,6 +269,14 @@ pub mod primitives {
         cdr(&exp).unwrap()
     }
 
+    #[allow(dead_code)]
+    pub fn meta_apply_primitive_procedure(args: &Exp) -> Exp {
+        let proc = car(args).unwrap();
+        let _argl = cadr(args).unwrap();
+        let _symbol = cadr(&proc).unwrap();
+        Exp::Bool(true)
+    }
+
     // semantic primitives that are related to lambda dispatch
     #[allow(dead_code)]
     pub fn lambda_parameters(args: &Exp) -> Exp {

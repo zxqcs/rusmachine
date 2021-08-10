@@ -1,5 +1,5 @@
 pub mod type_system {
-    use crate::representation::type_system::Object;
+    use crate::{parserfordev::parser::exp_to_str, representation::type_system::Object};
 
     #[allow(dead_code)]
     #[derive(Debug, Clone)]
@@ -43,6 +43,13 @@ pub mod type_system {
                     Pair::Nil => false,
                     _ => true,
                 },
+                _ => false,
+            }
+        }
+
+        pub fn is_list(&self) -> bool {
+            match self {
+                Exp::List(_x) => true,
                 _ => false,
             }
         }
@@ -177,6 +184,9 @@ pub mod type_system {
 
     #[allow(dead_code)]
     pub fn append(lhs: Exp, rhs: Exp) -> Exp {
+        if !lhs.is_list() {
+            panic!("Error: lhs must be a List for append {}", exp_to_str(lhs));
+        }
         let null = Exp::List(Pair::Nil);
         if lhs == null {
             rhs
@@ -394,5 +404,17 @@ mod test {
         assert_eq!(exp.is_self_evuluating_list(), true);
         exp = str_to_exp("(1 ( 2 3) (x 4))".to_string());
         assert_eq!(exp.is_self_evuluating_list(), false);
+    }
+
+    #[test]
+    fn append_works() {
+        let mut lhs = str_to_exp("(x y)".to_string());
+        let rhs = str_to_exp("((1 2 3))".to_string());
+        assert_eq!(
+            append(lhs, rhs.clone()),
+            str_to_exp("(x y (1 2 3))".to_string())
+        );
+        lhs = Exp::List(Pair::Nil);
+        assert_eq!(append(lhs, rhs.clone()), rhs);
     }
 }
