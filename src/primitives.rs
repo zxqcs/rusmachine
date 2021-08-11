@@ -359,6 +359,15 @@ pub mod primitives {
         }
     }
 
+    // This primitive is used to debug evaluator controller as to print the content
+    // of specific register in the process of evaluation
+    #[allow(dead_code)]
+    pub fn print_reg_content(args: &Exp) -> Exp {
+        let content = car(args).unwrap();
+        println!("{}", exp_to_str(content));
+        Exp::Quote("ok".to_string())
+    }
+
     // semantic primitives that are related to lambda dispatch
     #[allow(dead_code)]
     pub fn lambda_parameters(args: &Exp) -> Exp {
