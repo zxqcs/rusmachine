@@ -386,11 +386,10 @@ mod test {
         let lambda = str_to_exp(lambda_exp);
         let parameters = cadr(&lambda).unwrap();
         let body = caddr(&lambda).unwrap();
-        let env = Exp::List(Pair::Nil);
-        let args = scheme_list!(parameters.clone(), body.clone(), env.clone());
+        let args = scheme_list!(parameters.clone(), body.clone());
         let proc = machine.call_semantic_op("make_procedure".to_string(), &args);
         let tag = Exp::Symbol("procedure".to_string());
-        assert_eq!(proc, scheme_list!(tag, parameters, body, env));
+        assert_eq!(proc, scheme_list!(tag, parameters, body));
     }
 
     #[test]

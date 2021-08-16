@@ -7,7 +7,9 @@ pub mod primitives {
         parserfordev::parser::{exp_to_str, str_to_exp},
         representation::type_system::Object,
         scheme_list,
-        tpfordev::type_system::{append, car, cdr, scheme_cons, set_car, set_cdr, Exp, Pair},
+        tpfordev::type_system::{
+            append, car, cdr, list_length, scheme_cons, set_car, set_cdr, Exp, Pair,
+        },
     };
 
     /* primitives that are used as basic Scheme list operations
@@ -257,19 +259,20 @@ pub mod primitives {
         cadr(&p).unwrap()
     }
 
+    // procedure sample: (procedure (x) (* x x))
     #[allow(dead_code)]
     pub fn procedure_body(exp: &Exp) -> Exp {
         let p = car(exp).unwrap();
         caddr(&p).unwrap()
     }
 
+    // note that there's no env component in making procedure, just parameters and body
     #[allow(dead_code)]
     pub fn make_procedure(args: &Exp) -> Exp {
         let parameters = car(args).unwrap();
         let body = cadr(args).unwrap();
-        let env = caddr(args).unwrap();
         let tag = Exp::Symbol("procedure".to_string());
-        scheme_list!(tag, parameters.clone(), body.clone(), env.clone())
+        scheme_list!(tag, parameters.clone(), body.clone())
     }
 
     #[allow(dead_code)]
@@ -388,7 +391,38 @@ pub mod primitives {
         append(arglist, scheme_list!(arg))
     }
 
+    // semantic primitives that are realted to begin dispatch
+    #[allow(dead_code)]
+    //  (begin (set! x 5) (+ x 1))
+    pub fn begin_actions(args: &Exp) -> Exp {
+        let exp = car(args).unwrap();
+        cdr(&exp).unwrap()
+    }
+
+    #[allow(dead_code)]
+    pub fn first_exp(args: &Exp) -> Exp {
+        let seq = car(args).unwrap();
+        car(&seq).unwrap()
+    }
+
+    #[allow(dead_code)]
+    pub fn rest_exps(args: &Exp) -> Exp {
+        let seq = car(args).unwrap();
+        cdr(&seq).unwrap()
+    }
+
     // semantic operations that return a Scheme bool value
+    #[allow(dead_code)]
+    pub fn is_last_exp(args: &Exp) -> Exp {
+        let seq = car(args).unwrap();
+        let exp = cdr(&seq).unwrap();
+        if exp.is_null() {
+            Exp::Bool(true)
+        } else {
+            Exp::Bool(false)
+        }
+    }
+
     #[allow(dead_code)]
     pub fn is_primitive_procedure(args: &Exp) -> Exp {
         let exp = car(args).unwrap();
@@ -513,6 +547,21 @@ pub mod primitives {
 
     // semantic primitives and helper procedures that has a effect on environment
     // or lookup var-val pair in environment
+
+    #[allow(dead_code)]
+    pub fn extend_environment(args: &Exp) -> Exp {
+        // args = vars+vals+base_env
+        let vars = car(args).unwrap();
+        let vals = cadr(args).unwrap();
+        let base_env = caddr(args).unwrap();
+        if list_length(&vars) == list_length(&vals) {
+            let env = scheme_cons(make_frame(vars, vals), base_env);
+            env
+        } else {
+            panic!("Error: NUMBER of args mismatch!")
+        }
+    }
+
     #[allow(dead_code)]
     pub fn lookup_variable_value(args: &Exp) -> Exp {
         let var = car(args).unwrap();

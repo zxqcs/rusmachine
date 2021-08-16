@@ -130,9 +130,6 @@ compound-apply
           (op procedure-parameters)
           (reg proc))
   (assign env
-          (op procedure-environment)
-          (reg proc))
-  (assign env
           (op extend-environment)
           (reg unev)
           (reg argl)
