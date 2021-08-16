@@ -391,6 +391,29 @@ pub mod primitives {
         append(arglist, scheme_list!(arg))
     }
 
+    // semantic primitives that are related to if dispatch
+    #[allow(dead_code)]
+    pub fn if_predicate(args: &Exp) -> Exp {
+        let exp = car(args).unwrap();
+        cadr(&exp).unwrap()
+    }
+
+    #[allow(dead_code)]
+    pub fn if_alternative(args: &Exp) -> Exp {
+        let exp = car(args).unwrap();
+        if cdddr(&exp).unwrap().is_null() {
+            panic!("Error: if alternative not exist!");
+        } else {
+            cadddr(&exp).unwrap()
+        }
+    }
+
+    #[allow(dead_code)]
+    pub fn if_consequent(args: &Exp) -> Exp {
+        let exp = car(args).unwrap();
+        caddr(&exp).unwrap()
+    }
+
     // semantic primitives that are realted to begin dispatch
     #[allow(dead_code)]
     //  (begin (set! x 5) (+ x 1))
@@ -412,6 +435,16 @@ pub mod primitives {
     }
 
     // semantic operations that return a Scheme bool value
+    #[allow(dead_code)]
+    pub fn is_true(args: &Exp) -> Exp {
+        let exp = car(args).unwrap();
+        match exp {
+            Exp::Bool(true) => Exp::Bool(true),
+            Exp::Bool(false) => Exp::Bool(false),
+            _ => panic!("Error: not a legal BOOL value: {}", exp_to_str(exp)),
+        }
+    }
+
     #[allow(dead_code)]
     pub fn is_last_exp(args: &Exp) -> Exp {
         let seq = car(args).unwrap();
