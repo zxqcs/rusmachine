@@ -76,15 +76,17 @@ pub mod primitives {
     /* The procedurs below are primitives of machine ops
     which is, has machine and memory as args */
     #[allow(dead_code)]
-    pub fn machine_statistics(machine: &mut BasicMachine, _memory: &mut Memory) {
+    pub fn machine_statistics(machine: &mut BasicMachine, _memory: &mut Memory) -> Exp {
         machine.stack.statistics();
+        Exp::Quote("ok".to_string())
     }
 
     // this procedure is called each time we enter the driver loop since that
     // error may happen in last round.
     #[allow(dead_code)]
-    pub fn initialize_stack(machine: &mut BasicMachine, _memory: &mut Memory) {
+    pub fn initialize_stack(machine: &mut BasicMachine, _memory: &mut Memory) -> Exp {
         machine.stack = Stack::new();
+        Exp::Quote("ok".to_string())
     }
 
     #[allow(dead_code)]
@@ -93,7 +95,7 @@ pub mod primitives {
     }
 
     #[allow(dead_code)]
-    pub fn read(machine: &mut BasicMachine, memory: &mut Memory) {
+    pub fn read(machine: &mut BasicMachine, memory: &mut Memory) -> Exp {
         let mut s = "".to_string();
         let r = read_scheme_programs_from_stdin(&mut s);
         match r {
@@ -113,6 +115,7 @@ pub mod primitives {
                 panic!("Error when reading input {}", x);
             }
         }
+        Exp::Quote("ok".to_string())
     }
 
     /* The procedures below are semantic ops for machine

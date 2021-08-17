@@ -13,19 +13,24 @@ mod tpfordev;
 
 use crate::assembler::assembler::{assemble, extract_labels_alternative};
 use crate::machine::basic_machine::BasicMachine;
-use crate::parser::parser::{build_syntax_tree_into_memeory, tokenizer};
+use crate::parser::parser::{build_syntax_tree_into_memeory, syntax_checker, tokenizer};
 use crate::parserfordev::parser::{exp_to_str, print, str_to_exp};
 use crate::primitives::primitives::{
     define_variable, is_eq, machine_statistics, multiply, read, substract,
 };
 use crate::tpfordev::type_system::{append, scheme_cons, Exp, Pair};
+use evaluator::evaluator::Evaluator;
 use machine_cases::machine_case::MachineCase;
 use memory::memory::Memory;
 use parserfordev::parser::scheme_list_pretty_print;
 use representation::type_system::Object;
 
 fn main() {
-    initialize_env_works();
+    let evaluator = Evaluator::new();
+    assert_eq!(
+        syntax_checker(&tokenizer(evaluator.controller_text.to_string())),
+        true
+    );
 }
 
 #[allow(dead_code)]
@@ -135,7 +140,7 @@ fn machine_ops_works() {
     machine.add_machine_op("machine_statistics".to_string(), machine_statistics);
     let mut memory = Memory::new(10);
     assert_eq!(
-        machine.is_machine_op("machine_statistics".to_string()),
+        machine.is_machine_op(&"machine_statistics".to_string()),
         true
     );
     machine.call_machine_op("machine_statistics".to_string(), &mut memory);

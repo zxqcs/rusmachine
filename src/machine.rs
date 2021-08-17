@@ -26,7 +26,7 @@ pub mod basic_machine {
     }
 
     type CallbackExp = fn(&Exp) -> Exp;
-    type Callbackmachine = fn(&mut BasicMachine, &mut Memory);
+    type Callbackmachine = fn(&mut BasicMachine, &mut Memory) -> Exp;
 
     impl BasicMachine {
         // Register exp is used to hold the expression to be evaluated
@@ -141,18 +141,18 @@ pub mod basic_machine {
         }
 
         #[allow(dead_code)]
-        pub fn call_machine_op(&mut self, fn_name: String, memory: &mut Memory) {
+        pub fn call_machine_op(&mut self, fn_name: String, memory: &mut Memory) -> Exp {
             self.machine_ops[&fn_name](self, memory)
         }
 
         #[allow(dead_code)]
-        pub fn is_semantic_op(&self, fn_name: String) -> bool {
-            self.semantic_ops.contains_key(&fn_name)
+        pub fn is_semantic_op(&self, fn_name: &String) -> bool {
+            self.semantic_ops.contains_key(fn_name)
         }
 
         #[allow(dead_code)]
-        pub fn is_machine_op(&self, fn_name: String) -> bool {
-            self.machine_ops.contains_key(&fn_name)
+        pub fn is_machine_op(&self, fn_name: &String) -> bool {
+            self.machine_ops.contains_key(fn_name)
         }
 
         pub fn new() -> Self {
@@ -398,7 +398,7 @@ mod test {
         machine.add_machine_op("machine_statistics".to_string(), machine_statistics);
         let mut memory = Memory::new(10);
         assert_eq!(
-            machine.is_machine_op("machine_statistics".to_string()),
+            machine.is_machine_op(&"machine_statistics".to_string()),
             true
         );
         machine.call_machine_op("machine_statistics".to_string(), &mut memory);

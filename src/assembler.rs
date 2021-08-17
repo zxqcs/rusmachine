@@ -491,7 +491,14 @@ pub mod assembler {
         let lambda = |machine: &mut BasicMachine, memory: &mut Memory| {
             let data = operands;
             let evaluated_operands = eval_operands_iter(data, machine, memory);
-            let result = machine.call_semantic_op(op_name, &evaluated_operands);
+            let result;
+            if machine.is_semantic_op(&op_name) {
+                result = machine.call_semantic_op(op_name, &evaluated_operands);
+            } else if machine.is_machine_op(&op_name) {
+                result = machine.call_machine_op(op_name, memory);
+            } else {
+                panic!("Error: no such OPERATION!");
+            }
             result
         };
         Box::new(lambda)
