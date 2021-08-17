@@ -1,4 +1,5 @@
 mod assembler;
+mod evaluator;
 mod gc;
 mod infrastructure;
 mod machine;
