@@ -391,6 +391,16 @@ pub mod primitives {
         append(arglist, scheme_list!(arg))
     }
 
+    #[allow(dead_code)]
+    pub fn make_lambad(args: &Exp) -> Exp {
+        let parameters = car(args).unwrap();
+        let body = cadr(args).unwrap();
+        scheme_cons(
+            Exp::Symbol("lambda".to_string()),
+            scheme_cons(parameters, body),
+        )
+    }
+
     // semantic primitives that are related to if dispatch
     #[allow(dead_code)]
     pub fn if_predicate(args: &Exp) -> Exp {
@@ -446,6 +456,33 @@ pub mod primitives {
         caddr(&exp).unwrap()
     }
 
+    // semantic primitives that are related to definition dispatch
+    #[allow(dead_code)]
+    pub fn definition_variable(args: &Exp) -> Exp {
+        let exp = car(args).unwrap();
+        if cadr(&exp).unwrap().is_symbol() {
+            cadr(&exp).unwrap()
+        } else {
+            caadr(&exp).unwrap()
+        }
+    }
+
+    #[allow(dead_code)]
+    pub fn definition_value(args: &Exp) -> Exp {
+        let exp = car(args).unwrap();
+        if cadr(&exp).unwrap().is_symbol() {
+            if cddr(&exp).unwrap().is_null() {
+                Exp::List(Pair::Nil)
+            } else {
+                cadddr(&exp).unwrap()
+            }
+        } else {
+            let parameters = cdadr(&exp).unwrap();
+            let body = cddr(&exp).unwrap();
+            let args = scheme_list!(parameters, body);
+            make_lambad(&args)
+        }
+    }
     // semantic operations that return a Scheme bool value
     #[allow(dead_code)]
     pub fn is_true(args: &Exp) -> Exp {

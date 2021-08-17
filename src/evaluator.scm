@@ -222,7 +222,7 @@ ev-definition-1
   (restore continue)
   (restore env)
   (restore unev)
-  (perform (op define-variable!)
+  (assign env (op define-variable!)
            (reg unev)
            (reg val)
            (reg env))
