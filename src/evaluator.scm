@@ -231,13 +231,13 @@ ev-definition-1
 unknown-expression-type
   (assign 
    val
-   (const unknown-expression-type-error))
+   (const 'unknown-expression-type-error))
   (goto (label signal-error))
 unknown-procedure-type
   (restore continue)    
   (assign 
    val
-   (const unknown-procedure-type-error))
+   (const 'unknown-procedure-type-error))
   (goto (label signal-error))
 signal-error
   (perform (op user-print) (reg val))
