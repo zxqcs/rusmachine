@@ -434,6 +434,18 @@ pub mod primitives {
         cdr(&seq).unwrap()
     }
 
+    // semantic primitives that are related to assignment dispatch
+    #[allow(dead_code)]
+    pub fn assignment_variable(args: &Exp) -> Exp {
+        cadr(args).unwrap()
+    }
+
+    #[allow(dead_code)]
+    pub fn assignment_value(args: &Exp) -> Exp {
+        let exp = car(args).unwrap();
+        caddr(&exp).unwrap()
+    }
+
     // semantic operations that return a Scheme bool value
     #[allow(dead_code)]
     pub fn is_true(args: &Exp) -> Exp {
@@ -580,7 +592,6 @@ pub mod primitives {
 
     // semantic primitives and helper procedures that has a effect on environment
     // or lookup var-val pair in environment
-
     #[allow(dead_code)]
     pub fn extend_environment(args: &Exp) -> Exp {
         // args = vars+vals+base_env
@@ -631,11 +642,6 @@ pub mod primitives {
         } else {
             scan(&cdr(vars).unwrap(), &cdr(vals).unwrap(), target)
         }
-    }
-
-    #[allow(dead_code)]
-    pub fn assignment_variable(args: &Exp) -> Exp {
-        cadr(args).unwrap()
     }
 
     // note that by define_variable, for example,
@@ -704,6 +710,57 @@ pub mod primitives {
         } else {
             let temp = set_car(frame.clone(), scheme_cons(var, frame_variables(&frame))).unwrap();
             set_cdr(temp, scheme_cons(val, frame_values(&frame))).unwrap()
+        }
+    }
+
+    #[allow(dead_code)]
+    pub fn set_variable_value(var: Exp, val: Exp, env: Exp) -> Exp {
+        if env == Exp::List(Pair::Nil) {
+            panic!("unbound variable: SET!");
+        } else {
+            let mut tag = false;
+            let frame = first_frame(&env);
+            let s = scan_and_set(
+                frame_variables(&frame),
+                frame_values(&frame),
+                var.clone(),
+                val.clone(),
+                &mut tag,
+            );
+            if tag {
+                let temp_frame = set_cdr(frame, s).unwrap();
+                set_car(env, temp_frame).unwrap()
+            } else {
+                let enclosing_env = enclosing_environment(&env);
+                let temp_env = set_variable_value(var, val, enclosing_env);
+                set_cdr(env, temp_env).unwrap()
+            }
+        }
+    }
+
+    #[allow(dead_code)]
+    pub fn scan_and_set(
+        vars: Exp,
+        vals: Exp,
+        target_var: Exp,
+        target_val: Exp,
+        tag: &mut bool,
+    ) -> Exp {
+        let null = Exp::List(Pair::Nil);
+        if vars == null {
+            null
+        } else if target_var == car(&vars).unwrap() {
+            *tag = true;
+            set_car(vals, target_val).unwrap()
+        } else {
+            let temp_vals = scan_and_set(
+                cdr(&vars).unwrap(),
+                cdr(&vals).unwrap(),
+                target_var,
+                target_val,
+                tag,
+            );
+            set_cdr(vals, temp_vals).unwrap()
         }
     }
 }
