@@ -281,7 +281,7 @@ pub mod parser {
                 x if (x == "true"
                     || x == "false"
                     || is_i32(x.clone())
-                    || x == "\"".to_string()
+                    || x.chars().nth(0) == Some('"')
                     || x.chars().nth(0) == Some('\'')
                     || is_f32(x.clone())
                     || is_symbol(&x)) =>

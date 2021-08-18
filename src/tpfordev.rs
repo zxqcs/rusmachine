@@ -139,7 +139,7 @@ pub mod type_system {
                 Exp::FloatNumber(x) => Object::Number(*x),
                 Exp::Integer(x) => Object::Integer(*x),
                 Exp::Symbol(x) => Object::Symbol((*x).to_string()),
-                Exp::Quote(x) => Object::Symbol((*x).to_string()),
+                Exp::Quote(x) => Object::Quote((*x).to_string()),
                 Exp::Bool(x) => Object::Bool(*x),
                 Exp::Index(x) => Object::Index(*x),
                 Exp::SchemeString(x) => Object::LispString((*x).to_string()),

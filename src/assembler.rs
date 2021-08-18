@@ -197,16 +197,16 @@ pub mod assembler {
     ) -> Box<dyn FnOnce(&mut BasicMachine, &mut Memory) -> Exp> {
         let action = perform_action(&inst);
         let op_name = operation_exp_op(&action);
-        println!("op_name=>{}", exp_to_str(op_name.clone()));
-        let set_varialbe_value = Exp::Symbol("set-variable-value".to_string());
-        let define_variable = Exp::Symbol("define-variable".to_string());
+        // println!("op_name=>{}", exp_to_str(op_name.clone()));
+        let set_varialbe_value = Exp::Symbol("set-variable-value!".to_string());
+        let define_variable = Exp::Symbol("define-variable!".to_string());
         let flag;
         match op_name {
             x if x == set_varialbe_value => flag = true,
             x if x == define_variable => flag = true,
             _ => flag = false,
         }
-        println!("flag=>{}", flag);
+        // println!("flag=>{}", flag);
         if is_operation_exp(&action) {
             let action_proc = make_operation_exp(action, machine, memory);
             let lambda = move |machine: &mut BasicMachine, memory: &mut Memory| {
@@ -757,12 +757,13 @@ mod test {
 
     #[test]
     fn make_perform_works() {
-        let inst =
-            str_to_exp("(perform (op define-variable) (reg unev) (reg val) (reg env))".to_string());
+        let inst = str_to_exp(
+            "(perform (op define-variable!) (reg unev) (reg val) (reg env))".to_string(),
+        );
         let mut memory = Memory::new(20);
         let mut machine = BasicMachine::new();
         machine.initilize_registers();
-        machine.add_semantic_op("define-variable".to_string(), define_variable);
+        machine.add_semantic_op("define-variable!".to_string(), define_variable);
         machine.set_register_contents(&"unev".to_string(), Object::Symbol("x".to_string()));
         machine.set_register_contents(&"val".to_string(), Object::Integer(3));
         machine.set_register_contents_as_in_memory(
@@ -780,7 +781,4 @@ mod test {
         ));
         assert_eq!(str_to_exp(content), checkout);
     }
-
-    #[test]
-    fn assemble_works() {}
 }

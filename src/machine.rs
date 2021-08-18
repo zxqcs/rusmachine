@@ -300,6 +300,20 @@ pub mod basic_machine {
             machine
         }
 
+        #[allow(dead_code)]
+        pub fn print_insts(&mut self) {
+            let mut iter = self.raw_instructions.iter().enumerate();
+            let mut temp = iter.next();
+            while temp != None {
+                println!(
+                    "{}=> {}",
+                    temp.unwrap().0,
+                    exp_to_str((*temp.unwrap().1).clone())
+                );
+                temp = iter.next();
+            }
+        }
+
         pub fn get_register(&self, name: &String) -> Option<&Register> {
             self.registers.get(name)
         }

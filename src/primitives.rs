@@ -101,7 +101,9 @@ pub mod primitives {
         let r = read_scheme_programs_from_stdin(&mut s);
         match r {
             Ok(()) => {
+                // println!("{}", s.clone());
                 let exp = str_to_exp(s.clone());
+                // println!("{:?}", exp.clone());
                 match exp {
                     Exp::List(_x) => {
                         let index = memory.write(s, machine);
@@ -131,7 +133,8 @@ pub mod primitives {
     #[allow(dead_code)]
     pub fn user_print(exp: &Exp) -> Exp {
         let arg = car(exp).unwrap();
-        let r = is_compound_procedure(&arg);
+        // println!("{:?}", arg.clone());
+        let r = is_compound_procedure(&scheme_list!(arg.clone()));
         match r {
             Exp::Bool(true) => {
                 let val = scheme_list!(
@@ -531,6 +534,9 @@ pub mod primitives {
     #[allow(dead_code)]
     pub fn is_tagged_list(args: &Exp) -> Exp {
         let exp = car(args).unwrap();
+        if !exp.is_pair() {
+            return Exp::Bool(false);
+        }
         let tag = cadr(args).unwrap();
         if let Exp::Symbol(y) = tag {
             if let Exp::Symbol(x) = car(&exp).unwrap() {
@@ -611,6 +617,7 @@ pub mod primitives {
     #[allow(dead_code)]
     pub fn is_self_evaluating(args: &Exp) -> Exp {
         let exp = car(args).unwrap();
+        println!("{:?}", exp.clone());
         let r = exp.is_bool()
             || exp.is_null()
             || exp.is_number()

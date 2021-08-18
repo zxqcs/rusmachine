@@ -28,7 +28,7 @@ use representation::type_system::Object;
 fn main() {
     let evaluator = Evaluator::new().controller_text.to_string();
     let mut machine = BasicMachine::new();
-    let mut memory = Memory::new(100);
+    let mut memory = Memory::new(200);
     machine.initilize_registers();
     machine.initialize_op();
     machine.initialize_env(&mut memory);
