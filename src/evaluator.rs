@@ -10,7 +10,6 @@ pub mod evaluator {
             Evaluator {
                 name: "Evaluator",
                 controller_text: "(controller 
-                    (
                     read-eval-print-loop
                       (perform (op initialize-stack))
                       (perform (op prompt-for-input))
@@ -243,7 +242,7 @@ pub mod evaluator {
                     signal-error
                       (perform (op user-print) (reg val))
                       (goto (label read-eval-print-loop))
-                    ))",
+                    )",
             }
         }
     }

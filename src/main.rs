@@ -13,7 +13,7 @@ mod tpfordev;
 
 use crate::assembler::assembler::{assemble, extract_labels_alternative};
 use crate::machine::basic_machine::BasicMachine;
-use crate::parser::parser::{build_syntax_tree_into_memeory, syntax_checker, tokenizer};
+use crate::parser::parser::{build_syntax_tree_into_memeory, tokenizer};
 use crate::parserfordev::parser::{exp_to_str, print, str_to_exp};
 use crate::primitives::primitives::{
     define_variable, is_eq, machine_statistics, multiply, read, substract,
@@ -26,11 +26,14 @@ use parserfordev::parser::scheme_list_pretty_print;
 use representation::type_system::Object;
 
 fn main() {
-    let evaluator = Evaluator::new();
-    assert_eq!(
-        syntax_checker(&tokenizer(evaluator.controller_text.to_string())),
-        true
-    );
+    let evaluator = Evaluator::new().controller_text.to_string();
+    let mut machine = BasicMachine::new();
+    let mut memory = Memory::new(100);
+    machine.initilize_registers();
+    machine.initialize_op();
+    machine.initialize_env(&mut memory);
+    assemble(evaluator, &mut machine, &mut memory);
+    machine.execute(&mut memory);
 }
 
 #[allow(dead_code)]
