@@ -4,7 +4,10 @@ pub mod basic_machine {
     use crate::infrastructure::stack::Stack;
     use crate::memory::memory::Memory;
     use crate::parserfordev::parser::{exp_to_str, str_to_exp};
-    use crate::primitives::primitives::define_variable;
+    use crate::primitives::primitives::*;
+    use crate::primitives::primitives::{
+        announce_output, define_variable, initialize_stack, machine_statistics,
+    };
     use crate::representation::type_system::Object;
     use crate::scheme_list;
     use crate::tpfordev::type_system::{append, car, cdr, scheme_cons, Exp, Pair};
@@ -98,6 +101,135 @@ pub mod basic_machine {
                 let inst = car(insts).unwrap();
                 self.raw_instructions.push(inst);
                 self.install_raw_instructions(&cdr(insts).unwrap());
+            }
+        }
+
+        #[allow(dead_code)]
+        pub fn initialize_op(&mut self) {
+            let machine_ops = [
+                "machine-statistics",
+                "initialize-stack",
+                "prompt-for-input",
+                "read",
+            ];
+            let semantic_ops = [
+                "announce-output",
+                "user-print",
+                "multiply",
+                "division",
+                "substract",
+                "add",
+                "procedure-parameters",
+                "procedure-body",
+                "make-procedure",
+                "operands",
+                "operator",
+                "empty-arglist",
+                "no-operands?",
+                "last-operand?",
+                "first-operand",
+                "rest-operands",
+                "meta-apply-primitive-procedure",
+                "print-reg-content",
+                "lambda-parameters",
+                "lambda-body",
+                "adjoin-arg",
+                "make-lambda",
+                "if-predicate",
+                "if-alternative",
+                "if-consequent",
+                "begin-actions",
+                "first-exp",
+                "rest-exps",
+                "assignment-variable",
+                "assignment-value",
+                "definition-variable",
+                "definition-value",
+                "true?",
+                "last-exp?",
+                "primitive-procedure?",
+                "eq?",
+                "tagged-list?",
+                "variable?",
+                "assignment?",
+                "definition?",
+                "if?",
+                "lambda?",
+                "begin?",
+                "application?",
+                "self-evaluating?",
+                "compound-procedure?",
+                "extend-environment",
+                "lookup-variable-value",
+                "define-variable",
+                "set-variable-value",
+            ];
+
+            let machine_ops_object = [machine_statistics, initialize_stack, prompt_for_input, read];
+            let semantic_ops_object = [
+                announce_output,
+                user_print,
+                multiply,
+                division,
+                substract,
+                add,
+                procedure_parameters,
+                procedure_body,
+                make_procedure,
+                operands,
+                operator,
+                empty_arglist,
+                is_no_operands,
+                is_last_operand,
+                first_operand,
+                rest_operands,
+                meta_apply_primitive_procedure,
+                print_reg_content,
+                lambda_parameters,
+                lambda_body,
+                adjoin_arg,
+                make_lambad,
+                if_predicate,
+                if_alternative,
+                if_consequent,
+                begin_actions,
+                first_exp,
+                rest_exps,
+                assignment_variable,
+                assignment_value,
+                definition_variable,
+                definition_value,
+                is_true,
+                is_last_exp,
+                is_primitive_procedure,
+                is_eq,
+                is_tagged_list,
+                is_variable,
+                is_assignment,
+                is_definition,
+                is_if,
+                is_lambda,
+                is_begin,
+                is_application,
+                is_self_evaluating,
+                is_compound_procedure,
+                extend_environment,
+                lookup_variable_value,
+                define_variable,
+                set_variable_value,
+            ];
+            let mut count = 0;
+            while count != machine_ops.len() {
+                self.add_machine_op((*machine_ops[count]).to_string(), machine_ops_object[count]);
+                count += 1;
+            }
+            count = 0;
+            while count != semantic_ops.len() {
+                self.add_semantic_op(
+                    (*semantic_ops[count]).to_string(),
+                    semantic_ops_object[count],
+                );
+                count += 1;
             }
         }
 
@@ -414,5 +546,42 @@ mod test {
         let args = scheme_list!(Exp::Symbol("cons".to_string()), str_to_exp(env));
         let r = lookup_variable_value(&args);
         assert_eq!(r, str_to_exp("(primitive cons)".to_string()));
+    }
+
+    #[test]
+    fn initialize_op_works() {
+        let mut machine = BasicMachine::new();
+        machine.initialize_op();
+        assert_eq!(machine.machine_ops.contains_key(&"read".to_string()), true);
+        assert_eq!(
+            machine
+                .machine_ops
+                .contains_key(&"machine-statistics".to_string()),
+            true
+        );
+        assert_eq!(
+            machine
+                .semantic_ops
+                .contains_key(&"tagged-list?".to_string()),
+            true
+        );
+        assert_eq!(
+            machine
+                .semantic_ops
+                .contains_key(&"extend-environment".to_string()),
+            true
+        );
+        assert_eq!(
+            machine
+                .semantic_ops
+                .contains_key(&"lookup-variable-value".to_string()),
+            true
+        );
+        assert_eq!(
+            machine
+                .semantic_ops
+                .contains_key(&"rest-operands".to_string()),
+            true
+        );
     }
 }

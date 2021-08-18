@@ -90,8 +90,9 @@ pub mod primitives {
     }
 
     #[allow(dead_code)]
-    pub fn prompt_for_input(_machine: &mut BasicMachine, _memory: &mut Memory) {
+    pub fn prompt_for_input(_machine: &mut BasicMachine, _memory: &mut Memory) -> Exp {
         println!("=> ");
+        Exp::Quote("ok".to_string())
     }
 
     #[allow(dead_code)]
@@ -754,7 +755,10 @@ pub mod primitives {
     }
 
     #[allow(dead_code)]
-    pub fn set_variable_value(var: Exp, val: Exp, env: Exp) -> Exp {
+    pub fn set_variable_value(args: &Exp) -> Exp {
+        let var = car(args).unwrap();
+        let val = cadr(args).unwrap();
+        let env = caddr(args).unwrap();
         if env == Exp::List(Pair::Nil) {
             panic!("unbound variable: SET!");
         } else {
@@ -772,7 +776,8 @@ pub mod primitives {
                 set_car(env, temp_frame).unwrap()
             } else {
                 let enclosing_env = enclosing_environment(&env);
-                let temp_env = set_variable_value(var, val, enclosing_env);
+                let args = scheme_list!(var, val, enclosing_env);
+                let temp_env = set_variable_value(&args);
                 set_cdr(env, temp_env).unwrap()
             }
         }
