@@ -22,7 +22,6 @@ pub mod evaluator {
                       (goto (label read-eval-print-loop))
                     eval-dispatch
                       (test (op self-evaluating?) (reg exp))
-                      (perform (op print-reg-content)(reg flag))
                       (branch (label ev-self-eval))
                       (test (op variable?) (reg exp))
                       (branch (label ev-variable))

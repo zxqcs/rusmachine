@@ -161,8 +161,8 @@ pub mod basic_machine {
                 "compound-procedure?",
                 "extend-environment",
                 "lookup-variable-value",
-                "define-variable",
-                "set-variable-value",
+                "define-variable!",
+                "set-variable-value!",
             ];
 
             let machine_ops_object = [machine_statistics, initialize_stack, prompt_for_input, read];
@@ -524,7 +524,7 @@ mod test {
         let mut machine = BasicMachine::new();
         machine.add_semantic_op("assignment_variable".to_string(), assignment_variable);
         let assisgn_exp = "(assign a (reg b ))".to_string();
-        let assign = str_to_exp(assisgn_exp);
+        let assign = scheme_list!(str_to_exp(assisgn_exp));
         let var = machine.call_semantic_op("assignment_variable".to_string(), &assign);
         assert_eq!(var, Exp::Symbol("a".to_string()));
         machine.add_semantic_op("make_procedure".to_string(), make_procedure);

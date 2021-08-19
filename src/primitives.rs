@@ -454,7 +454,8 @@ pub mod primitives {
     // semantic primitives that are related to assignment dispatch
     #[allow(dead_code)]
     pub fn assignment_variable(args: &Exp) -> Exp {
-        cadr(args).unwrap()
+        let exp = car(args).unwrap();
+        cadr(&exp).unwrap()
     }
 
     #[allow(dead_code)]
@@ -477,11 +478,12 @@ pub mod primitives {
     #[allow(dead_code)]
     pub fn definition_value(args: &Exp) -> Exp {
         let exp = car(args).unwrap();
+        println!("def_value=> {}", exp_to_str(exp.clone()));
         if cadr(&exp).unwrap().is_symbol() {
             if cddr(&exp).unwrap().is_null() {
                 Exp::List(Pair::Nil)
             } else {
-                cadddr(&exp).unwrap()
+                caddr(&exp).unwrap()
             }
         } else {
             let parameters = cdadr(&exp).unwrap();
@@ -766,6 +768,7 @@ pub mod primitives {
         let var = car(args).unwrap();
         let val = cadr(args).unwrap();
         let env = caddr(args).unwrap();
+        // println!("env=> {}", exp_to_str(env.clone()));
         if env == Exp::List(Pair::Nil) {
             panic!("unbound variable: SET!");
         } else {
