@@ -156,6 +156,7 @@ pub mod primitives {
     // although these primitives below are more like machine ops,
     // but they are independent of machine and memory state,
     // such that these primitives are classified as semantic primitives
+
     #[allow(dead_code)]
     pub fn multiply(exp: &Exp) -> Exp {
         let lhs = car(exp).unwrap();
@@ -360,6 +361,9 @@ pub mod primitives {
             x if x == Exp::Symbol("-".to_string()) => substract(&argl),
             x if x == Exp::Symbol("*".to_string()) => multiply(&argl),
             x if x == Exp::Symbol("/".to_string()) => division(&argl),
+            x if x == Exp::Symbol("<".to_string()) => is_smaller_than(&argl),
+            x if x == Exp::Symbol(">".to_string()) => is_larger_than(&argl),
+            x if x == Exp::Symbol("=".to_string()) => is_eq(&argl),
             _ => {
                 panic!(
                     "Error: primitives not implemented yet: {}",
@@ -492,6 +496,7 @@ pub mod primitives {
             make_lambad(&args)
         }
     }
+
     // semantic operations that return a Scheme bool value
     #[allow(dead_code)]
     pub fn is_true(args: &Exp) -> Exp {
@@ -530,6 +535,66 @@ pub mod primitives {
             Exp::Bool(true)
         } else {
             Exp::Bool(false)
+        }
+    }
+
+    #[allow(dead_code)]
+    pub fn is_larger_than(args: &Exp) -> Exp {
+        let lhs = car(args).unwrap();
+        let rhs = cadr(args).unwrap();
+        match lhs {
+            Exp::Integer(x) => match rhs {
+                Exp::Integer(y) => {
+                    if x > y {
+                        Exp::Bool(true)
+                    } else {
+                        Exp::Bool(false)
+                    }
+                }
+                Exp::FloatNumber(y) => {
+                    let t = x as f32;
+                    if t > y {
+                        Exp::Bool(true)
+                    } else {
+                        Exp::Bool(false)
+                    }
+                }
+                _ => panic!("type mismatch for comparision!"),
+            },
+            Exp::FloatNumber(x) => match rhs {
+                Exp::Integer(y) => {
+                    let t = y as f32;
+                    if x > t {
+                        Exp::Bool(true)
+                    } else {
+                        Exp::Bool(false)
+                    }
+                }
+                Exp::FloatNumber(y) => {
+                    if x > y {
+                        Exp::Bool(true)
+                    } else {
+                        Exp::Bool(false)
+                    }
+                }
+                _ => panic!("type mismatch for comparision!"),
+            },
+            _ => panic!("type mismatch for comparision"),
+        }
+    }
+
+    #[allow(dead_code)]
+    pub fn is_smaller_than(args: &Exp) -> Exp {
+        let r = is_eq(args);
+        match r {
+            Exp::Bool(false) => {
+                let r = is_larger_than(args);
+                match r {
+                    Exp::Bool(false) => Exp::Bool(true),
+                    _ => Exp::Bool(false),
+                }
+            }
+            _ => Exp::Bool(false),
         }
     }
 
