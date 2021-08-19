@@ -265,7 +265,7 @@ mod test {
 
     #[test]
     fn get_list_from_memory_as_str_works() {
-        let mut memory = Memory::new(20);
+        let mut memory = Memory::new(30);
         let mut machine = BasicMachine::new();
         machine.initilize_registers();
         let s = "( 1  2 
@@ -290,5 +290,13 @@ mod test {
                 .unwrap()
                 .get_list_frome_memory_as_str(&memory)
         );
+
+        let s = "()";
+        let mut tokens = tokenizer(s.to_string());
+        let root = build_syntax_tree_into_memeory(&mut tokens, &mut memory, &mut machine);
+        machine.set_register_contents(&"root".to_string(), Object::Index(root));
+        let reg = machine.get_register(&"root".to_string()).unwrap();
+        let s = String::from("()");
+        assert_eq!(s, reg.get_list_frome_memory_as_str(&memory))
     }
 }

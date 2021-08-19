@@ -136,7 +136,7 @@ pub mod parser {
             panic!("Error: empty tokens in BUILD_SYNTAX_TREE_INTO_MEMORY");
         }
         if !syntax_checker(&tokens) {
-            panic!("syntax wrong!");
+            panic!("Error: syntax wrong in building syntax tree!");
         }
         let mut tokens = reverse(tokens);
         let free = machine.get_register(&"free".to_string()).unwrap();

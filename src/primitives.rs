@@ -482,7 +482,7 @@ pub mod primitives {
     #[allow(dead_code)]
     pub fn definition_value(args: &Exp) -> Exp {
         let exp = car(args).unwrap();
-        println!("def_value=> {}", exp_to_str(exp.clone()));
+        // println!("def_value=> {}", exp_to_str(exp.clone()));
         if cadr(&exp).unwrap().is_symbol() {
             if cddr(&exp).unwrap().is_null() {
                 Exp::List(Pair::Nil)
@@ -684,7 +684,7 @@ pub mod primitives {
     #[allow(dead_code)]
     pub fn is_self_evaluating(args: &Exp) -> Exp {
         let exp = car(args).unwrap();
-        println!("{:?}", exp.clone());
+        // println!("{:?}", exp.clone());
         let r = exp.is_bool()
             || exp.is_null()
             || exp.is_number()
