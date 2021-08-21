@@ -84,7 +84,9 @@ pub mod basic_machine {
         #[allow(dead_code)]
         pub fn initialize_env(&mut self, memory: &mut Memory) {
             let mut env = Exp::List(Pair::Nil);
-            let primitives = ["car", "cdr", "cons", "null?", "+", "-", "*", "/"];
+            let primitives = [
+                "car", "cdr", "cons", "null?", "+", "-", "*", "/", "<", ">", "=",
+            ];
             for item in primitives.iter() {
                 let mut p = str_to_exp("(primitive )".to_string());
                 let token = Exp::Symbol((**item).to_string());
@@ -238,7 +240,10 @@ pub mod basic_machine {
             let reg = self.get_register(&"pc".to_string()).unwrap();
             let index = reg.get_memory_index();
             let max_offset = self.instruction_sequence.len();
-            println!("Index of insts that is running =>  {}", index);
+            println!(
+                "insts that is running =>  {}",
+                exp_to_str(self.raw_instructions[index].clone())
+            );
             if index == max_offset {
                 println!("Done!");
                 return;
@@ -565,7 +570,7 @@ mod test {
     #[test]
     fn initialize_env_works() {
         let mut machine = BasicMachine::new();
-        let mut memory = Memory::new(40);
+        let mut memory = Memory::new(100);
         machine.initilize_registers();
         machine.initialize_env(&mut memory);
         let env = machine.get_register_contents_as_in_memory(&"env".to_string(), &memory);

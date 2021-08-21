@@ -139,8 +139,8 @@ pub mod primitives {
             Exp::Bool(true) => {
                 let val = scheme_list!(
                     Exp::Quote("compound-procedure".to_string()),
-                    procedure_parameters(&arg),
-                    procedure_body(&arg)
+                    procedure_parameters(exp),
+                    procedure_body(exp)
                 );
                 println!("{}", exp_to_str(val));
             }
