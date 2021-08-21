@@ -342,8 +342,8 @@ pub mod primitives {
         let argl = cadr(args).unwrap();
         let symbol = cadr(&proc).unwrap();
         match symbol {
-            x if x == Exp::Symbol("car".to_string()) => car(&argl).unwrap(),
-            x if x == Exp::Symbol("cdr".to_string()) => cdr(&argl).unwrap(),
+            x if x == Exp::Symbol("car".to_string()) => car(&car(&argl).unwrap()).unwrap(),
+            x if x == Exp::Symbol("cdr".to_string()) => cdr(&car(&argl).unwrap()).unwrap(),
             x if x == Exp::Symbol("cons".to_string()) => {
                 let lhs = car(&argl).unwrap();
                 let rhs = cadr(&argl).unwrap();
@@ -1103,12 +1103,12 @@ mod test {
             meta_apply_primitive_procedure(&args),
             str_to_exp("(1)".to_string())
         );
-        args = str_to_exp("((primitive car) (1 2 3))".to_string());
+        args = str_to_exp("((primitive car) ((1 2 3)))".to_string());
         assert_eq!(
             meta_apply_primitive_procedure(&args),
             str_to_exp("1".to_string())
         );
-        args = str_to_exp("((primitive cdr) (1 2 3))".to_string());
+        args = str_to_exp("((primitive cdr) ((1 2 3)))".to_string());
         assert_eq!(
             meta_apply_primitive_procedure(&args),
             str_to_exp("(2 3)".to_string())
