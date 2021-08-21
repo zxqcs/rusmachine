@@ -492,10 +492,18 @@ mod test {
         machine.set_register_contents_as_in_memory(&"root".to_string(), s, &mut memory);
         let ss = machine.get_register_contents_as_in_memory(&"root".to_string(), &memory);
         assert_eq!(ss, String::from("( define x '( + 1 2))"));
+        let s = "(3 ())".to_string();
+        machine.set_register_contents_as_in_memory(&"exp".to_string(), s, &mut memory);
+        let ss = machine.get_register_contents_as_in_memory(&"exp".to_string(), &memory);
+        assert_eq!(ss, String::from("( 3())"));
         let s = "()".to_string();
         machine.set_register_contents_as_in_memory(&"exp".to_string(), s, &mut memory);
         let ss = machine.get_register_contents_as_in_memory(&"exp".to_string(), &memory);
         assert_eq!(ss, String::from("()"));
+        let s = "(1 (2 () 3) 4 (() 5))".to_string();
+        machine.set_register_contents_as_in_memory(&"exp".to_string(), s, &mut memory);
+        let ss = machine.get_register_contents_as_in_memory(&"exp".to_string(), &memory);
+        assert_eq!(ss, String::from("( 1( 2() 3) 4(() 5))"));
     }
 
     #[test]

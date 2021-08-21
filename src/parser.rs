@@ -203,7 +203,14 @@ pub mod parser {
                                 let next_token = tokens.last();
                                 let null = ")".to_string();
                                 match next_token {
-                                    t if t == Some(&null) => flag = false,
+                                    t if t == Some(&null) => {
+                                        // in this case, this ")" must match to the preceding "("
+                                        // since nothing else exists between this pair of "()"
+                                        stack.push(free_index);
+                                        memory.update("car", Object::Nil, free_index);
+                                        machine.advance_free();
+                                        flag = false;
+                                    }
                                     _ => {
                                         flag = true;
                                         stack.push(
@@ -219,6 +226,16 @@ pub mod parser {
                         }
                         None => {
                             stack.push(free_index);
+                            let next_token = tokens.last();
+                            let null = ")".to_string();
+                            match next_token {
+                                t if t == Some(&null) => {
+                                    let index = stack.peek().unwrap();
+                                    memory.update("car", Object::Nil, index);
+                                    flag = false;
+                                }
+                                _ => flag = true,
+                            }
                             // note that the free indicator is always ahead of pair_index
                             machine.register_increment_by_one(&"free".to_string());
                         }

@@ -290,13 +290,19 @@ mod test {
                 .unwrap()
                 .get_list_frome_memory_as_str(&memory)
         );
-
         let s = "()";
         let mut tokens = tokenizer(s.to_string());
         let root = build_syntax_tree_into_memeory(&mut tokens, &mut memory, &mut machine);
         machine.set_register_contents(&"root".to_string(), Object::Index(root));
         let reg = machine.get_register(&"root".to_string()).unwrap();
         let s = String::from("()");
-        assert_eq!(s, reg.get_list_frome_memory_as_str(&memory))
+        assert_eq!(s, reg.get_list_frome_memory_as_str(&memory));
+        let s = "(1 2 (3 () 4) (() 5))";
+        let mut tokens = tokenizer(s.to_string());
+        let root = build_syntax_tree_into_memeory(&mut tokens, &mut memory, &mut machine);
+        machine.set_register_contents(&"root".to_string(), Object::Index(root));
+        let reg = machine.get_register(&"root".to_string()).unwrap();
+        let s = String::from("( 1 2( 3() 4)(() 5))");
+        assert_eq!(s, reg.get_list_frome_memory_as_str(&memory));
     }
 }
