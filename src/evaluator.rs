@@ -46,6 +46,7 @@ pub mod evaluator {
                               (op lookup-variable-value)
                               (reg exp)
                               (reg env))
+                      (perform (op print-reg-content) (reg val))
                       (goto (reg continue))
                     ev-lambda
                       (assign unev
@@ -129,6 +130,7 @@ pub mod evaluator {
                       (assign unev 
                               (op procedure-parameters)
                               (reg proc))
+                      (assign benv (reg env))
                       (assign env
                               (op extend-environment)
                               (reg unev)
@@ -137,24 +139,39 @@ pub mod evaluator {
                       (assign unev
                               (op procedure-body)
                               (reg proc))
-                      (goto (label ev-sequence))
+                      (goto (label ev-sequence-for-apply))
                     ev-begin
                       (assign unev
                               (op begin-actions)
                               (reg exp))
                       (save continue)
                       (goto (label ev-sequence))
+                    ev-sequence-for-apply
+                      (assign exp (op first-exp) (reg unev))
+                      (test (op last-exp?) (reg unev))
+                      (branch (label ev-sequence-last-exp-for-apply))
+                      (save unev)
+                      (assign continue
+                              (label ev-sequence-continue-for-apply))
+                      (goto (label eval-dispatch))
+                    ev-sequence-continue-for-apply
+                      (restore unev)
+                      (assign unev
+                              (op rest-exps)
+                              (reg unev))
+                      (goto (label ev-sequence-for-apply))
+                    ev-sequence-last-exp-for-apply
+                      (assign continue (label ev-restore-env))
+                      (goto (label eval-dispatch))
                     ev-sequence
                       (assign exp (op first-exp) (reg unev))
                       (test (op last-exp?) (reg unev))
                       (branch (label ev-sequence-last-exp))
                       (save unev)
-                      (save env)
                       (assign continue
                               (label ev-sequence-continue))
                       (goto (label eval-dispatch))
                     ev-sequence-continue
-                      (restore env)
                       (restore unev)
                       (assign unev
                               (op rest-exps)
@@ -199,7 +216,7 @@ pub mod evaluator {
                       (restore continue)
                       (restore env)
                       (restore unev)
-                      (perform (op set-variable-value!)
+                      (assign env (op set-variable-value!)
                                (reg unev)
                                (reg val)
                                (reg env))
@@ -242,6 +259,10 @@ pub mod evaluator {
                     signal-error
                       (perform (op user-print) (reg val))
                       (goto (label read-eval-print-loop))
+                    ev-restore-env
+                      (assign env (reg benv))
+                      (restore continue)
+                      (goto (reg continue))
                     )",
             }
         }

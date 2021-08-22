@@ -501,6 +501,7 @@ pub mod primitives {
     #[allow(dead_code)]
     pub fn is_true(args: &Exp) -> Exp {
         let exp = car(args).unwrap();
+        // println!("{}", exp_to_str(exp.clone()));
         match exp {
             Exp::Bool(true) => Exp::Bool(true),
             Exp::Bool(false) => Exp::Bool(false),
@@ -726,6 +727,7 @@ pub mod primitives {
         let var = car(args).unwrap();
         let env = cadr(args).unwrap();
         let empty_env = Exp::List(Pair::Nil);
+        println!("env=> {}", exp_to_str(env.clone()));
         if env == empty_env {
             panic!("Error: unbound variable {}", exp_to_str(var));
         } else {
@@ -833,7 +835,7 @@ pub mod primitives {
         let var = car(args).unwrap();
         let val = cadr(args).unwrap();
         let env = caddr(args).unwrap();
-        // println!("env=> {}", exp_to_str(env.clone()));
+        println!("env in set=> {}", exp_to_str(env.clone()));
         if env == Exp::List(Pair::Nil) {
             panic!("unbound variable: SET!");
         } else {

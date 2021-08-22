@@ -124,7 +124,7 @@ pub mod assembler {
         machine: &mut BasicMachine,
         memory: &mut Memory,
     ) -> Box<dyn FnOnce(&mut BasicMachine, &mut Memory) -> Exp> {
-        println!("inst to be assembled => {}", exp_to_str(inst.clone()));
+        // println!("inst to be assembled => {}", exp_to_str(inst.clone()));
         let symbol = car(&inst).unwrap();
         let assign = Exp::Symbol("assign".to_string());
         let test = Exp::Symbol("test".to_string());
@@ -241,6 +241,7 @@ pub mod assembler {
         _memory: &mut Memory,
     ) -> Box<dyn FnOnce(&mut BasicMachine, &mut Memory) -> Exp> {
         let dest = goto_dest(&inst);
+        // println!("{}", exp_to_str(inst.clone()));
         match dest {
             x if is_label_exp(&x) => {
                 let index = lookup_label(machine, &exp_to_str(label_exp_label(&x))).unwrap();
