@@ -73,6 +73,8 @@ pub mod basic_machine {
                 .insert("proc".to_string(), Register::new("PROC"));
             self.registers
                 .insert("benv".to_string(), Register::new("BENV"));
+            self.registers
+                .insert("cenv".to_string(), Register::new("CENV"));
             self.registers.insert(
                 "relocate_continue".to_string(),
                 Register::new("RELOCATE_CONTINUE"),
@@ -135,6 +137,7 @@ pub mod basic_machine {
                 "rest-operands",
                 "meta-apply-primitive-procedure",
                 "print-reg-content",
+                "print-message",
                 "lambda-parameters",
                 "lambda-body",
                 "adjoin-arg",
@@ -189,6 +192,7 @@ pub mod basic_machine {
                 rest_operands,
                 meta_apply_primitive_procedure,
                 print_reg_content,
+                print_message,
                 lambda_parameters,
                 lambda_body,
                 adjoin_arg,
@@ -242,10 +246,12 @@ pub mod basic_machine {
             let reg = self.get_register(&"pc".to_string()).unwrap();
             let index = reg.get_memory_index();
             let max_offset = self.instruction_sequence.len();
+            /* 
             println!(
                 "insts that is running =>  {}",
                 exp_to_str(self.raw_instructions[index].clone())
             );
+            */
             if index == max_offset {
                 println!("Done!");
                 return;

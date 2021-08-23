@@ -373,7 +373,7 @@ pub mod primitives {
         }
     }
 
-    // This primitive is used to debug evaluator controller as to print the content
+    //primitive that is used to debug evaluator controller as to print the content
     // of specific register in the process of evaluation
     #[allow(dead_code)]
     pub fn print_reg_content(args: &Exp) -> Exp {
@@ -382,6 +382,13 @@ pub mod primitives {
         Exp::Quote("ok".to_string())
     }
 
+    #[allow(dead_code)]
+    pub fn print_message(args: &Exp) -> Exp {
+        let message = car(args).unwrap();
+        println!("{}", exp_to_str(message));
+        Exp::Quote("ok".to_string())
+    } 
+        
     // semantic primitives that are related to lambda dispatch
     #[allow(dead_code)]
     pub fn lambda_parameters(args: &Exp) -> Exp {
@@ -727,7 +734,7 @@ pub mod primitives {
         let var = car(args).unwrap();
         let env = cadr(args).unwrap();
         let empty_env = Exp::List(Pair::Nil);
-        println!("env=> {}", exp_to_str(env.clone()));
+        // println!("env=> {}", exp_to_str(env.clone()));
         if env == empty_env {
             panic!("Error: unbound variable {}", exp_to_str(var));
         } else {

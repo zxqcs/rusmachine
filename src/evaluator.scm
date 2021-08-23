@@ -11,9 +11,9 @@
 (define EC-EVALUATOR-CONTROLLER	
 '(
 read-eval-print-loop
-  (perform (op initialize-stack)) 
-  (perform (op prompt-for-input)) 
-  (perform exp (op read)) 
+  (perform (op initialize-stack))
+  (perform (op prompt-for-input))
+  (perform (op read))
   (assign continue (label print-result))
   (goto (label eval-dispatch))
 print-result
@@ -22,7 +22,6 @@ print-result
   (goto (label read-eval-print-loop))
 eval-dispatch
   (test (op self-evaluating?) (reg exp))
-  (perform (op print-reg-content)(reg flag))
   (branch (label ev-self-eval))
   (test (op variable?) (reg exp))
   (branch (label ev-variable))
@@ -44,22 +43,22 @@ ev-self-eval
   (goto (reg continue))
 ev-variable
   (assign val
-          (op lookup-variable-value)
-          (reg exp)
-          (reg env))
+        (op lookup-variable-value)
+        (reg exp)
+        (reg env))
   (goto (reg continue))
 ev-lambda
   (assign unev
-          (op lambda-parameters)
-          (reg exp))
+        (op lambda-parameters)
+        (reg exp))
   (assign exp 
-          (op lambda-body)
-          (reg exp))
+        (op lambda-body)
+        (reg exp))
   (assign val 
-          (op make-procedure)
-          (reg unev)
-          (reg exp)
-          (reg env))
+        (op make-procedure)
+        (reg unev)
+        (reg exp)
+        (reg env))
   (goto (reg continue))
 ev-application
   (save continue)
@@ -68,7 +67,7 @@ ev-application
   (save unev)
   (assign exp (op operator) (reg exp))
   (assign
-   continue (label ev-appl-did-operator))
+  continue (label ev-appl-did-operator))
   (goto (label eval-dispatch))
 ev-appl-did-operator
   (restore unev)             
@@ -81,37 +80,37 @@ ev-appl-did-operator
 ev-appl-operand-loop
   (save argl)
   (assign exp
-          (op first-operand)
-          (reg unev))
+        (op first-operand)
+        (reg unev))
   (test (op last-operand?) (reg unev))
   (branch (label ev-appl-last-arg))
   (save env)
   (save unev)
   (assign continue 
-          (label ev-appl-accumulate-arg))
+        (label ev-appl-accumulate-arg))
   (goto (label eval-dispatch))
 ev-appl-accumulate-arg
   (restore unev)
   (restore env)
   (restore argl)
   (assign argl 
-          (op adjoin-arg)
-          (reg val)
-          (reg argl))
+        (op adjoin-arg)
+        (reg val)
+        (reg argl))
   (assign unev
-          (op rest-operands)
-          (reg unev))
+        (op rest-operands)
+        (reg unev))
   (goto (label ev-appl-operand-loop))
 ev-appl-last-arg
   (assign continue 
-          (label ev-appl-accum-last-arg))
+        (label ev-appl-accum-last-arg))
   (goto (label eval-dispatch))
 ev-appl-accum-last-arg
   (restore argl)
   (assign argl 
-          (op adjoin-arg)
-          (reg val)
-          (reg argl))
+        (op adjoin-arg)
+        (reg val)
+        (reg argl))
   (restore proc)
   (goto (label apply-dispatch))
 apply-dispatch
@@ -122,44 +121,60 @@ apply-dispatch
   (goto (label unknown-procedure-type))
 primitive-apply
   (assign val (op meta-apply-primitive-procedure)
-              (reg proc)
-              (reg argl))
+            (reg proc)
+            (reg argl))
   (restore continue)
   (goto (reg continue))
 compound-apply
   (assign unev 
-          (op procedure-parameters)
-          (reg proc))
+        (op procedure-parameters)
+        (reg proc))
+  (assign benv (reg env))
   (assign env
-          (op extend-environment)
-          (reg unev)
-          (reg argl)
-          (reg env))
+        (op extend-environment)
+        (reg unev)
+        (reg argl)
+        (reg env))
   (assign unev
-          (op procedure-body)
-          (reg proc))
-  (goto (label ev-sequence))
+        (op procedure-body)
+        (reg proc))
+  (goto (label ev-sequence-for-apply))
 ev-begin
   (assign unev
-          (op begin-actions)
-          (reg exp))
+        (op begin-actions)
+        (reg exp))
   (save continue)
   (goto (label ev-sequence))
-ev-sequence
+ev-sequence-for-apply
   (assign exp (op first-exp) (reg unev))
   (test (op last-exp?) (reg unev))
-  (branch (label ev-sequence-last-exp))
+  (branch (label ev-sequence-last-exp-for-apply))
   (save unev)
-  (save env)
   (assign continue
-          (label ev-sequence-continue))
+        (label ev-sequence-continue-for-apply))
   (goto (label eval-dispatch))
-ev-sequence-continue
-  (restore env)
+ev-sequence-continue-for-apply
   (restore unev)
   (assign unev
-          (op rest-exps)
-          (reg unev))
+        (op rest-exps)
+        (reg unev))
+  (goto (label ev-sequence-for-apply))
+ev-sequence-last-exp-for-apply
+  (assign continue (label ev-restore-env))
+  (goto (label eval-dispatch))
+ev-sequence
+  (assign exp (op first-exp) (reg unev))
+(test (op last-exp?) (reg unev))
+  (branch (label ev-sequence-last-exp))
+  (save unev)
+  (assign continue
+        (label ev-sequence-continue))
+  (goto (label eval-dispatch))
+ev-sequence-continue
+  (restore unev)
+  (assign unev
+        (op rest-exps)
+        (reg unev))
   (goto (label ev-sequence))
 ev-sequence-last-exp
   (restore continue)
@@ -185,36 +200,36 @@ ev-if-consequent
   (goto (label eval-dispatch))
 ev-assignment
   (assign unev 
-          (op assignment-variable)
-          (reg exp))
+        (op assignment-variable)
+        (reg exp))
   (save unev)  
   (assign exp
-          (op assignment-value)
-          (reg exp))
+        (op assignment-value)
+        (reg exp))
   (save env)
   (save continue)
   (assign continue
-          (label ev-assignment-1))
+        (label ev-assignment-1))
   (goto (label eval-dispatch))  
 ev-assignment-1
   (restore continue)
   (restore env)
   (restore unev)
-  (perform (op set-variable-value!)
-           (reg unev)
-           (reg val)
-           (reg env))
+  (assign env (op set-variable-value!)
+         (reg unev)
+         (reg val)
+         (reg env))
   (assign val
-          (const 'ok))
+        (const 'ok))
   (goto (reg continue))
 ev-definition
   (assign unev 
-          (op definition-variable)
-          (reg exp))
+        (op definition-variable)
+        (reg exp))
   (save unev)   
   (assign exp 
-          (op definition-value)
-          (reg exp))
+        (op definition-value)
+        (reg exp))
   (save env)
   (save continue)
   (assign continue (label ev-definition-1))
@@ -224,9 +239,9 @@ ev-definition-1
   (restore env)
   (restore unev)
   (assign env (op define-variable!)
-           (reg unev)
-           (reg val)
-           (reg env))
+         (reg unev)
+         (reg val)
+         (reg env))
   (assign val (const 'ok))
   (goto (reg continue))
 unknown-expression-type
@@ -234,7 +249,7 @@ unknown-expression-type
    val
    (const 'unknown-expression-type-error))
   (goto (label signal-error))
-unknown-procedure-type
+  unknown-procedure-type
   (restore continue)    
   (assign 
    val
@@ -243,4 +258,8 @@ unknown-procedure-type
 signal-error
   (perform (op user-print) (reg val))
   (goto (label read-eval-print-loop))
+ev-restore-env
+  (assign env (reg benv))
+  (restore continue)
+  (goto (reg continue))
 ))
