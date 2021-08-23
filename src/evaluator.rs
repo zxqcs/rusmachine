@@ -46,7 +46,6 @@ pub mod evaluator {
                               (op lookup-variable-value)
                               (reg exp)
                               (reg env))
-                      (perform (op print-reg-content) (reg val))
                       (goto (reg continue))
                     ev-lambda
                       (assign unev
@@ -131,6 +130,9 @@ pub mod evaluator {
                               (op procedure-parameters)
                               (reg proc))
                       (assign benv (reg env))
+                      (save benv)
+                      (perform (op print-message)(const 'env-before-extend-compound-apply))
+                      (perform (op print-reg-content)(reg env))
                       (assign env
                               (op extend-environment)
                               (reg unev)
@@ -145,7 +147,7 @@ pub mod evaluator {
                               (op begin-actions)
                               (reg exp))
                       (save continue)
-                      (goto (label ev-sequence))
+                      (goto (label ev-sequence-for-begin))
                     ev-sequence-for-apply
                       (assign exp (op first-exp) (reg unev))
                       (test (op last-exp?) (reg unev))
@@ -153,31 +155,41 @@ pub mod evaluator {
                       (save unev)
                       (assign continue
                               (label ev-sequence-continue-for-apply))
+                      (perform (op print-message)(const 'env-ev-sequence-for-apply))
+                      (perform (op print-reg-content)(reg env))
                       (goto (label eval-dispatch))
                     ev-sequence-continue-for-apply
+                      (perform (op print-message)(const 'env-ev-sequence-continue-for-apply))
+                      (perform (op print-reg-content)(reg env))
                       (restore unev)
                       (assign unev
                               (op rest-exps)
                               (reg unev))
                       (goto (label ev-sequence-for-apply))
                     ev-sequence-last-exp-for-apply
+                      (perform (op print-message)(const 'env-ev-sequence-last-exp-for-apply))
+                      (perform (op print-reg-content)(reg env))
                       (assign continue (label ev-restore-env))
                       (goto (label eval-dispatch))
-                    ev-sequence
+                    ev-sequence-for-begin
+                      (perform (op print-message)(const 'env-ev-sequence-for-begin))
+                      (perform (op print-reg-content)(reg env))
                       (assign exp (op first-exp) (reg unev))
                       (test (op last-exp?) (reg unev))
-                      (branch (label ev-sequence-last-exp))
+                      (branch (label ev-sequence-last-exp-for-begin))
                       (save unev)
                       (assign continue
-                              (label ev-sequence-continue))
+                              (label ev-sequence-continue-for-begin))
                       (goto (label eval-dispatch))
-                    ev-sequence-continue
+                    ev-sequence-continue-for-begin
+                      (perform (op print-message)(const 'env-ev-sequence-continue-for-begin))
+                      (perform (op print-reg-content)(reg env))
                       (restore unev)
                       (assign unev
                               (op rest-exps)
                               (reg unev))
-                      (goto (label ev-sequence))
-                    ev-sequence-last-exp
+                      (goto (label ev-sequence-for-begin))
+                    ev-sequence-last-exp-for-begin
                       (restore continue)
                       (goto (label eval-dispatch))
                     ev-if
@@ -260,7 +272,10 @@ pub mod evaluator {
                       (perform (op user-print) (reg val))
                       (goto (label read-eval-print-loop))
                     ev-restore-env
+                      (restore benv)
                       (assign env (reg benv))
+                      (perform (op print-message) (const 'env-ev-restore-env))
+                      (perform (op print-reg-content) (reg env))
                       (restore continue)
                       (goto (reg continue))
                     )",

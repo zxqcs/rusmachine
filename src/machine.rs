@@ -246,12 +246,12 @@ pub mod basic_machine {
             let reg = self.get_register(&"pc".to_string()).unwrap();
             let index = reg.get_memory_index();
             let max_offset = self.instruction_sequence.len();
-            /* 
+            /*
             println!(
                 "insts that is running =>  {}",
                 exp_to_str(self.raw_instructions[index].clone())
             );
-            */
+             */
             if index == max_offset {
                 println!("Done!");
                 return;

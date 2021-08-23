@@ -387,8 +387,8 @@ pub mod primitives {
         let message = car(args).unwrap();
         println!("{}", exp_to_str(message));
         Exp::Quote("ok".to_string())
-    } 
-        
+    }
+
     // semantic primitives that are related to lambda dispatch
     #[allow(dead_code)]
     pub fn lambda_parameters(args: &Exp) -> Exp {
@@ -842,7 +842,7 @@ pub mod primitives {
         let var = car(args).unwrap();
         let val = cadr(args).unwrap();
         let env = caddr(args).unwrap();
-        println!("env in set=> {}", exp_to_str(env.clone()));
+        // println!("env in set=> {}", exp_to_str(env.clone()));
         if env == Exp::List(Pair::Nil) {
             panic!("unbound variable: SET!");
         } else {
