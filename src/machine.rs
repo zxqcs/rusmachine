@@ -73,8 +73,6 @@ pub mod basic_machine {
                 .insert("proc".to_string(), Register::new("PROC"));
             self.registers
                 .insert("benv".to_string(), Register::new("BENV"));
-            self.registers
-                .insert("cenv".to_string(), Register::new("CENV"));
             self.registers.insert(
                 "relocate_continue".to_string(),
                 Register::new("RELOCATE_CONTINUE"),
